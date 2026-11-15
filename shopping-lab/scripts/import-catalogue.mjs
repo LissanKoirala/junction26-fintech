@@ -18,6 +18,11 @@ const priceUpdates = {
 async function download(record) {
   let bytes;
   if (useLocal) {
+    try {
+      const cached = await readFile(new URL(`${record.id}.webp`, images));
+      const metadata = await sharp(cached).metadata();
+      if (metadata.format === 'webp' && metadata.width > 0 && metadata.height > 0) return `/products/${record.id}.webp`;
+    } catch { /* Normalize a local original if no valid WebP is already cached. */ }
     for (const ext of ['png', 'jpg', 'webp']) {
       try { bytes = await readFile(new URL(`${record.id}.${ext}`, images)); break; } catch {}
     }
@@ -86,6 +91,30 @@ for (let offset = 0; offset < research.products.length; offset += 4) {
   }
 }
 
-const source = `import type { Product, ShopId } from './shop-contract';\n\n// Real product facts cached from official public pages. Sizes are explicitly simulated.\n// FetchedAt records research retrieval time; source pages may be older cached crawls.\nexport const CATALOGUE_VERSION = '2026-11-15.2';\n\nexport const catalogue: Product[] = ${JSON.stringify(results, null, 2)};\n\nexport function getProducts(store: ShopId): Product[] {\n  return store === 'generic' ? catalogue : catalogue.filter((product) => product.store === store);\n}\n`;
+// Additional merchant snapshots preserve the exact source price and image evidence.
+// Keep this part of regeneration so a later image refresh cannot discard the larger range.
+for (const store of ['stockx', 'zara']) {
+  const additions = JSON.parse(await readFile(new URL(`data/additions-${store}.json`, project), 'utf8'));
+  if (!Array.isArray(additions) || additions.length !== 16) throw new Error(`${store}: expected 16 additional sourced products`);
+  for (let offset = 0; offset < additions.length; offset += 4) {
+    const batch = await Promise.all(additions.slice(offset, offset + 4).map(async ({ product, evidence }) => {
+      const source = new URL(product.sourceUrl);
+      const host = store === 'stockx' ? 'stockx.com' : 'zara.com';
+      if (product.store !== store || !product.id.startsWith(`${store}-extra-`) ||
+          source.protocol !== 'https:' || !(source.hostname === host || source.hostname.endsWith(`.${host}`)) ||
+          !Number.isInteger(product.price) || product.price <= 0 || product.price >= 100000000 ||
+          typeof evidence?.priceText !== 'string' || !evidence.priceText || typeof evidence.imageUrl !== 'string' ||
+          evidence.currency !== 'EUR' || !Number.isFinite(evidence.amount) || Math.round(evidence.amount * 100) !== product.price ||
+          !Array.isArray(product.sizes) || product.sizes.some(size => typeof size !== 'string') ||
+          !Number.isFinite(Date.parse(product.fetchedAt))) throw new Error(`${store}: incomplete source snapshot`);
+      const image = await download({ id: product.id, storefront: store === 'stockx' ? 'StockX' : 'Zara', image: { url: evidence.imageUrl } });
+      return { ...product, image };
+    }));
+    results.push(...batch);
+  }
+}
+if (new Set(results.map(product => product.id)).size !== results.length) throw new Error('Duplicate catalogue product IDs');
+
+const source = `import type { Product, ShopId } from './shop-contract';\n\n// Real product facts cached from official public pages. Sizes are explicitly simulated.\n// FetchedAt records research retrieval time; source pages may be older cached crawls.\nexport const CATALOGUE_VERSION = '2026-11-15.3';\n\nexport const catalogue: Product[] = ${JSON.stringify(results, null, 2)};\n\nexport function getProducts(store: ShopId): Product[] {\n  return store === 'generic' ? catalogue : catalogue.filter((product) => product.store === store);\n}\n`;
 await writeFile(new URL('lib/catalogue.ts', project), source);
 console.log(`Imported ${results.length} real products into ${fileURLToPath(project)}`);
