@@ -15,9 +15,9 @@ const fi: Record<string, string> = {
   "Next payday {date} · in {n} days": "Seuraava palkkapäivä {date} · {n} päivän päästä",
   "Spent {amount} since {date}": "Käytetty {amount} {date} alkaen",
   "Week's room {amount}": "Viikon vara {amount}",
-  "Usual week {amount}": "Tavallinen viikko {amount}",
+  "Usual week of everyday extras {amount}": "Tavallinen viikko arjen ekstroihin {amount}",
   "Share of this week's room still free": "Osuus tämän viikon varasta, joka on vielä vapaana",
-  "This week's spending compared with your usual week": "Tämän viikon kulutus verrattuna tavalliseen viikkoosi",
+  "This week's everyday extras compared with your usual week of everyday extras": "Tämän viikon arjen ekstrat verrattuna tavalliseen viikkoosi arjen ekstroihin",
   "Plenty of room": "Varaa riittää",
   "Why this number?": "Mistä luku tulee?",
   "Your balance is not your budget. Vara first sets aside what must be paid before your next payday, then shares the rest across the weeks until then.":
@@ -45,12 +45,13 @@ const fi: Record<string, string> = {
   "Money is tight until payday. Small choices make a real difference now.": "Raha on tiukalla palkkapäivään asti. Pienillä valinnoilla on nyt iso merkitys.",
   "{amount} safe for the rest of this week. Small choices make a difference now.": "{amount} käyttövaraa loppuviikolle. Pienillä valinnoilla on nyt merkitystä.",
   "A bit tight": "Hieman tiukka",
-  "Your musts are covered, but this week's room is smaller than your usual week. Pick the extras that matter most.":
-    "Pakolliset on katettu, mutta tämän viikon vara on tavallista viikkoasi pienempi. Valitse ekstroista tärkeimmät.",
-  "{amount} safe for the rest of this week, a bit less than you usually spend.": "{amount} käyttövaraa loppuviikolle, hieman vähemmän kuin yleensä käytät.",
+  "Your musts are covered, but this week's room is smaller than your usual week of everyday extras. Pick the extras that matter most.":
+    "Pakolliset on katettu, mutta tämän viikon vara on pienempi kuin tavallinen viikkosi arjen ekstroihin. Valitse ekstroista tärkeimmät.",
+  "{amount} safe for the rest of this week, a bit less than your usual week of everyday extras.":
+    "{amount} käyttövaraa loppuviikolle, hieman vähemmän kuin tavallinen viikkosi arjen ekstroihin.",
   "Well covered": "Hyvin katettu",
-  "Plenty of room: your musts are covered with lots to spare. Staying near your usual week lets your savings keep growing.":
-    "Varaa riittää: pakolliset on katettu ja ylimääräistä jää runsaasti. Kun pysyt lähellä tavallista viikkoasi, säästösi jatkavat kasvuaan.",
+  "Plenty of room: your musts are covered with lots to spare. Staying near your usual week of everyday extras lets your savings keep growing.":
+    "Varaa riittää: pakolliset on katettu ja ylimääräistä jää runsaasti. Kun pysyt lähellä tavallista viikkoasi arjen ekstroissa, säästösi jatkavat kasvuaan.",
   "Plenty of room: {amount} is free until payday.": "Varaa riittää: {amount} on vapaana palkkapäivään asti.",
   "Plenty of room: {amount} is free for the next 30 days.": "Varaa riittää: {amount} on vapaana seuraavat 30 päivää.",
   Comfortable: "Hyvä tilanne",

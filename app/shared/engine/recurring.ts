@@ -39,6 +39,7 @@ export interface SalaryInfo {
   irregular?: boolean; // tail cohort, salaries missing in 2+ of the last 6 complete months, or scattered pay days
   irregularWhy?: "tail" | "missing" | "scattered";
   lateCount12?: number; // of the salaries in the last 12 months, how many did not come on the 15th
+  midOrEnd12?: boolean; // every salary of the last 12 months came within 2 days of the 15th or on day 26 or later
 }
 const salaryMemo = memo<SalaryInfo>();
 export function salaryInfo(c: CustomerData): SalaryInfo {
@@ -64,6 +65,7 @@ export function salaryInfo(c: CustomerData): SalaryInfo {
     last: all.length ? all[all.length - 1].date : null,
     regular: new Set(last6.map((t) => monthKey(t.date))).size >= 3,
     lateCount12: late.length,
+    midOrEnd12: days.length > 0 && days.every((d) => Math.abs(d - 15) <= 2 || d >= 26),
   };
   // Irregular income (no confident payday): tail cohort; or a salary missing in 2+ of the last 6 complete months;
   // or scattered pay days: 2+ of the last 6 salaries came neither within 2 days of the 15th nor on day 26 or later.
@@ -115,7 +117,9 @@ export function predictPaydays(c: CustomerData, horizonDays = 45): PaydayPredict
       },
     ];
   }
-  const use15 = s.share15 >= 0.5;
+  // The pay day is the 15th, sometimes late: either it was the 15th in most months, or every salary of the last 12
+  // months fell near the 15th or at the end of the month (late months are not a new pay day).
+  const use15 = s.share15 >= 0.5 || (s.midOrEnd12 === true && s.share15 > 0);
   const nPaid = Math.round(s.share15 * Math.max(1, Math.min(12, s.monthsSeen)));
   const basis = use15
     ? nPaid >= Math.min(12, s.monthsSeen)
@@ -146,7 +150,8 @@ export function predictPaydays(c: CustomerData, horizonDays = 45): PaydayPredict
       daysAway,
       estimated: false,
       basis,
-      latest: use15 && monthEnd(m) > date ? monthEnd(m) : undefined,
+      // always defined: the end of the month, or a couple of days after a predicted end-of-month day
+      latest: monthEnd(m) > date ? monthEnd(m) : addDays(date, 2),
       lateCount: use15 ? (s.lateCount12 ?? 0) : undefined,
       monthsSeen: use15 ? Math.min(12, s.monthsSeen) : undefined,
     });
@@ -305,8 +310,8 @@ export const getRecurring: GetRecurring = (c) => {
       amountLow: r2(s.low),
       amountHigh: r2(s.high),
       cadence: "monthly",
-      typicalDayFrom: s.share15 >= 0.5 ? 15 : Math.max(26, s.lateDay - 2),
-      typicalDayTo: s.share15 >= 0.5 ? 15 : 31,
+      typicalDayFrom: s.share15 >= 0.5 || (s.midOrEnd12 && s.share15 > 0) ? 15 : Math.max(26, s.lateDay - 2),
+      typicalDayTo: s.share15 >= 0.5 || (s.midOrEnd12 && s.share15 > 0) ? 15 : 31,
       monthsSeen: s.monthsSeen,
       lastDate: s.last,
       nextFrom: pay && !pay.estimated ? pay.date : null,

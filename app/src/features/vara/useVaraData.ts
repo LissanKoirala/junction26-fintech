@@ -38,14 +38,14 @@ export function statusWording(s: SafeToSpend): { label: string; line: string; co
     return {
       label: t("A bit tight"),
       tone: "info",
-      coach: t("Your musts are covered, but this week's room is smaller than your usual week. Pick the extras that matter most."),
-      line: t("{amount} safe for the rest of this week, a bit less than you usually spend.", { amount: left }),
+      coach: t("Your musts are covered, but this week's room is smaller than your usual week of everyday extras. Pick the extras that matter most."),
+      line: t("{amount} safe for the rest of this week, a bit less than your usual week of everyday extras.", { amount: left }),
     };
   if (s.wellCovered)
     return {
       label: t("Well covered"),
       tone: "success",
-      coach: t("Plenty of room: your musts are covered with lots to spare. Staying near your usual week lets your savings keep growing."),
+      coach: t("Plenty of room: your musts are covered with lots to spare. Staying near your usual week of everyday extras lets your savings keep growing."),
       line: s.nextPayday.estimated
         ? t("Plenty of room: {amount} is free for the next 30 days.", { amount: money(Math.max(0, s.freeUntilPayday), { whole: true }) })
         : t("Plenty of room: {amount} is free until payday.", { amount: money(Math.max(0, s.freeUntilPayday), { whole: true }) }),
@@ -90,7 +90,7 @@ export function safeView(s: SafeToSpend): SafeView {
       support: est ? t("{amount} free for the next 30 days after your musts", { amount: m(free) }) : t("{amount} free until payday after your musts", { amount: m(free) }),
       payday,
       late,
-      bar: { value: typical > 0 ? spent / typical : 0, label: t("This week's spending compared with your usual week"), left: spentLeft, right: t("Usual week {amount}", { amount: m(typical) }) },
+      bar: { value: typical > 0 ? spent / typical : 0, label: t("This week's everyday extras compared with your usual week of everyday extras"), left: spentLeft, right: t("Usual week of everyday extras {amount}", { amount: m(typical) }) },
     };
   }
   const room = spent + remaining;

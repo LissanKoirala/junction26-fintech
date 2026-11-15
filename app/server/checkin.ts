@@ -21,7 +21,7 @@ import { PERSONAS } from "../shared/personas";
 import { tr, type Lang } from "../shared/i18n";
 
 const CACHE_DIR = path.join(DATA_DIR, "cache", "checkin");
-const VERSION = 1;
+const VERSION = 2; // v2: the two week figures got separate names ("all spending in a typical week" / "usual week of everyday extras")
 
 interface Draft {
   facts: Record<string, unknown>;
@@ -53,11 +53,11 @@ async function buildDraft(c: CustomerData, lang: Lang = "en"): Promise<Draft> {
     label: t("Spent last week"),
     value: w.spending,
     unit: "eur",
-    comparison: w.vsTypicalWeekPct == null ? undefined : { label: t("vs a typical week"), deltaAbs: r2(w.spending - (w.typicalSpending ?? 0)), deltaPct: w.vsTypicalWeekPct, good: w.vsTypicalWeekPct <= 0 },
+    comparison: w.vsTypicalWeekPct == null ? undefined : { label: t("vs all spending in a typical week"), deltaAbs: r2(w.spending - (w.typicalSpending ?? 0)), deltaPct: w.vsTypicalWeekPct, good: w.vsTypicalWeekPct <= 0 },
     caption: w.smallPurchases.count ? T.tn("{n} small purchase ({v})", "{n} small purchases ({v})", w.smallPurchases.count, { v: eur(w.smallPurchases.total) }) : undefined,
-    explain: { tool: "engine.getWeekSummary", filters: [t("Typical week = median of the previous 12 weeks")], period: week, source: src },
+    explain: { tool: "engine.getWeekSummary", filters: [t("All spending in a typical week = median of the previous 12 weeks")], period: week, source: src },
   };
-  const recapFacts = { spent: w.spending, typical_week: w.typicalSpending, vs_typical_pct: w.vsTypicalWeekPct, top_categories: w.topCategories.slice(0, 3).map((k) => ({ label: k.label, total: k.total })), small_purchases: w.smallPurchases, biggest: w.biggest ? { category: w.biggest.category, amount: -w.biggest.amount, date: w.biggest.date } : null, income: w.income, lowest_balance: w.lowestBalance };
+  const recapFacts = { spent: w.spending, all_spending_in_a_typical_week: w.typicalSpending, vs_typical_pct: w.vsTypicalWeekPct, top_categories: w.topCategories.slice(0, 3).map((k) => ({ label: k.label, total: k.total })), small_purchases: w.smallPurchases, biggest: w.biggest ? { category: w.biggest.category, amount: -w.biggest.amount, date: w.biggest.date } : null, income: w.income, lowest_balance: w.lowestBalance };
   slides.push({
     id: "recap",
     kind: "recap",
@@ -66,7 +66,7 @@ async function buildDraft(c: CustomerData, lang: Lang = "en"): Promise<Draft> {
     fallback: {
       eyebrow: t("Your week"),
       title: t("You spent {v} last week", { v: eur0(w.spending) }),
-      body: w.vsTypicalWeekPct == null ? t("Here is how your week looked.") : w.vsTypicalWeekPct <= 0 ? t("That is less than a typical week for you. Nice.") : t("That is a bit more than a typical week for you."),
+      body: w.vsTypicalWeekPct == null ? t("Here is how your week looked.") : w.vsTypicalWeekPct <= 0 ? t("That is less than all your spending in a typical week. Nice.") : t("That is a bit more than all your spending in a typical week."),
     },
   });
   // 2. baskets
@@ -133,7 +133,7 @@ async function buildDraft(c: CustomerData, lang: Lang = "en"): Promise<Draft> {
   const challenge: Challenge = {
     id: `everyday-${chWeek.from}`,
     title: t("Keep {basket} under {v} this week", { basket: bl("everyday").toLowerCase(), v: eur0(target) }),
-    why: t("A typical week for you is about {v} of {basket}.", { v: eur0(baseline), basket: bl("everyday").toLowerCase() }),
+    why: t("Your usual week of everyday extras is about {v}.", { v: eur0(baseline) }),
     metric: { kind: "everyday_spend", unit: "eur" },
     target,
     baseline: r2(baseline),
@@ -144,7 +144,7 @@ async function buildDraft(c: CustomerData, lang: Lang = "en"): Promise<Draft> {
     id: "challenge",
     kind: "challenge",
     card: { id: "challenge", kind: "action", action: "start_challenge", label: t("Start the challenge"), description: challenge.title, payload: { challengeId: challenge.id, metric: "everyday_spend", target, baseline: challenge.baseline }, explain: { tool: "engine", filters: [t("Target = 85% of your typical week of everyday extras (last 3 full months), capped at safe-to-spend")], source: src } },
-    facts: { target, typical_week: r2(baseline), potential_monthly_saving: potentialMonthlySaving, week: chWeek },
+    facts: { target, usual_week_of_everyday_extras: r2(baseline), potential_monthly_saving: potentialMonthlySaving, week: chWeek },
     fallback: { eyebrow: t("Your challenge"), title: challenge.title, body: t("If it sticks, that frees about {v} a month.", { v: eur0(potentialMonthlySaving) }) },
   });
   const persona = PERSONAS.find((p) => p.id === c.id);
@@ -165,11 +165,11 @@ const WordingSchema = z.object({
 
 const wordingSystem = (lang: Lang) => `You write the weekly check-in of Vara, a warm money coach for young adults in S-Pankki's S-mobiili app (a Junction 2026 concept). It is shown as swipeable full-screen story slides in ${lang === "fi" ? "Finnish" : "English"}.
 ${lang === "fi" ? 'Write everything in natural, informal Finnish (sinä), calm and never shaming. Terms: käyttövara (safe to spend), palkkapäivä, saldo, puskuri, säästötavoite, viikkokatsaus. Write amounts the Finnish way, like "224 €" or "1 743,50 €".\n' : ""}Rules: plain, warm, concrete, never moralising; praise small steps. Each slide: eyebrow (1-3 words), title (one short sentence, at most 70 characters), body (1-3 short sentences, at most 220 characters). Use the three basket names exactly: "${basketLabel("must_regular", lang)}", "${basketLabel("must_irregular", lang)}", "${basketLabel("everyday", lang)}".
-Numbers: use only numbers that appear in the facts, copied exactly or rounded to whole euros (written like "224 €"). Never compute new numbers (no sums, differences or percentages of your own). No merchant names exist; do not invent any. The lesson slide teaches the concept using the given example. The challenge title must contain the target amount. Keep one slide per given id, same order.`;
+Numbers: use only numbers that appear in the facts, copied exactly or rounded to whole euros (written like "224 €"). Never compute new numbers (no sums, differences or percentages of your own). No merchant names exist; do not invent any. The lesson slide teaches the concept using the given example. The challenge title must contain the target amount. Two different week figures: the fact all_spending_in_a_typical_week (everything spent, rent included) and the fact usual_week_of_everyday_extras (everyday extras only). In the text call them ${lang === "fi" ? '"kaikki kulusi tyypillisenä viikkona" and "tavallinen viikkosi arjen ekstroihin"' : '"all your spending in a typical week" and "your usual week of everyday extras"'}; never write the field names, and never call either just "a typical week". Keep one slide per given id, same order.`;
 
 async function wordIt(d: Draft, lang: Lang = "en"): Promise<{ headline: string; slides: Map<string, { eyebrow: string; title: string; body: string }>; challengeTitle?: string; challengeWhy?: string } | null> {
   if (!takeDailyBudget()) return null;
-  const input = { customer: d.facts, slides: d.slides.map((s) => ({ id: s.id, kind: s.kind, facts: s.facts, example_wording: s.fallback })), challenge: { target: d.challenge.target, typical_week: d.challenge.baseline, potential_monthly_saving: d.challenge.potentialMonthlySaving } };
+  const input = { customer: d.facts, slides: d.slides.map((s) => ({ id: s.id, kind: s.kind, facts: s.facts, example_wording: s.fallback })), challenge: { target: d.challenge.target, usual_week_of_everyday_extras: d.challenge.baseline, potential_monthly_saving: d.challenge.potentialMonthlySaving } };
   const res = await llm().messages.parse({
     model: MODEL,
     max_tokens: 4000,

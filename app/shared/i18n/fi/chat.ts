@@ -134,10 +134,11 @@ const fi: Record<string, string> = {
   "Spent this week": "Käytetty tällä viikolla",
   "vs a typical week": "verrattuna tavalliseen viikkoon",
   "A typical week": "Tavallinen viikko",
-  "Typical week = median of the previous 12 weeks over the same {n} day":
-    "Tavallinen viikko = edellisten 12 viikon mediaani samalta {n} päivältä",
-  "Typical week = median of the previous 12 weeks over the same {n} days":
-    "Tavallinen viikko = edellisten 12 viikon mediaani samoilta {n} päivältä",
+  "All spending in a typical week": "Kaikki kulut tyypillisenä viikkona",
+  "All spending in a typical week = median of the previous 12 weeks over the same {n} day":
+    "Kaikki kulut tyypillisenä viikkona = edellisten 12 viikon mediaani samalta {n} päivältä",
+  "All spending in a typical week = median of the previous 12 weeks over the same {n} days":
+    "Kaikki kulut tyypillisenä viikkona = edellisten 12 viikon mediaani samoilta {n} päivältä",
   "The week in three baskets": "Viikko kolmessa korissa",
   "Running the what-if…": "Lasken Entä jos -skenaarion…",
   "What if…": "Entä jos…",
@@ -212,8 +213,8 @@ const fi: Record<string, string> = {
   "Example built from your own numbers by the engine": "Esimerkki on laskettu omista luvuistasi",
   // actions and Crave
   "Preparing a next step…": "Valmistelen seuraavaa askelta…",
-  "Keep everyday extras under {target} this week (a typical week is {typical}).":
-    "Pidä arjen ekstrat alle {target} tällä viikolla (tavallinen viikko on {typical}).",
+  "Keep everyday extras under {target} this week (your usual week of everyday extras is {typical}).":
+    "Pidä arjen ekstrat alle {target} tällä viikolla (tavallinen viikkosi arjen ekstroihin on {typical}).",
   "Opening Crave mode…": "Avaan Mielitekotilaa…",
   "Shop it in Crave mode": "Osta se Mielitekotilassa",
   "Get the full hunt and checkout for “{craving}”. Nothing ships: the money goes to your Crave pot, and you can release it after 48 hours if you still want it.":

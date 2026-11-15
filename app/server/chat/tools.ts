@@ -327,7 +327,8 @@ const safeTool = tool({
     const card: CardSpec = {
       id: ctx.newCardId(),
       kind: "safe_to_spend",
-      title: t.t("Safe to spend until payday"),
+      // irregular income has no payday: the plan covers the next 30 days
+      title: s.nextPayday.estimated ? t.t("Safe to spend in the next 30 days") : t.t("Safe to spend until payday"),
       data: s,
       explain: {
         tool: "engine.getSafeToSpend",
@@ -427,7 +428,7 @@ const weekTool = tool({
     const period = { from: w.from, to: w.to, label: `${dayNameIn(w.from, t.lang)} – ${dayNameIn(w.to, t.lang)}` };
     const explain: Explain = {
       tool: "engine.getWeekSummary",
-      filters: [t.tn("Typical week = median of the previous 12 weeks over the same {n} day", "Typical week = median of the previous 12 weeks over the same {n} days", w.days ?? 7)],
+      filters: [t.tn("All spending in a typical week = median of the previous 12 weeks over the same {n} day", "All spending in a typical week = median of the previous 12 weeks over the same {n} days", w.days ?? 7)],
       period,
       source: src(ctx),
     };
@@ -439,7 +440,7 @@ const weekTool = tool({
         label: t.t("Spent this week"),
         value: w.spending,
         unit: "eur",
-        comparison: w.vsTypicalWeekPct == null ? undefined : { label: t.t("vs a typical week"), deltaAbs: r2(w.spending - (w.typicalSpending ?? 0)), deltaPct: w.vsTypicalWeekPct, good: w.vsTypicalWeekPct <= 0, value: w.typicalSpending },
+        comparison: w.vsTypicalWeekPct == null ? undefined : { label: t.t("vs all spending in a typical week"), deltaAbs: r2(w.spending - (w.typicalSpending ?? 0)), deltaPct: w.vsTypicalWeekPct, good: w.vsTypicalWeekPct <= 0, value: w.typicalSpending },
         ...spendingSeries(ctx, { period }),
         explain,
       },
@@ -737,7 +738,7 @@ const actionTool = tool({
       const typical = engine.getSafeToSpend(ctx.c, ctx.opts).week.typicalSpend ?? 0;
       const target = Math.max(10, Math.round((typical * 0.85) / 5) * 5);
       payload = { metric: "everyday_spend", target, baseline: r2(typical) };
-      description = t.t("Keep everyday extras under {target} this week (a typical week is {typical}).", { target: eur0(target), typical: eur0(typical) });
+      description = t.t("Keep everyday extras under {target} this week (your usual week of everyday extras is {typical}).", { target: eur0(target), typical: eur0(typical) });
     }
     // label and description from the model are already in the reply language; the defaults are translated here
     const card: CardSpec = { id: ctx.newCardId(), kind: "action", action: i.action, label: noDigits(i.label, t.t(defaults[i.action])), description: description || undefined, payload, explain: { tool: "suggest_action", filters: [], source: src(ctx) } };

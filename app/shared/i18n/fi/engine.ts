@@ -123,14 +123,18 @@ const fi: Record<string, string> = {
   "A cushion for surprise musts: 10% of the income that stays on this account (at least 50 €).":
     "Puskuri yllättäviin pakollisiin: 10 % tälle tilille jäävistä tuloista (vähintään 50 €).",
   "A cushion for surprise musts: 10% of your monthly income (at least 50 €).": "Puskuri yllättäviin pakollisiin: 10 % kuukausituloistasi (vähintään 50 €).",
-  "Pay usually comes on the 15th. In {n} of the last {m} months it came at the end of the month; your cushion covers that.":
-    "Palkka tulee yleensä 15. päivä. Viimeisen {m} kuukauden aikana se tuli {n} kertaa kuun lopussa; puskurisi kattaa sen.",
-  "Pay has come on the 15th in each of the last {m} months. If it ever comes at the end of the month, your cushion covers that.":
-    "Palkka on tullut 15. päivä jokaisena viimeisestä {m} kuukaudesta. Jos se joskus tulee vasta kuun lopussa, puskurisi kattaa sen.",
+  "Pay usually comes on the 15th. In {n} of the last {m} months it came at the end of the month; your cushion covers most of that gap.":
+    "Palkka tulee yleensä 15. päivä. Viimeisen {m} kuukauden aikana se tuli {n} kertaa kuun lopussa; puskurisi kattaa suurimman osan välistä.",
+  "Pay has come on the 15th in each of the last {m} months. If it ever comes at the end of the month, your cushion covers most of that gap.":
+    "Palkka on tullut 15. päivä jokaisena viimeisestä {m} kuukaudesta. Jos se joskus tulee vasta kuun lopussa, puskurisi kattaa suurimman osan välistä.",
   "Pay usually comes on the 15th. In {n} of the last {m} months it came at the end of the month, so Vara keeps {amount} aside in case it does.":
     "Palkka tulee yleensä 15. päivä. Viimeisen {m} kuukauden aikana se tuli {n} kertaa kuun lopussa, joten Vara pitää sivussa {amount} siltä varalta.",
   "Pay has come on the 15th in each of the last {m} months. Vara still keeps {amount} aside in case it comes at the end of the month.":
     "Palkka on tullut 15. päivä jokaisena viimeisestä {m} kuukaudesta. Vara pitää silti sivussa {amount} siltä varalta, että se tulee kuun lopussa.",
+  "Your pay day is the 15th, but in {n} of the last {m} months it came at the end of the month; your cushion covers most of that gap.":
+    "Palkkapäiväsi on 15. päivä, mutta viimeisen {m} kuukauden aikana palkka tuli {n} kertaa kuun lopussa; puskurisi kattaa suurimman osan välistä.",
+  "Your pay day is the 15th, but in {n} of the last {m} months it came at the end of the month, so Vara keeps {amount} aside in case it does.":
+    "Palkkapäiväsi on 15. päivä, mutta viimeisen {m} kuukauden aikana palkka tuli {n} kertaa kuun lopussa, joten Vara pitää sivussa {amount} siltä varalta.",
   "In case pay comes late": "Jos palkka myöhästyy",
   "If pay comes on {late} instead of {date}, the {n} extra days of fixed musts need about {extra}. Your cushion covers {buffer}, so Vara keeps the rest aside.":
     "Jos palkka tulee {late} eikä {date}, {n} lisäpäivän kiinteät pakolliset vievät noin {extra}. Puskurisi kattaa {buffer}, joten Vara pitää loput sivussa.",

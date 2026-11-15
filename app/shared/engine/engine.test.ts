@@ -142,6 +142,29 @@ describe("getRecurring / getSafeToSpend", () => {
     expect(g.upcoming.find((u) => u.kind === "goal")?.amount).toBe(Math.round(60 * (15 / 30.44) * 100) / 100);
     expect(g.safePerWeek).toBeLessThan(base.safePerWeek);
   });
+  it("pay day stays the 15th when every recent salary came mid-month or at month end (CUST00372)", () => {
+    // salaries 2025-10..2026-09 all on the 15th or day 28-31, only 5 of 12 on the 15th
+    const c = load("CUST00372");
+    const p = engine.getSafeToSpend(c).nextPayday;
+    expect(p.date).toBe("2026-10-15");
+    expect(p.latest).toBe("2026-10-31");
+    expect(p.lateNote).toMatch(/^Your pay day is the 15th, but in 7 of the last 12 months/);
+    // backtest: on 31 Aug the next salary came on 30 Sep, inside [date, latest]
+    const k = c.tx.findIndex((t) => t.date > "2026-08-31");
+    const past = engine.getSafeToSpend({ ...c, asOf: "2026-08-31", tx: c.tx.slice(0, k) }).nextPayday;
+    expect(past.date).toBe("2026-09-15");
+    expect(past.latest).toBe("2026-09-30");
+  });
+  it("the late-pay need uses the customer's own month-end stretch, and the note only claims most of the gap", () => {
+    const s = engine.getSafeToSpend(aino);
+    const p = s.nextPayday;
+    const buffer = s.upcoming.filter((u) => u.kind === "buffer" && u.from == null).reduce((t, u) => t + u.amount, 0);
+    // pro-rated average alone is 141.55 €; the 3-in-4 heaviest 15th-to-month-end stretch of the last 12 months is more
+    expect(p.lateExtra).toBeGreaterThan(141.55);
+    expect(p.lateCovered).toBe(buffer >= (p.lateExtra ?? 0));
+    expect(p.lateNote).toMatch(/your cushion covers most of that gap\.$/);
+    expect(p.lateNote).not.toMatch(/covers that\./);
+  });
 });
 
 describe("getMonthly / getWeekSummary / getSpenderStats", () => {

@@ -34,17 +34,17 @@ export function mockCheckin(c: CustomerData): CheckIn {
       vs == null
         ? t("That's everything that left your account as spending, from rent to coffees.")
         : Math.abs(vs) < 8
-          ? t("That's close to a typical week for you. Steady is good.")
+          ? t("That's close to all your spending in a typical week. Steady is good.")
           : vs < 0
-            ? t("That's {pct} % less than a typical week for you. Nice work.", { pct: Math.round(-vs) })
-            : t("That's {pct} % more than a typical week for you. Let's see where it went.", { pct: Math.round(vs) }),
+            ? t("That's {pct} % less than all your spending in a typical week. Nice work.", { pct: Math.round(-vs) })
+            : t("That's {pct} % more than all your spending in a typical week. Let's see where it went.", { pct: Math.round(vs) }),
     card: {
       id: "ci-stat",
       kind: "stat",
       label: t("Spending last week"),
       value: last.spending,
       unit: "eur",
-      comparison: vs == null ? undefined : { label: t("vs your typical week"), deltaPct: vs, good: vs <= 0 },
+      comparison: vs == null ? undefined : { label: t("vs all spending in a typical week"), deltaPct: vs, good: vs <= 0 },
       explain: tool("engine.getWeekSummary", { formula: t("sum of purchases, bills and rent in the week; typical = median of the 12 weeks before") }),
     },
   });
@@ -112,7 +112,7 @@ export function mockCheckin(c: CustomerData): CheckIn {
       : t("Keep everyday extras under {v} this week", { v: money(target, { whole: true }) }),
     why: useSmall
       ? t("You usually make about {n} small purchases a week.", { n: Math.round(typicalSmall) })
-      : t("A typical week of everyday extras for you is about {v}.", { v: money(typicalEveryday, { whole: true }) }),
+      : t("Your usual week of everyday extras is about {v}.", { v: money(typicalEveryday, { whole: true }) }),
     metric: useSmall ? { kind: "small_purchases", unit: "count" } : { kind: "everyday_spend", unit: "eur" },
     target,
     baseline: useSmall ? Math.round(typicalSmall) : Math.round(typicalEveryday),
