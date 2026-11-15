@@ -1,0 +1,752 @@
+{
+  "schemaVersion": 1,
+  "researchOnly": true,
+  "fetchedAt": "2026-11-15T01:42:01Z",
+  "products": [
+    {
+      "id": "food-chicken-breast",
+      "storefront": "Uber Eats",
+      "merchant": "Supermac's",
+      "merchantLocation": "Headford Road, Galway Shopping Centre; Galway Shopping Centre, Headford Road, Galway",
+      "name": "Chicken Breast Sandwich",
+      "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 7.95,
+        "currency": "EUR",
+        "kind": "from",
+        "context": "Official merchant collection menu; lower-bound snapshot, excludes delivery/platform charges"
+      },
+      "demoPrice": null,
+      "options": [],
+      "sizes": [],
+      "sizeEvidence": "No per-product variant sizes exposed in retrieved HTML; do not invent live availability",
+      "stock": null,
+      "image": {
+        "url": "https://api.supermacs.ie/uploads/67c053f0ebdc5/medium-67c053f0ebdc5.png",
+        "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "food-beef-5oz",
+      "storefront": "Uber Eats",
+      "merchant": "Supermac's",
+      "merchantLocation": "Headford Road, Galway Shopping Centre; Galway Shopping Centre, Headford Road, Galway",
+      "name": "Supermac's 5oz Burger",
+      "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 7.95,
+        "currency": "EUR",
+        "kind": "from",
+        "context": "Official merchant collection menu; lower-bound snapshot, excludes delivery/platform charges"
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "portion",
+          "value": "5oz",
+          "evidence": "Product title"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "No per-product variant sizes exposed in retrieved HTML; do not invent live availability",
+      "stock": null,
+      "image": {
+        "url": "https://api.supermacs.ie/uploads/6a57a52c7ea81/medium-6a57a52c7ea81.png",
+        "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "food-mighty-mac",
+      "storefront": "Uber Eats",
+      "merchant": "Supermac's",
+      "merchantLocation": "Headford Road, Galway Shopping Centre; Galway Shopping Centre, Headford Road, Galway",
+      "name": "Mighty Mac Burger",
+      "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 6.25,
+        "currency": "EUR",
+        "kind": "from",
+        "context": "Official merchant collection menu; lower-bound snapshot, excludes delivery/platform charges"
+      },
+      "demoPrice": null,
+      "options": [],
+      "sizes": [],
+      "sizeEvidence": "No per-product variant sizes exposed in retrieved HTML; do not invent live availability",
+      "stock": null,
+      "image": {
+        "url": "https://api.supermacs.ie/uploads/67ed4d018d557/medium-67ed4d018d557.png",
+        "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+        "status": "exact image link discovered in official HTML; web tool cache miss on opening"
+      }
+    },
+    {
+      "id": "food-veggie-burger",
+      "storefront": "Uber Eats",
+      "merchant": "Supermac's",
+      "merchantLocation": "Headford Road, Galway Shopping Centre; Galway Shopping Centre, Headford Road, Galway",
+      "name": "Veggie Burger",
+      "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 6.75,
+        "currency": "EUR",
+        "kind": "from",
+        "context": "Official merchant collection menu; lower-bound snapshot, excludes delivery/platform charges"
+      },
+      "demoPrice": null,
+      "options": [],
+      "sizes": [],
+      "sizeEvidence": "No per-product variant sizes exposed in retrieved HTML; do not invent live availability",
+      "stock": null,
+      "image": {
+        "url": "https://api.supermacs.ie/uploads/67ee705e82b26/medium-67ee705e82b26.png",
+        "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+        "status": "exact image link discovered in official HTML; web tool cache miss on opening"
+      }
+    },
+    {
+      "id": "food-fries",
+      "storefront": "Uber Eats",
+      "merchant": "Supermac's",
+      "merchantLocation": "Headford Road, Galway Shopping Centre; Galway Shopping Centre, Headford Road, Galway",
+      "name": "Fries",
+      "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 2.95,
+        "currency": "EUR",
+        "kind": "from",
+        "context": "Official merchant collection menu; lower-bound snapshot, excludes delivery/platform charges"
+      },
+      "demoPrice": null,
+      "options": [],
+      "sizes": [],
+      "sizeEvidence": "No per-product variant sizes exposed in retrieved HTML; do not invent live availability",
+      "stock": null,
+      "image": {
+        "url": "https://api.supermacs.ie/uploads/67ed4e793967e/medium-67ed4e793967e.png",
+        "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "food-taco-fries",
+      "storefront": "Uber Eats",
+      "merchant": "Supermac's",
+      "merchantLocation": "Headford Road, Galway Shopping Centre; Galway Shopping Centre, Headford Road, Galway",
+      "name": "Taco Fries",
+      "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 5.75,
+        "currency": "EUR",
+        "kind": "from",
+        "context": "Official merchant collection menu; lower-bound snapshot, excludes delivery/platform charges"
+      },
+      "demoPrice": null,
+      "options": [],
+      "sizes": [],
+      "sizeEvidence": "No per-product variant sizes exposed in retrieved HTML; do not invent live availability",
+      "stock": null,
+      "image": {
+        "url": "https://api.supermacs.ie/uploads/628d12c05f270/medium-628d12c05f270.png",
+        "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+        "status": "exact image link discovered in official HTML; web tool cache miss on opening"
+      }
+    },
+    {
+      "id": "food-chocolate-shake",
+      "storefront": "Uber Eats",
+      "merchant": "Supermac's",
+      "merchantLocation": "Headford Road, Galway Shopping Centre; Galway Shopping Centre, Headford Road, Galway",
+      "name": "Chocolate Milkshake",
+      "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 3.95,
+        "currency": "EUR",
+        "kind": "from",
+        "context": "Official merchant collection menu; lower-bound snapshot, excludes delivery/platform charges"
+      },
+      "demoPrice": null,
+      "options": [],
+      "sizes": [],
+      "sizeEvidence": "No per-product variant sizes exposed in retrieved HTML; do not invent live availability",
+      "stock": null,
+      "image": {
+        "url": "https://api.supermacs.ie/uploads/63189498d4c71/medium-63189498d4c71.png",
+        "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+        "status": "exact image link discovered in official HTML; web tool cache miss on opening"
+      }
+    },
+    {
+      "id": "food-margherita",
+      "storefront": "Uber Eats",
+      "merchant": "Supermac's",
+      "merchantLocation": "Headford Road, Galway Shopping Centre; Galway Shopping Centre, Headford Road, Galway",
+      "name": "Margherita Pizza",
+      "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 11.95,
+        "currency": "EUR",
+        "kind": "from",
+        "context": "Official merchant collection menu; lower-bound snapshot, excludes delivery/platform charges"
+      },
+      "demoPrice": null,
+      "options": [],
+      "sizes": [],
+      "sizeEvidence": "No per-product variant sizes exposed in retrieved HTML; do not invent live availability",
+      "stock": null,
+      "image": {
+        "url": "https://api.supermacs.ie/uploads/66574b24696ed/medium-66574b24696ed.png",
+        "sourceUrl": "https://order.supermacs.ie/menu/burgers",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "stockx-panda",
+      "storefront": "StockX",
+      "merchant": "StockX marketplace",
+      "name": "Nike Dunk Low Retro White Black Panda",
+      "style": "DD1391-100",
+      "sourceUrl": "https://stockx.com/nike-dunk-low-retro-white-black-2021",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 52,
+        "currency": "EUR",
+        "includingMarketplaceFee": 58,
+        "sourceUrl": "https://stockx.com/de-de/nike-dunk-low-retro-white-black-2021",
+        "kind": "lowest-ask-all-sizes",
+        "context": "German locale cached snapshot. All sizes selected; size-specific cost, shipping and additional checkout fees not verified. Source crawl may predate retrieval."
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "colorway",
+          "value": "White/Black",
+          "evidence": "Official StockX name or product details"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Page says Size: All. No size-specific inventory or price fetched. Optional simulator size selector must be labelled demo and separate from facts.",
+      "stock": null,
+      "image": {
+        "url": "https://images.stockx.com/360/Nike-Dunk-Low-Retro-White-Black-2021/Images/Nike-Dunk-Low-Retro-White-Black-2021/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1787957231&w=576",
+        "sourceUrl": "https://stockx.com/nike-dunk-low-retro-white-black-2021",
+        "status": "exact image link discovered in official HTML; web tool could not fetch image"
+      }
+    },
+    {
+      "id": "stockx-af1",
+      "storefront": "StockX",
+      "merchant": "StockX marketplace",
+      "name": "Nike Air Force 1 Low '07 White",
+      "style": "315122-111/CW2288-111",
+      "sourceUrl": "https://stockx.com/nike-air-force-1-low-white-07",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 78,
+        "currency": "EUR",
+        "sourceUrl": "https://stockx.com/de-de/nike-air-force-1-low-white-07",
+        "kind": "lowest-ask-all-sizes",
+        "context": "German locale cached snapshot. All sizes selected; size-specific cost, shipping and additional checkout fees not verified. Source crawl may predate retrieval."
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "colorway",
+          "value": "White/White",
+          "evidence": "Official StockX name or product details"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Page says Size: All. No size-specific inventory or price fetched. Optional simulator size selector must be labelled demo and separate from facts.",
+      "stock": null,
+      "image": {
+        "url": "https://images.stockx.com/360/Nike-Air-Force-1-Low-White-07/Images/Nike-Air-Force-1-Low-White-07/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1785267142&w=576",
+        "sourceUrl": "https://stockx.com/nike-air-force-1-low-white-07",
+        "status": "exact image link discovered in official HTML; web tool could not fetch image"
+      }
+    },
+    {
+      "id": "stockx-samba",
+      "storefront": "StockX",
+      "merchant": "StockX marketplace",
+      "name": "adidas Samba OG Cloud White Core Black",
+      "style": "BZ0057/B75806",
+      "sourceUrl": "https://stockx.com/adidas-samba-og-cloud-white-core-black",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": null,
+      "demoPrice": {
+        "amount": 120,
+        "currency": "EUR",
+        "label": "Demo estimate",
+        "basis": "Manually chosen simulator amount; NOT a sourced StockX EUR quote or currency conversion"
+      },
+      "options": [
+        {
+          "type": "colorway",
+          "value": "Cloud White/Core Black",
+          "evidence": "Official StockX name or product details"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Page says Size: All. No size-specific inventory or price fetched. Optional simulator size selector must be labelled demo and separate from facts.",
+      "stock": null,
+      "image": {
+        "url": "https://images.stockx.com/360/adidas-Samba-OG-Cloud-White-Core-Black/Images/adidas-Samba-OG-Cloud-White-Core-Black/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1786416161&w=576",
+        "sourceUrl": "https://stockx.com/adidas-samba-og-cloud-white-core-black",
+        "status": "exact image link discovered in official HTML; web tool could not fetch image"
+      }
+    },
+    {
+      "id": "stockx-campus",
+      "storefront": "StockX",
+      "merchant": "StockX marketplace",
+      "name": "adidas Campus 00s Core Black",
+      "style": "HQ8708",
+      "sourceUrl": "https://stockx.com/adidas-campus-00s-core-black",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": null,
+      "demoPrice": {
+        "amount": 110,
+        "currency": "EUR",
+        "label": "Demo estimate",
+        "basis": "Manually chosen simulator amount; NOT a sourced StockX EUR quote or currency conversion"
+      },
+      "options": [
+        {
+          "type": "colorway",
+          "value": "Core Black",
+          "evidence": "Official StockX name or product details"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Page says Size: All. No size-specific inventory or price fetched. Optional simulator size selector must be labelled demo and separate from facts.",
+      "stock": null,
+      "image": {
+        "url": "https://images.stockx.com/360/adidas-Campus-00s-Core-Black/Images/adidas-Campus-00s-Core-Black/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1789133431&w=576",
+        "sourceUrl": "https://stockx.com/adidas-campus-00s-core-black",
+        "status": "exact image link discovered in official HTML; web tool could not fetch image"
+      }
+    },
+    {
+      "id": "stockx-nb550",
+      "storefront": "StockX",
+      "merchant": "StockX marketplace",
+      "name": "New Balance 550 White Green",
+      "style": "BB550WT1",
+      "sourceUrl": "https://stockx.com/new-balance-550-white-green",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": null,
+      "demoPrice": {
+        "amount": 130,
+        "currency": "EUR",
+        "label": "Demo estimate",
+        "basis": "Manually chosen simulator amount; NOT a sourced StockX EUR quote or currency conversion"
+      },
+      "options": [
+        {
+          "type": "colorway",
+          "value": "White/Green",
+          "evidence": "Official StockX name or product details"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Page says Size: All. No size-specific inventory or price fetched. Optional simulator size selector must be labelled demo and separate from facts.",
+      "stock": null,
+      "image": {
+        "url": "https://images.stockx.com/360/New-Balance-550-White-Green/Images/New-Balance-550-White-Green/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1786127511&w=576",
+        "sourceUrl": "https://stockx.com/new-balance-550-white-green",
+        "status": "exact image link discovered in official HTML; web tool could not fetch image"
+      }
+    },
+    {
+      "id": "stockx-asics1130",
+      "storefront": "StockX",
+      "merchant": "StockX marketplace",
+      "name": "ASICS Gel-1130 White Clay Canyon",
+      "style": "1201A256-113",
+      "sourceUrl": "https://stockx.com/asics-gel-1130-white-clay-canyon",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": null,
+      "demoPrice": {
+        "amount": 125,
+        "currency": "EUR",
+        "label": "Demo estimate",
+        "basis": "Manually chosen simulator amount; NOT a sourced StockX EUR quote or currency conversion"
+      },
+      "options": [
+        {
+          "type": "colorway",
+          "value": "White/Clay Canyon",
+          "evidence": "Official StockX name or product details"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Page says Size: All. No size-specific inventory or price fetched. Optional simulator size selector must be labelled demo and separate from facts.",
+      "stock": null,
+      "image": {
+        "url": "https://images.stockx.com/360/ASICS-Gel-1130-White-Clay-Canyon/Images/ASICS-Gel-1130-White-Clay-Canyon/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1785965212&w=576",
+        "sourceUrl": "https://stockx.com/asics-gel-1130-white-clay-canyon",
+        "status": "exact image link discovered in official HTML; web tool could not fetch image"
+      }
+    },
+    {
+      "id": "stockx-j4",
+      "storefront": "StockX",
+      "merchant": "StockX marketplace",
+      "name": "Jordan 4 Retro Military Blue (2024)",
+      "style": "FV5029-141",
+      "sourceUrl": "https://stockx.com/air-jordan-4-retro-military-blue-2024",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 148,
+        "currency": "EUR",
+        "includingMarketplaceFee": 157,
+        "sourceUrl": "https://stockx.com/de-de/air-jordan-4-retro-military-blue-2024",
+        "kind": "lowest-ask-all-sizes",
+        "context": "German locale cached snapshot. All sizes selected; size-specific cost, shipping and additional checkout fees not verified. Source crawl may predate retrieval."
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "colorway",
+          "value": "Off-White/Military Blue/Neutral Grey",
+          "evidence": "Official StockX name or product details"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Page says Size: All. No size-specific inventory or price fetched. Optional simulator size selector must be labelled demo and separate from facts.",
+      "stock": null,
+      "image": {
+        "url": "https://images.stockx.com/360/Air-Jordan-4-Retro-Military-Blue-2024/Images/Air-Jordan-4-Retro-Military-Blue-2024/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1713385181&w=576",
+        "sourceUrl": "https://stockx.com/air-jordan-4-retro-military-blue-2024",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "stockx-mocha",
+      "storefront": "StockX",
+      "merchant": "StockX marketplace",
+      "name": "Jordan 1 Retro Low OG Mocha",
+      "style": "CZ0790-102",
+      "sourceUrl": "https://stockx.com/air-jordan-1-retro-low-og-mocha",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": null,
+      "demoPrice": {
+        "amount": 180,
+        "currency": "EUR",
+        "label": "Demo estimate",
+        "basis": "Manually chosen simulator amount; NOT a sourced StockX EUR quote or currency conversion"
+      },
+      "options": [
+        {
+          "type": "colorway",
+          "value": "Mocha",
+          "evidence": "Official StockX name or product details"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Page says Size: All. No size-specific inventory or price fetched. Optional simulator size selector must be labelled demo and separate from facts.",
+      "stock": null,
+      "image": {
+        "url": "https://images.stockx.com/360/Air-Jordan-1-Retro-Low-OG-Mocha/Images/Air-Jordan-1-Retro-Low-OG-Mocha/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1788192495&w=576",
+        "sourceUrl": "https://stockx.com/air-jordan-1-retro-low-og-mocha",
+        "status": "exact image link discovered in official HTML; web tool could not fetch image"
+      }
+    },
+    {
+      "id": "zara-4772-246-251",
+      "storefront": "Zara",
+      "merchant": "Zara Ireland",
+      "name": "PLAYSUIT WITH SHOULDER PADS",
+      "reference": "4772-246-251",
+      "sourceUrl": "https://www.zara.com/ie/en/shoulder-pad-playsuit-p04772246.html",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 45.95,
+        "currency": "EUR",
+        "kind": "listed",
+        "context": "Official Ireland product-page snapshot"
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "color",
+          "value": "Oyster-white",
+          "evidence": "Official product page"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Actual size choices and availability were not exposed by retrieved page; cached colour is verified",
+      "stock": null,
+      "image": {
+        "url": "https://static.zara.net/assets/public/8c74/cf53/57e448f1a64a/ff5fda2e36b4/04772246251-p/04772246251-p.jpg?f=auto&ts=1787233004715&w=560",
+        "sourceUrl": "https://www.zara.com/ie/en/shoulder-pad-playsuit-p04772246.html",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "zara-4772-253-600",
+      "storefront": "Zara",
+      "merchant": "Zara Ireland",
+      "name": "VELVET HALTER DRESS",
+      "reference": "4772-253-600",
+      "sourceUrl": "https://www.zara.com/ie/en/velvet-halter-dress-p04772253.html",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 35.95,
+        "currency": "EUR",
+        "kind": "listed",
+        "context": "Official Ireland product-page snapshot"
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "color",
+          "value": "Red",
+          "evidence": "Official product page"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Actual size choices and availability were not exposed by retrieved page; cached colour is verified",
+      "stock": null,
+      "image": {
+        "url": "https://static.zara.net/assets/public/a39f/7b12/c8c54e7a8384/a1d799f96929/04772253600-p/04772253600-p.jpg?f=auto&ts=1792580943839&w=560",
+        "sourceUrl": "https://www.zara.com/ie/en/velvet-halter-dress-p04772253.html",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "zara-4764-206-800",
+      "storefront": "Zara",
+      "merchant": "Zara Ireland",
+      "name": "SATIN MIDI DRESS WITH RHINESTONE FROG FASTENING",
+      "reference": "4764-206-800",
+      "sourceUrl": "https://www.zara.com/ie/en/satin-midi-dress-with-frog-fastening-and-rhinestones-p04764206.html",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 45.95,
+        "currency": "EUR",
+        "kind": "listed",
+        "context": "Official Ireland product-page snapshot"
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "color",
+          "value": "Black",
+          "evidence": "Official product page"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Actual size choices and availability were not exposed by retrieved page; cached colour is verified",
+      "stock": null,
+      "image": {
+        "url": "https://static.zara.net/assets/public/9a71/9fa2/cc714c2f8d78/19e394070726/04764206800-p/04764206800-p.jpg?f=auto&ts=1793789951047&w=560",
+        "sourceUrl": "https://www.zara.com/ie/en/satin-midi-dress-with-frog-fastening-and-rhinestones-p04764206.html",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "zara-4661-304-800",
+      "storefront": "Zara",
+      "merchant": "Zara Ireland",
+      "name": "MIDI DRESS WITH DRAPED DETAIL",
+      "reference": "4661-304-800",
+      "sourceUrl": "https://www.zara.com/ie/en/midi-dress-with-draped-detail-p04661304.html",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 39.95,
+        "currency": "EUR",
+        "kind": "listed",
+        "context": "Official Ireland product-page snapshot"
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "color",
+          "value": "Black",
+          "evidence": "Official product page"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Actual size choices and availability were not exposed by retrieved page; cached colour is verified",
+      "stock": null,
+      "image": {
+        "url": "https://static.zara.net/assets/public/f445/1561/e2634d1ebf63/8a0af1e89ae1/04661304800-p/04661304800-p.jpg?f=auto&ts=1779978112961&w=560",
+        "sourceUrl": "https://www.zara.com/ie/en/midi-dress-with-draped-detail-p04661304.html",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "zara-0085-813-409",
+      "storefront": "Zara",
+      "merchant": "Zara Ireland",
+      "name": "FLOCKED HALTER NECK LONG DRESS",
+      "reference": "0085-813-409",
+      "sourceUrl": "https://www.zara.com/ie/en/flocked-halter-neck-maxi-dress-p00085813.html",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 35.95,
+        "currency": "EUR",
+        "kind": "listed",
+        "context": "Official Ireland product-page snapshot"
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "color",
+          "value": "Petrol blue",
+          "evidence": "Official product page"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Actual size choices and availability were not exposed by retrieved page; cached colour is verified",
+      "stock": null,
+      "image": {
+        "url": "https://static.zara.net/assets/public/db8c/48f2/724a4dd68711/259a66f2e080/00085813409-p/00085813409-p.jpg?f=auto&ts=1787054478387&w=560",
+        "sourceUrl": "https://www.zara.com/ie/en/flocked-halter-neck-maxi-dress-p00085813.html",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "zara-7874-444-800",
+      "storefront": "Zara",
+      "merchant": "Zara Ireland",
+      "name": "VOLUMINOUS SEAMED MINI DRESS",
+      "reference": "7874-444-800",
+      "sourceUrl": "https://www.zara.com/ie/en/voluminous-seamed-mini-dress-p07874444.html",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 39.95,
+        "currency": "EUR",
+        "kind": "listed",
+        "context": "Official Ireland product-page snapshot"
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "color",
+          "value": "Black",
+          "evidence": "Official product page"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Actual size choices and availability were not exposed by retrieved page; cached colour is verified",
+      "stock": null,
+      "image": {
+        "url": "https://static.zara.net/assets/public/b788/ce79/eca844fc8c4d/fb86dacefb89/07874444800-p/07874444800-p.jpg?f=auto&ts=1790261599167&w=560",
+        "sourceUrl": "https://www.zara.com/ie/en/voluminous-seamed-mini-dress-p07874444.html",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "zara-4772-395-303",
+      "storefront": "Zara",
+      "merchant": "Zara Ireland",
+      "name": "CORSETRY-INSPIRED METALLIC EFFECT MINI DRESS",
+      "reference": "4772-395-303",
+      "sourceUrl": "https://www.zara.com/ie/en/metallic-effect-corsetry-inspired-mini-dress-p04772395.html",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 35.95,
+        "currency": "EUR",
+        "kind": "listed",
+        "context": "Official Ireland product-page snapshot"
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "color",
+          "value": "Golden",
+          "evidence": "Official product page"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Actual size choices and availability were not exposed by retrieved page; cached colour is verified",
+      "stock": null,
+      "image": {
+        "url": "https://static.zara.net/assets/public/94a2/384a/84f04cf09a87/438183effa9a/04772395303-p/04772395303-p.jpg?f=auto&ts=1783439207925&w=560",
+        "sourceUrl": "https://www.zara.com/ie/en/metallic-effect-corsetry-inspired-mini-dress-p04772395.html",
+        "status": "image opened successfully through web tool"
+      }
+    },
+    {
+      "id": "zara-0085-814-745",
+      "storefront": "Zara",
+      "merchant": "Zara Ireland",
+      "name": "LONG HALTER FOULARD FLOCKED DRESS",
+      "reference": "0085-814-745",
+      "sourceUrl": "https://www.zara.com/ie/en/long-flocked-halter-foulard-dress-p00085814.html",
+      "fetchedAt": "2026-11-15T01:42:01Z",
+      "sourcePrice": {
+        "amount": 35.95,
+        "currency": "EUR",
+        "kind": "listed",
+        "context": "Official Ireland product-page snapshot"
+      },
+      "demoPrice": null,
+      "options": [
+        {
+          "type": "color",
+          "value": "Toffee",
+          "evidence": "Official product page"
+        }
+      ],
+      "sizes": [],
+      "sizeEvidence": "Actual size choices and availability were not exposed by retrieved page; cached colour is verified",
+      "stock": null,
+      "image": {
+        "url": "https://static.zara.net/assets/public/bde3/c787/0ef140a1a880/7544ebbae05e/00085814745-p/00085814745-p.jpg?f=auto&ts=1787155985745&w=560",
+        "sourceUrl": "https://www.zara.com/ie/en/long-flocked-halter-foulard-dress-p00085814.html",
+        "status": "image opened successfully through web tool"
+      }
+    }
+  ],
+  "sourceMethod": "Official public HTML parsed through web tool. This environment shell could not resolve public hosts; no raw HTML or direct fetch/API connectivity verified. Web tool results are cached crawls ranging today to several weeks, distinct from fetchedAt. All image URLs copied from actual page links, never guessed.",
+  "displayRules": [
+    "Simulator only; no real orders, money transfers, stock reservation, merchant integration or affiliation implied.",
+    "Show source merchant and source link, with Cached on timestamp.",
+    "Food prices are merchant Galway collection-menu FROM prices, not Uber Eats delivery quotes.",
+    "Keep demoPrice visually labelled Demo estimate and never substitute it silently for sourcePrice.",
+    "No verified live stock or size inventories. null means unknown.",
+    "Image status is explicit: discovered links are sourced, but many could not be opened through web cache and require actual runtime image load testing.",
+    "Zara and StockX product imagery is third-party source imagery; public accessibility is not a reuse licence."
+  ],
+  "practicalSources": [
+    {
+      "storefront": "Uber Eats food-delivery archetype",
+      "url": "https://order.supermacs.ie/menu/burgers",
+      "recommendation": "Use actual Supermac's menu, source merchant prominently. HTML includes complete food names, from-EUR prices, category headings and exact api.supermacs.ie/uploads PNG links. No API auth needed for this public snapshot."
+    },
+    {
+      "storefront": "Uber Eats optional real marketplace source",
+      "url": "https://www.ubereats.com/ie/store/supermacs-connolly/jGPCE17NX5mJzXMwmbBlFw",
+      "recommendation": "Official Uber Eats menu confirms actual merchant and EUR delivery-menu item prices. Different location and prices from Galway. Do not mix its prices with official Galway records."
+    },
+    {
+      "storefront": "StockX",
+      "url": "https://stockx.com/de-de/nike-dunk-low-retro-white-black-2021",
+      "recommendation": "Public product HTML exposes image links, style, colorway, all-size lowest ask, and German EUR snapshots. Several other German pages exceeded fetch-tool content limit; avoid depending on runtime unauthenticated scraping."
+    },
+    {
+      "storefront": "Zara",
+      "url": "https://www.zara.com/ie/en/woman-dresses-evening-l1073.html",
+      "recommendation": "Irish category plus product HTML gives genuine product names, references, colours, EUR prices and exact static.zara.net image links. Use cache; actual variant sizes need a later authorised browser/product fetch."
+    }
+  ],
+  "notRecommended": [
+    {
+      "url": "https://www.mcdonalds.com/ie/en-ie/product/big-mac.html",
+      "reason": "Product facts official, no actual EUR price; retrieved image links resolved to Bord Bia badge rather than food photo. Supermac's is more complete for current research."
+    }
+  ]
+}

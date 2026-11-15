@@ -1,6 +1,17 @@
 // Finnish for: Crave mode (Mielitekotila) — app/src/features/crave, app/server/crave.
 // Key = the exact English string used in the code (including {placeholders}); value = the Finnish.
 const fi: Record<string, string> = {
+  "Shopping Lab": "Shopping Lab",
+  "Real shops, real products": "Oikeat kaupat ja tuotteet",
+  "Browse StockX, Zara or Uber Eats, or paste another shop's URL to import its products.": "Selaa StockX:n, Zaran tai Uber Eatsin tuotteita tai tuo toisen kaupan tuotteet liittämällä sen verkko-osoite.",
+  "Open Shopping Lab": "Avaa Shopping Lab",
+  "Separate shopping demo. Checkout builds a simulated savings pot; no money moves.": "Erillinen ostosdemo. Kassalla summa kertyy simuloituun säästöpottiin. Rahaa ei siirretä.",
+  "Open shopping demo in a new tab": "Avaa ostosdemo uuteen välilehteen",
+  "Real products · demo checkout · nothing ships": "Oikeat tuotteet · demokassa · mitään ei toimiteta",
+  "Shopping Lab storefront": "Shopping Lab -verkkokauppa",
+  "Opening the shopping demo…": "Avataan ostosdemoa…",
+  "Having trouble loading the shop? Retry or open the demo in a new tab.": "Eikö kauppa avaudu? Yritä uudelleen tai avaa demo uuteen välilehteen.",
+  "Open in new tab": "Avaa uuteen välilehteen",
   // ---------------------------------------------------------------- names, motto, the deal
   "Saving money, a craving at a time.": "Säästöä, mieliteko kerrallaan.",
   "Crave mode": "Mielitekotila",

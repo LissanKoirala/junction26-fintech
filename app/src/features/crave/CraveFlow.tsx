@@ -2,6 +2,7 @@
 //   #/crave            intro + craving input (opt-in on first use)
 //   #/crave?q=sushi    the generated shop for that craving (deep link)
 //   #/crave/pot        the Crave pot and diary
+//   #/crave/lab        real-product shopping demo (separate hosted runtime)
 //   #/crave/inbox      in-app order emails (?mail=id opens one)
 //   #/crave/track?id=  order tracking
 import { useEffect, useState } from "react";
@@ -55,6 +56,13 @@ function Intro({ initial }: { initial: string }) {
             <h1 className="mt-3 text-3xl font-bold leading-tight text-white">{t(CRAVE_MOTTO)}</h1>
             <p className="mt-2 text-hero-meta">{t("Got the urge to buy something? Get the whole thrill first: hunt for it, fill the basket, check out. Then the twist.")}</p>
           </HeroCard>
+
+          <Card>
+            <p className="text-lg font-bold text-title">{t("Real shops, real products")}</p>
+            <p className="mt-1 text-sm text-ink-muted">{t("Browse StockX, Zara or Uber Eats, or paste another shop's URL to import its products.")}</p>
+            <Button full className="mt-3" variant="soft" icon={ShoppingBag} iconRight={ArrowRight} onClick={() => navigate("/crave/lab")}>{t("Open Shopping Lab")}</Button>
+            <p className="mt-2 text-xs text-ink-muted">{t("Separate shopping demo. Checkout builds a simulated savings pot; no money moves.")}</p>
+          </Card>
 
           <Card>
             <p className="text-lg font-bold text-title">{t("The deal")}</p>
