@@ -4,7 +4,7 @@ Shopping Lab is imported as a self-contained module in `shopping-lab/`. Its API 
 
 ## Main app page
 
-The bank app lazy-loads `app/src/features/crave/ShoppingLabFlow.tsx` at `#/crave/lab` (alias: `#/shopping-lab`). The Crave introduction has an **Open Shopping Lab** button. The page uses the existing phone frame, back navigation, Finnish translations and concept notice, with a sandboxed iframe, loading/retry UI and a new-tab fallback. The embedded storefront itself currently uses English.
+The bank app lazy-loads `app/src/features/crave/ShoppingLabFlow.tsx` at `#/crave/lab` (alias: `#/shopping-lab`). The Crave introduction has an **Open Shopping Lab** button. The page uses the existing phone frame, compact back-navigation bar, Finnish translations and concept notice, with a sandboxed iframe, loading/retry UI and a new-tab fallback. The compact app chrome leaves more room for each store's native navigation. The embedded storefront itself currently uses English.
 
 The frame receives only the parent origin. Customer identity, transactions and wallet credentials are never passed in. The app does not consume checkout messages or credit its existing Crave pot: the demo keeps its own browser-local simulated savings. Existing Crave generation and Stripe test-mode checkout are unchanged. Deploying the main app activates this new route; pushing the repository alone does not deploy the Azure VM.
 
@@ -58,3 +58,5 @@ Gemini uses server-only `GEMINI_API_KEY`; the bank app's `RUNWARE_API_KEY` is a 
 The source passed 32 backend tests, seven existing mobile shopping scenarios, four import UI scenarios, TypeScript and a production build. Live hosted checks imported 12 Karhu products, 12 Makia products and nine Flying Tiger products; loaded all 12 Karhu images; and completed imported-product checkout after a reload. Counts and merchant availability can change. Google Search grounding is currently subject to the provided credential's quota; direct merchant URLs are the reliable demo entry point.
 
 The main-app integration passed TypeScript and a production build in an isolated validation copy. Browser checks at 390 × 844 covered the Crave entry, live hosted StockX frame, back navigation, direct links, route alias, Finnish labels and separation from bank state. The app's guard/Stripe-key suites passed (13 tests). Its engine suite could not run because the challenge `DATA_DIR` dataset is absent from this checkout; no replacement financial data was fabricated.
+
+The immersive storefront update passed 32 backend tests and 19 browser scenarios: seven shopping/persistence scenarios, four import scenarios and eight brand-specific/responsive scenarios. The new scenarios cover all three mobile storefronts, fixed product actions, StockX Buy now and sorting, saved filtering, demo checkout editing, Zara editorial/compact layouts and 320–1024 px widths. The compact main-app wrapper also passed TypeScript, build and the existing embed navigation checks.
