@@ -41,11 +41,25 @@ async function saveUsage() {
 }
 export const imageUsage = () => ({ ...usage, cap: DAILY_IMAGE_CAP });
 
+// The image model is prompted only with what should be there: naming a thing to exclude ("no stripes") draws it.
+// A/B on 8 shoe prompts: "no stripes, no logos" gave three-stripe shoes 5 times of 8; the positive wording below 0 of 8.
+// Earbuds in a white pill-shaped case read as one famous real product: they are drawn as loose coloured buds instead.
+const EARBUDS = /\b(ear ?buds?|in-ear|true wireless|tws|pods|earphones?|nappikuulok\w*)\b/i;
+const SHOES = /\b(sneakers?|shoes?|trainers?|runners?|boots?|booties|footwear|loafers?|kenk\w*|lenkkar\w*|tennar\w*)\b/i;
+const MARKS = /\b(with |and )?(no |without )?(logos?|stripes?|brand(ing)?|lettering|text|emblems?|trademarks?|markings?)\b,?/gi;
+
 export function fullPrompt(kind: ShopKind, p: string): string {
-  const subject = p.replace(/[^\p{L}\p{N}\s,.'-]/gu, " ").slice(0, 220);
+  let subject = p.replace(/[^\p{L}\p{N}\s,.'-]/gu, " ").slice(0, 220);
+  if (kind !== "food") subject = subject.replace(MARKS, " ").replace(/\s{2,}/g, " ").trim();
+  // bottles and cans get printed labels: show drinks poured into a plain glass instead
+  if (kind === "food") subject = subject.replace(/\b(glass |plastic )?(bottles?|cans?|pullo\w*|tölk\w*)\b/gi, "glass");
+  if (kind !== "food" && EARBUDS.test(subject))
+    subject = `${subject.replace(/\b(white|ivory|cream|in (an? )?(open )?(white )?(charging )?case|(open )?(white )?charging case|with (an? )?(white )?(charging )?case|stems?)\b/gi, " ").replace(/\s{2,}/g, " ").trim()}. Shown as two small rounded earbuds in a bold colour lying loose side by side on the surface, nothing else in the frame`;
+  else if (kind !== "food" && SHOES.test(subject))
+    subject = `${subject}. The upper is one smooth seamless piece of a single solid colour, with a completely plain, empty side panel and a plain sole, minimalist design`;
   return kind === "food"
-    ? `Appetising food photography of ${subject}, served on a simple ceramic plate on a light wooden table, soft natural daylight, shallow depth of field, close-up, fresh and delicious. No text, no logos, no packaging labels, no people, no hands.`
-    : `Clean studio product photo of ${subject}, a plain unbranded product with a generic design and blank unmarked surfaces, centered on a seamless soft pastel background, soft shadow, premium e-commerce catalogue shot, high detail. Plain unbranded product: no logos, no stripes, no lettering, no trademarks, no emblems, no side markings or panels in a contrasting colour, no text, no people, no hands.`;
+    ? `Appetising food photography of ${subject}, served on a simple ceramic plate on a light wooden table, soft natural daylight, shallow depth of field, close-up, fresh and delicious. Unbranded, no text, no people, no hands.`
+    : `Clean studio product photo of ${subject}, a plain generic design with smooth blank surfaces in solid colours, centered on a seamless soft pastel background, soft shadow, premium e-commerce catalogue shot, high detail. Unbranded, no text, no people, no hands.`;
 // (this model does not accept a negative prompt: Runware answers "unsupportedParameter" for negativePrompt)
 }
 

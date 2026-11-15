@@ -129,7 +129,7 @@ export function craveExamples() {
   const fi = getLang() === "fi";
   return [
     { q: "sushi", icon: Fish },
-    { q: fi ? "langattomat kuulokkeet" : "wireless headphones", icon: Headphones },
+    { q: fi ? "sankakuulokkeet" : "over-ear headphones", icon: Headphones },
     { q: fi ? "uudet lenkkarit" : "new sneakers", icon: Footprints },
   ];
 }

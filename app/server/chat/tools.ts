@@ -783,7 +783,7 @@ const actionTool = tool({
 const craveTool = tool({
   name: "offer_crave_mode",
   description:
-    "Offer Crave mode when the user wants, is tempted by or asks whether to buy something specific, in any language (\"I want new headphones\", \"I'm craving sushi\", \"should I buy those sneakers?\", \"Haluan uudet lenkkarit\", \"Tekisi mieli sushia\", \"Pitäisikö ostaa uudet kuulokkeet?\"). Always call it for such wishes, also in Finnish. Crave mode opens a generated shop for the craving with a full checkout; nothing ships and the basket total goes (simulated) into the user's Crave pot in savings, releasable after a 48-hour cooling-off. Pass the craving as a short shopping phrase (e.g. \"sushi\", \"wireless headphones\").",
+    "Offer Crave mode when the user wants, is tempted by or asks whether to buy something specific, in any language (\"I want new headphones\", \"I'm craving sushi\", \"should I buy those sneakers?\", \"Haluan uudet lenkkarit\", \"Tekisi mieli sushia\", \"Pitäisikö ostaa uudet kuulokkeet?\"). Always call it for such wishes, also in Finnish. Crave mode opens a generated shop for the craving with a full checkout; nothing ships and the basket total goes (simulated) into the user's Crave pot in savings, releasable after a 48-hour cooling-off. Pass the craving as a short shopping phrase (e.g. \"sushi\", \"over-ear headphones\").",
   schema: z.object({ craving: z.string().min(1).max(60).describe("Short phrase for what they crave, in English, e.g. 'new sneakers'") }),
   status: (_i, t) => t.t("Opening Crave mode…"),
   run: (ctx, i) => {

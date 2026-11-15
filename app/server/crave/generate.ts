@@ -18,7 +18,8 @@ Rules:
 - Decide the shop type: "food" for meals, snacks, drinks, takeaway and restaurant cravings (a delivery-app style menu of one invented restaurant, with dishes, add-ons, spice levels or sizes); "store" for things (an online store with a product grid).
 - Prices in euros at realistic Finnish market level (e.g. sushi set 14-24 €, wireless headphones 39-349 €, sneakers 69-189 €). Use prices like 12.90, 79.00, 149.95. Make a spread from affordable to premium.
 - 10 products, varied, each with a one-line pitch and 1-2 tags drawn from the shop's 4-6 facets so filters are useful. 2-3 products on sale with compareAtPrice 15-30% higher, 1-2 with stockLeft, a few badges, most badges empty.
-- imagePrompt: a concrete visual description for a product photo (object, colour, material, styling) of a plain unbranded product. No brand names, no logos, no stripes or brand markings, no text, no people.
+- Headphone cravings: make the products over-ear and on-ear headphones (plus a stand, case or ear pads), not true-wireless earbuds.
+- imagePrompt: a concrete visual description for a product photo (object, solid colours, material, styling) of a plain product. Describe only what is there; never mention logos, stripes, markings or text, not even to exclude them (the image model draws whatever is named). No brand names, no people. Earbuds: describe loose coloured buds, never a charging case.
 - {LANGUAGE} Keep strings short.
 - Refuse (refused=true, products empty, a kind one-sentence refusalMessage) for cravings a bank app should not simulate: weapons, drugs or other controlled substances, adult or sexual content, gambling or betting, tobacco or vaping, anything illegal or harmful, or anything about hurting people. Alcohol: keep it to food pairings, do not build a liquor shop. For non-shoppable or unclear cravings (e.g. "love", "a holiday"), still make a sensible shop if you can (e.g. a travel gear store) without refusing.`;
 

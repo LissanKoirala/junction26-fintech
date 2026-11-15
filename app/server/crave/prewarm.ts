@@ -2,14 +2,14 @@
 //   npx tsx server/crave/prewarm.ts                       -> caches the demo cravings (skips ones already cached)
 //   npx tsx server/crave/prewarm.ts --force sushi         -> regenerates one
 //   npx tsx server/crave/prewarm.ts --lang=fi             -> caches the Finnish demo cravings
-//   npx tsx server/crave/prewarm.ts --bench=gemini-3.5-flash-lite,gemini-3.6-flash "sushi" "wireless headphones"
+//   npx tsx server/crave/prewarm.ts --bench=gemini-3.5-flash-lite,gemini-3.6-flash "sushi" "over-ear headphones"
 //   (model ids of the active provider, LLM_PROVIDER; a Gemini id may be a comma-separated fallback chain)
 import { generateShop } from "./generate";
 import { buildShop, loadCachedShop } from "./route";
 
 import type { Lang } from "../../shared/i18n";
 
-export const DEMO_CRAVINGS: Record<Lang, string[]> = { en: ["sushi", "wireless headphones", "new sneakers"], fi: ["sushi", "langattomat kuulokkeet", "uudet lenkkarit"] };
+export const DEMO_CRAVINGS: Record<Lang, string[]> = { en: ["sushi", "over-ear headphones", "new sneakers"], fi: ["sushi", "sankakuulokkeet", "uudet lenkkarit"] };
 
 const args = process.argv.slice(2);
 const flags = Object.fromEntries(args.filter((a) => a.startsWith("--")).map((a) => a.slice(2).split("=")).map(([k, v]) => [k, v ?? "1"]));
