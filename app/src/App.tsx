@@ -9,6 +9,7 @@ import { applyThemeToDocument } from "@/ui/theme";
 import { useStore } from "@/state/store";
 import { ToastHost } from "@/ui/toast";
 import { ErrorBoundary } from "@/ui/ErrorBoundary";
+import { useLang } from "@/lib/i18n";
 
 const BasketsExplorer = lazy(() => import("@/features/baskets/BasketsExplorer"));
 const CheckInStories = lazy(() => import("@/features/checkin/CheckInStories"));
@@ -33,6 +34,7 @@ function FlowFallback() {
 export default function App() {
   const route = useRoute();
   const customerId = useStore((s) => s.customerId);
+  const lang = useLang(); // part of the key below: switching language remounts the screens so every t() call re-runs
   useEffect(applyThemeToDocument, []);
   const [a, b] = route.segments;
 
@@ -49,7 +51,7 @@ export default function App() {
     <div className="flex h-full w-full justify-center">
       <div
         id="phone"
-        key={customerId}
+        key={`${customerId}:${lang}`}
         className="relative flex h-full w-full max-w-[430px] flex-col overflow-hidden bg-screen sm:shadow-middle"
       >
         <ErrorBoundary key={route.path} label="This screen">{content}</ErrorBoundary>

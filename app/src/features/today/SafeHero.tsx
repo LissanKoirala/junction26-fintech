@@ -1,4 +1,5 @@
-// The hero of Today: safe to spend this week, week progress, status wording, "Why this number?" sheet.
+// The hero of Today: what is safe for the rest of this week (headline), the weekly rate and total until payday
+// (supporting line), this week's room, late-pay and irregular-income notes, and the "Why this number?" sheet.
 import { useState } from "react";
 import { CalendarClock, Calculator } from "lucide-react";
 import type { SafeToSpend } from "@shared/engine";
@@ -6,47 +7,49 @@ import { dateShort, money, moneyParts } from "@/lib/format";
 import { HeroCard, heroInverse, heroMuted, heroTitle, VaraAvatar } from "@/ui/hero";
 import { Badge, Button, cx, HeroFigure, Progress, STROKE } from "@/ui/kit";
 import { Sheet } from "@/ui/Sheet";
-import { statusWording } from "@/features/vara/useVaraData";
+import { safeView, statusWording } from "@/features/vara/useVaraData";
 
 export function SafeHero({ s }: { s: SafeToSpend }) {
   const [open, setOpen] = useState(false);
   const w = statusWording(s);
+  const v = safeView(s);
   const inv = heroInverse();
   const muted = heroMuted();
-  // remaining = what is safe for the rest of this week; the bar shows how much of this week's room is used
-  const room = s.week.spentSoFar + Math.max(0, s.week.remaining);
-  const used = room > 0 ? s.week.spentSoFar / room : s.week.spentSoFar > 0 ? 1 : 0;
+  const strong = inv ? "text-white" : "text-ink";
   return (
     <>
-      <HeroCard label="Safe to spend this week">
+      <HeroCard label={v.title}>
         <div className="flex items-center justify-between gap-2">
           <p className={cx("flex items-center gap-2 text-base font-semibold", heroTitle())}>
             <VaraAvatar size={24} inverse={inv} />
-            Safe to spend this week
+            {v.title}
           </p>
-          <Badge tone={s.status === "comfortable" ? "success" : "warning"}>{w.label}</Badge>
+          <Badge tone={w.tone}>{w.label}</Badge>
         </div>
-        <div className="mt-1">
-          <HeroFigure value={moneyParts(s.safePerWeek).num} ink={inv ? "inverse" : "default"} />
-        </div>
-        <p className={cx("text-sm", muted)}>
-          about {money(s.safePerDay, { whole: true })} a day until payday
-        </p>
+        {v.figure != null ? (
+          <div className="mt-1">
+            <HeroFigure value={moneyParts(v.figure).num} ink={inv ? "inverse" : "default"} />
+          </div>
+        ) : (
+          <p className={cx("mt-2 text-3xl font-bold tracking-tight", inv ? "text-hero-num" : "text-ink")}>Plenty of room</p>
+        )}
+        <p className={cx("tnum text-sm", muted)}>{v.support}</p>
 
         <div className="mt-4">
-          <Progress value={used} label="Share of this week's safe amount already spent" tone={inv ? "inverse" : s.status === "comfortable" ? "accent" : "warning"} />
-          <div className={cx("tnum mt-1.5 flex justify-between text-sm", muted)}>
-            <span>Spent {money(s.week.spentSoFar, { whole: true })} since {dateShort(s.week.from)}</span>
-            <span className={cx("font-semibold", inv ? "text-white" : "text-ink")}>{money(Math.max(0, s.week.remaining), { whole: true })} left</span>
+          <Progress value={v.bar.value} label={v.bar.label} tone={inv ? "inverse" : s.status === "tight" || s.status === "over" ? "warning" : "accent"} />
+          <div className={cx("tnum mt-1.5 flex justify-between gap-2 text-sm", muted)}>
+            <span>{v.bar.left}</span>
+            <span className={cx("font-semibold", strong)}>{v.bar.right}</span>
           </div>
         </div>
 
-        <p className={cx("mt-3 text-base", inv ? "text-white" : "text-ink")}>{w.coach}</p>
+        <p className={cx("mt-3 text-base", strong)}>{w.coach}</p>
 
-        <div className={cx("mt-3 flex items-center gap-2 text-sm", muted)}>
-          <CalendarClock size={16} strokeWidth={STROKE} aria-hidden />
+        <div className={cx("mt-3 flex items-start gap-2 text-sm", muted)}>
+          <CalendarClock size={16} strokeWidth={STROKE} className="mt-0.5 shrink-0" aria-hidden />
           <span>
-            Next payday {dateShort(s.nextPayday.date)} · in {s.nextPayday.daysAway} {s.nextPayday.daysAway === 1 ? "day" : "days"}
+            {v.payday}
+            {v.late && <span className="mt-1 block">{v.late}</span>}
           </span>
         </div>
         <div className="mt-3">
