@@ -1,0 +1,144 @@
+{
+  "checkedAt": "2026-11-15T04:32:45.698035+00:00",
+  "origin": "https://vara-junction26.swedencentral.cloudapp.azure.com",
+  "results": [
+    {
+      "path": "/api/health",
+      "status": 200,
+      "json": true,
+      "bytes": 48,
+      "health": {
+        "ok": true,
+        "asOf": "2026-09-30",
+        "customers": 5100
+      }
+    },
+    {
+      "path": "/api/customers",
+      "status": 200,
+      "json": true,
+      "bytes": 816672
+    },
+    {
+      "path": "/api/customer/CUST04754",
+      "status": 200,
+      "json": true,
+      "bytes": 107920
+    },
+    {
+      "path": "/api/crave/wallet",
+      "status": 200,
+      "json": true,
+      "bytes": 143,
+      "walletEnabled": true
+    },
+    {
+      "path": "/api/ml/profile/CUST04754",
+      "status": 200,
+      "json": true,
+      "bytes": 3592
+    },
+    {
+      "path": "/api/ml/twins/CUST04754",
+      "status": 200,
+      "json": true,
+      "bytes": 6560
+    },
+    {
+      "path": "/api/ml/anomalies/CUST04754",
+      "status": 200,
+      "json": true,
+      "bytes": 7534
+    },
+    {
+      "path": "/api/ml/habits/CUST04754",
+      "status": 200,
+      "json": true,
+      "bytes": 3998
+    },
+    {
+      "path": "/api/ml/home/CUST04754",
+      "status": 200,
+      "json": true,
+      "bytes": 1128
+    },
+    {
+      "path": "/api/ml/forecast/CUST04754",
+      "status": 200,
+      "json": true,
+      "bytes": 4433
+    },
+    {
+      "path": "/api/ml/risk/CUST04754",
+      "status": 200,
+      "json": true,
+      "bytes": 2046
+    },
+    {
+      "path": "/api/ml/txgpt/CUST04754",
+      "status": 200,
+      "json": true,
+      "bytes": 3592
+    },
+    {
+      "path": "/api/global/map",
+      "status": 200,
+      "json": true,
+      "bytes": 150643
+    },
+    {
+      "path": "/api/global/tribes",
+      "status": 200,
+      "json": true,
+      "bytes": 9704
+    },
+    {
+      "path": "/api/global/modelcard-tribes",
+      "status": 200,
+      "json": true,
+      "bytes": 2463
+    },
+    {
+      "path": "/api/global/modelcard-twins",
+      "status": 200,
+      "json": true,
+      "bytes": 2811
+    },
+    {
+      "path": "/api/global/modelcard-forecast",
+      "status": 200,
+      "json": true,
+      "bytes": 12506
+    },
+    {
+      "path": "/api/global/modelcard-risk",
+      "status": 200,
+      "json": true,
+      "bytes": 15840
+    },
+    {
+      "path": "/api/global/modelcard-anomalies",
+      "status": 200,
+      "json": true,
+      "bytes": 3994
+    },
+    {
+      "path": "/api/global/modelcard-habits",
+      "status": 200,
+      "json": true,
+      "bytes": 3686
+    },
+    {
+      "path": "/api/global/modelcard-home",
+      "status": 200,
+      "json": true,
+      "bytes": 3353
+    },
+    {
+      "path": "/api/global/modelcard-txgpt",
+      "status": 200,
+      "json": true,
+      "bytes": 7367
+    }
+  ]
+}

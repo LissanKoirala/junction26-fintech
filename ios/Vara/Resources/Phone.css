@@ -1,0 +1,7 @@
+/* The native view already excludes the Dynamic Island, home indicator and keyboard. */
+html, body { background: #ebf7ec; overscroll-behavior: none; }
+#phone { max-width: 100% !important; }
+/* Prevent focus zoom while retaining pinch-to-zoom and all existing input behavior. */
+input:not([type=range]):not([type=checkbox]):not([type=radio]), textarea, select {
+  font-size: max(16px, 1rem);
+}
