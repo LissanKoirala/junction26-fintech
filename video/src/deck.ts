@@ -16,7 +16,7 @@ export const deck: DeckSlide[] = [
   { id: "s06-coach", n: 6, title: "A coach that comes to you", seconds: 24, component: S06Coach },
   { id: "s07-crave-idea", n: 7, title: "Crave mode", seconds: 19, component: S07CraveIdea },
   { id: "s08-crave-live", n: 8, title: "Crave mode, live", seconds: 49, component: S08CraveLive },
-  { id: "s09-crave-honest", n: 9, title: "Honest by design", seconds: 24, component: S09CraveHonest },
+  { id: "s09-crave-honest", n: 9, title: "Honest by design", seconds: 26, component: S09CraveHonest },
   { id: "s10-models", n: 10, title: "Eight models, tested honestly", seconds: 26, component: S10Models },
   { id: "s11-insights", n: 11, title: "Written up for the judges", seconds: 18, component: S11Insights },
   { id: "s12-fit", n: 12, title: "Built to fit S-mobiili", seconds: 22, component: S12Fit },

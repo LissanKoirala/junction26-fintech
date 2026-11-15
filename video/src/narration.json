@@ -65,9 +65,9 @@
   {
     "id": "crave-honest",
     "slide": 9,
-    "text": "Crave mode is honest by design. You opt in, and every screen says nothing ships. It never sets aside more than is safe to spend, and you can release the money and buy it for real at any time. In this prototype the money movement is simulated, and checkout can use a real wallet sheet in Stripe's test mode. No card is charged.",
+    "text": "Crave mode is honest by design. You opt in, and every screen says nothing ships. It never sets aside more than is free until payday, and you can release the money and buy it for real at any time. In this prototype the money movement is simulated, and the wallet button at checkout comes from Stripe, in test mode. No card is charged.",
     "file": "n-crave-honest.m4a",
-    "seconds": 19.6
+    "seconds": 22.3
   },
   {
     "id": "models",

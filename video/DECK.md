@@ -77,17 +77,19 @@ Product:
   hand-off to Säästäjä (S-Pankki's savings service: the hand-off is a mock); connect another bank (PSD2 mock).
 - Crave mode: opt-in; a "Crave mode · nothing ships" pill on every screen; generated shop (Claude Haiku 5.5,
   invented shop and brands only); basket and checkout; pay sheet with a synthesised chime; the amount is capped
-  by safe-to-spend; reveal screen; in-app inbox with order emails (no real emails are sent); Crave pot;
-  "Release the money and buy it for real". All money movement is simulated in the prototype. Checkout can
-  use the phone's real wallet sheet through Stripe in TEST mode: no card is charged.
+  at what is free until payday (137 € for the demo customer; NOT the 37 € "safe to spend until Sunday");
+  reveal screen; in-app inbox with order emails (no real emails are sent); Crave pot;
+  "Release the money and buy it for real" (available at any time). All money movement is simulated in the
+  prototype. The checkout can show Stripe's own wallet button in TEST mode: no card is charged. (What we
+  verified is that the button renders and test payments are created; do not claim more.)
 - Eight models, each with a model card and a verdict:
   | App name | What it does | Verdict | Model vs strongest simple baseline |
   |---|---|---|---|
-  | Crystal ball | balance forecast with a range | Ships | 14-day error 340 € vs 373 € (8.7% better) |
+  | Crystal ball | balance forecast with a range | Ships | 14-day spend error 340 € vs 373 € (8.7% better) |
   | Early warning | overdraft risk, with reasons | Ships | PR AUC 0.800 vs 0.768 (ROC AUC 0.967 vs 0.963) |
   | Money Map | customers on one map, "tribes" | Experimental | silhouette 0.114 vs 0.071 |
   | Two Futures | what happened next to people like you | Experimental | on par with a one-feature rule |
-  | Unusual for you | personal anomaly radar | Experimental | 0.889 vs 0.901: the baseline wins |
+  | Unusual for you | personal anomaly radar | Experimental | ROC AUC on injected anomalies 0.889 vs 0.901: the baseline wins |
   | Habit detector | a change that has stuck | Experimental | 3.6% flagged vs 3.1% on shuffled data |
   | TransactionGPT | small transformer over account history | Experimental | next category 45.1% vs 36.7% |
   | First-home readiness | how ready for a mortgage | Experimental | AUC 0.782 vs 0.732, within noise |
@@ -178,15 +180,15 @@ slide length = 1 s lead + clip + about 2.5 s of hold, a whole number of seconds;
 can use for the step list: `craving`, `open-shop`, `product-open`, `twist`. Badge: live.
 
 **09 · s09-crave-honest · 24 s · Crave.tsx `S09CraveHonest`** — narration `crave-honest` (19.6 s): "Crave mode is
-honest by design. You opt in, and every screen says nothing ships. It never sets aside more than is safe to
-spend, and you can release the money and buy it for real at any time. In this prototype the money movement
-is simulated, and checkout can use a real wallet sheet in Stripe's test mode. No card is charged."
+honest by design. You opt in, and every screen says nothing ships. It never sets aside more than is free
+until payday, and you can release the money and buy it for real at any time. In this prototype the money
+movement is simulated, and the wallet button at checkout comes from Stripe, in test mode. No card is charged."
 Light slide. Eyebrow "Honest by design". Headline "It only works if you are **in on it**." Left: four or
-five points arriving with the narration (Opt-in · Every screen says nothing ships · Never more than is safe
-to spend · Release the money any time · Prototype: money movement is simulated; Stripe test mode, no card
-charged). Right: two phone stills side by side: `shots/pay-sim.png` (label "Simulated pay sheet, synthesised
-chime") and `shots/pay-wallet.png` (label "Real wallet sheet · Stripe test mode"); or `shots/pot.png` if a
-third fits. Badge: still.
+five points arriving with the narration (Opt-in · Every screen says nothing ships · Never more than is free
+until payday · Release the money any time · Prototype: money movement is simulated; Stripe test mode, no card
+charged). Right: the two pay sheets side by side, cropped to the sheet so their small print is readable:
+`shots/pay-sim.png` (label "Simulated pay sheet, synthesised chime") and `shots/pay-wallet.png` (label
+"Wallet button from Stripe · test mode"). Badge: still.
 
 **10 · s10-models · 26 s · Models.tsx `S10Models`** — narration `models` (21.7 s): "Behind the coach are eight
 machine-learning models trained on the challenge data, from a balance forecast and an overdraft early

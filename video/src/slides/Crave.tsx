@@ -1,6 +1,6 @@
 import React from "react";
-import { useCurrentFrame } from "remotion";
-import { Accent, Badge, clipFrame, CravePill, Eyebrow, Headline, Icon, IconDisc, In, LiveClip, Phone, Shot, s, Slide, Sound, Title, useAmbient, useIn, useProgress } from "../kit";
+import { Img, staticFile, useCurrentFrame } from "remotion";
+import { Accent, Badge, clipFrame, CravePill, Eyebrow, Headline, Icon, IconDisc, In, LiveClip, Phone, s, Slide, Sound, Title, useAmbient, useIn, useProgress } from "../kit";
 import { C } from "../theme";
 import timeline from "../timeline.json";
 
@@ -122,7 +122,7 @@ const liveSteps = [
   { label: "The craving", sub: "“new sneakers”", on: "craving", done: "shop-visible" },
   { label: "A generated shop", sub: "Hallo Stride, an invented shop", on: "shop-visible", done: "added" },
   { label: "Basket", sub: "Court Low Leather · 119,95 €", on: "added", done: "checkout" },
-  { label: "Checkout", sub: "Checked against safe-to-spend", on: "checkout", done: "sheet-open" },
+  { label: "Checkout", sub: "137 € is free until payday, so it fits", on: "checkout", done: "sheet-open" },
   { label: "Pay", sub: "Simulated pay sheet, with the app’s chime", on: "sheet-open", done: "tick" },
   { label: "Nothing ships: money to the Crave pot", sub: "The pot counts up to 119,95 €", on: "twist", done: "inbox" },
   { label: "Order emails, in the app", sub: "No real emails are sent", on: "inbox", done: "pot" },
@@ -166,29 +166,34 @@ const LiveStep: React.FC<{ n: number; label: string; sub: string; on: string; do
   </div>;
 };
 
-/* ============================================================ 09 · Honest by design (24 s)
- * Phrase times from the measured pauses, plus 0.8 s:
- * "Crave mode is honest by design.(0.8) You opt in,(3.0) and every screen says nothing ships.(4.2)
- *  It never sets aside more than is safe to spend,(6.2) and you can release the money and buy it for real at any time.(9.0)
- *  In this prototype the money movement is simulated,(13.3) and checkout can use a real wallet sheet in Stripe's test mode.(15.1)
- *  No card is charged.(18.8)" */
-const PHONE_W = 310;
+/* ============================================================ 09 · Honest by design (26 s)
+ * Phrase times from the measured pauses of the re-voiced narration (22.3 s), plus 0.8 s:
+ * "Crave mode is honest by design.(0.8) You opt in,(3.3) and every screen says nothing ships.(4.5)
+ *  It never sets aside more than is free until payday,(7.7) and you can release the money(11.1) and buy it for real at any time.(12.6)
+ *  In this prototype the money movement is simulated,(14.7) and the wallet button at checkout comes from Stripe, in test mode.(18.2)
+ *  No card is charged.(21.75)"
+ * The cap is what is free until payday (137 € for the demo customer), never the "safe to spend until Sunday" figure. */
+const SHEET_W = 440, SHEET_GAP = 40;
+// The pay sheet inside each screenshot: its top edge (measured in the PNG) to the bottom of the image.
+const sheets = [
+  { src: "pay-sim.png", imgW: 780, imgH: 1688, top: 790, at: 1.0, label: <>Simulated pay sheet,<br />synthesised chime</> },
+  { src: "pay-wallet.png", imgW: 390, imgH: 844, top: 453, at: 1.5, label: <>Wallet button from Stripe ·<br />test mode</> },
+];
 export const S09CraveHonest: React.FC = () => <Slide n={9}>
   <Sound src="n-crave-honest.m4a" at={s(0.8)} />
   <Title eyebrow="Honest by design" width={980}>It only works if you are <Accent>in on it</Accent>.</Title>
   <In delay={s(0.6)} style={{ position: "absolute", right: 96, top: 76 }}><Badge kind="still" /></In>
-  <div style={{ position: "absolute", left: 96, top: 330, width: 900, display: "grid", gap: 30 }}>
-    <Honest icon="check" title="Opt-in" at={3.0}>Crave mode is off until you turn it on</Honest>
-    <Honest icon="box" title="Every screen says nothing ships" at={4.2}><CravePill scale={0.9} /></Honest>
-    <Honest icon="shield" title="Never more than is safe to spend" at={6.2}>The amount is capped by safe-to-spend</Honest>
-    <Honest icon="undo" title="Release the money any time" at={9.0}>“Release the money and buy it for real”</Honest>
-    <Honest icon="card" title="Prototype: money movement is simulated" at={13.3}>
-      <In delay={s(15.1)} from="up" dist={10}><span>Checkout can use Stripe in test mode.</span></In>
-      <In delay={s(18.8)} from="up" dist={10}><span style={{ color: C.ink, fontWeight: 700 }}>No card is charged.</span></In>
+  <div style={{ position: "absolute", left: 96, top: 300, width: 760, display: "grid", gap: 32 }}>
+    <Honest icon="check" title="Opt-in" at={3.3}>Crave mode is off until you turn it on</Honest>
+    <Honest icon="box" title="Every screen says nothing ships" at={4.5}><CravePill scale={0.9} /></Honest>
+    <Honest icon="shield" title="Never more than is free until payday" at={7.7}>The amount is capped: 137 € for Aino</Honest>
+    <Honest icon="undo" title="Release the money any time" at={11.1}>“Release the money and buy it for real”</Honest>
+    <Honest icon="card" title="Prototype: money movement is simulated" at={14.7}>
+      <In delay={s(18.2)} from="up" dist={10}><span>The wallet button comes from Stripe, in test mode.</span></In>
+      <In delay={s(21.7)} from="up" dist={10}><span style={{ color: C.ink, fontWeight: 700 }}>No card is charged.</span></In>
     </Honest>
   </div>
-  <PayPhone left={1824 - 2 * PHONE_W - 48} src="pay-sim.png" at={1.0} label={<>Simulated pay sheet,<br />synthesised chime</>} />
-  <PayPhone left={1824 - PHONE_W} src="pay-wallet.png" at={1.5} label={<>Real wallet sheet ·<br />Stripe test mode</>} />
+  {sheets.map((sh, k) => <PaySheet key={sh.src} left={1824 - (2 - k) * SHEET_W - (1 - k) * SHEET_GAP} {...sh} />)}
 </Slide>;
 
 const Honest: React.FC<{ icon: string; title: string; at: number; children: React.ReactNode }> = ({ icon, title, at, children }) =>
@@ -196,12 +201,18 @@ const Honest: React.FC<{ icon: string; title: string; at: number; children: Reac
     <IconDisc name={icon} size={60} />
     <div style={{ paddingTop: 2 }}>
       <div style={{ fontSize: 30, fontWeight: 700, lineHeight: 1.2, color: C.ink }}>{title}</div>
-      <div style={{ marginTop: 6, fontSize: 24, lineHeight: 1.35, color: C.muted, display: "flex", gap: 8, flexWrap: "wrap" }}>{children}</div>
+      <div style={{ marginTop: 6, fontSize: 24, lineHeight: 1.35, color: C.muted, display: "flex", columnGap: 8, flexWrap: "wrap" }}>{children}</div>
     </div>
   </In>;
 
-const PayPhone: React.FC<{ left: number; src: string; at: number; label: React.ReactNode }> = ({ left, src, at, label }) =>
-  <In delay={s(at)} from="up" dist={30} style={{ position: "absolute", left, top: 236, width: PHONE_W }}>
+/** The bottom of a phone screenshot (the pay sheet only), in a rounded card, so its small print can be read. */
+const PaySheet: React.FC<{ left: number; src: string; imgW: number; imgH: number; top: number; at: number; label: React.ReactNode }> = ({ left, src, imgW, imgH, top, at, label }) => {
+  const k = SHEET_W / imgW;
+  return <In delay={s(at)} from="up" dist={30} style={{ position: "absolute", left, top: 248, width: SHEET_W }}>
     <div style={{ height: 68, fontSize: 24, fontWeight: 600, lineHeight: 1.3, color: C.inkStrong, textAlign: "center" }}>{label}</div>
-    <Phone width={PHONE_W} style={{ marginTop: 14 }}><Shot src={src} /></Phone>
+    <div style={{ marginTop: 16, width: SHEET_W, height: Math.round((imgH - top) * k), borderRadius: 24, overflow: "hidden", position: "relative", background: "#f2f2f4",
+      boxShadow: "0 18px 50px rgba(0,70,40,.14), 0 2px 6px rgba(0,70,40,.06), 0 0 0 1px rgba(0,70,40,.06)" }}>
+      <Img src={staticFile(`shots/${src}`)} style={{ position: "absolute", left: 0, top: -top * k, width: SHEET_W, height: imgH * k, display: "block" }} />
+    </div>
   </In>;
+};

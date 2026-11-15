@@ -14,11 +14,11 @@ import { C } from "../theme";
 type Row = { name: string; what: string; m?: string; b?: string; lead: "model" | "baseline" | "none"; note?: string; metric?: string; ships?: boolean };
 // Figures exactly as in DECK.md "Facts"; the leading value is the one set in bold.
 const rows: Row[] = [
-  { name: "Crystal ball", what: "Balance forecast with a range", m: "340 €", b: "373 €", lead: "model", note: "8.7% better", metric: "14-day error", ships: true },
+  { name: "Crystal ball", what: "Balance forecast with a range", m: "340 €", b: "373 €", lead: "model", note: "8.7% better", metric: "14-day spend error", ships: true },
   { name: "Early warning", what: "Overdraft risk, with reasons", m: "0.800", b: "0.768", lead: "model", metric: "PR AUC · ROC AUC 0.967 vs 0.963", ships: true },
   { name: "Money Map", what: "Customers on one map, “tribes”", m: "0.114", b: "0.071", lead: "model", metric: "silhouette" },
   { name: "Two Futures", what: "What happened next to people like you", lead: "none", note: "On par", metric: "with a one-feature rule" },
-  { name: "Unusual for you", what: "Personal anomaly radar", m: "0.889", b: "0.901", lead: "baseline", note: "the baseline wins" },
+  { name: "Unusual for you", what: "Personal anomaly radar", m: "0.889", b: "0.901", lead: "baseline", note: "the baseline wins", metric: "ROC AUC on injected anomalies" },
   { name: "Habit detector", what: "A change that has stuck", m: "3.6%", b: "3.1%", lead: "model", metric: "flagged, vs on shuffled data" },
   { name: "TransactionGPT", what: "Small transformer over account history", m: "45.1%", b: "36.7%", lead: "model", metric: "next category" },
   { name: "First-home readiness", what: "How ready for a mortgage", m: "0.782", b: "0.732", lead: "model", note: "within noise", metric: "AUC" },

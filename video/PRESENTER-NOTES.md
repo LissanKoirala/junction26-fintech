@@ -21,13 +21,15 @@ fixed at 30 September 2026).
 thousand one hundred customers, seven in ten dipped below zero at least once in two years. Among eighteen to
 twenty-four-year-olds, it's eight in ten. Almost always in the last days before payday."
 If asked: 69% overall, 80% for ages 18 to 24, and 96% of dips reach their lowest point 20 or more days after
-payday. The data is synthetic, modelled by the organisers on real S-Pankki data.
+payday. The data is synthetic; the challenge describes it as modelled on real S-Bank data. The 69% includes
+the first month, where the synthetic opening balances put more accounts below zero than later months.
 
 **03 · The dips are small (20 s).** "A typical everyday purchase is thirty-nine euros. The deepest dip in two
 years is the size of six of them. So this isn't a maths problem. It's about the moment, and whether the money
 is still there when the dip would have come."
 If asked: the 72% is what a 5% trim (about 44 € a month) removes when the saved money is kept and builds up
-as a cushion over the two years; kept only until the next payday it removes 15%. That gap is the argument for
+as a cushion over the two years; kept only until the next payday it removes 15%. It is a replay of the data
+with everything else unchanged, not a prediction. That gap is the argument for
 Crave mode: the money has to stay somewhere.
 
 **04 · Meet Vara (18 s).** "So we built Vara, a personal economic trainer inside S-mobiili. It starts with one
@@ -55,21 +57,23 @@ If asked: the shop "Hallo Stride" and its brands are invented by the model (Clau
 no real shop or brand is shown. The recording is uncut and uses the simulated pay sheet.
 
 **09 · Honest by design (24 s).** "Crave mode is honest by design. You opt in, and every screen says nothing
-ships. It never sets aside more than is safe to spend, and you can release the money and buy it for real at
-any time. In this prototype the money movement is simulated, and checkout can use a real wallet sheet in
-Stripe's test mode. No card is charged."
-If asked: the order emails arrive in an in-app inbox; no real email is sent. On an iPhone in Safari the
-checkout shows the phone's own wallet sheet through Stripe in test mode.
+ships. It never sets aside more than is free until payday, and you can release the money and buy it for real
+at any time. In this prototype the money movement is simulated, and the wallet button at checkout comes from
+Stripe, in test mode. No card is charged."
+If asked: the cap is the 137 € that is free until payday, not the 37 € for this week. The order emails
+arrive in an in-app inbox; no real email is sent. The wallet button is Stripe's own element in test mode; we
+have not completed a wallet payment on a real phone.
 
 **10 · Eight models, tested honestly (26 s).** "Behind the coach are eight machine-learning models trained on
 the challenge data, from a balance forecast and an overdraft early warning to a small transformer that reads
 account history like text. We tested each one against the strongest simple baseline we could find. Two
 clearly win, and ship. Six are labelled experimental, and the app says so."
-If asked: the forecast's 14-day error is 340 € against 373 € for the baseline; the early warning's PR AUC is
-0.800 against 0.768. For "Unusual for you" the simple baseline wins (0.889 against 0.901), and the app says so.
+If asked: the forecast's error on 14-day spending is 340 € against 373 € for the baseline; the early
+warning's PR AUC is 0.800 against 0.768 (its ROC AUC gain is small: 0.967 against 0.963). For "Unusual for
+you" the simple baseline wins (ROC AUC 0.889 against 0.901), and the app says so.
 
 **11 · Written up for the judges (18 s).** "It's all written up for the judges on a separate insights site:
-seven findings, every model card, and the limits of what this data can tell."
+eleven findings, every model card, and the limits of what this data can tell."
 The site is at `/insights/` on the demo address.
 
 **12 · Built to fit S-mobiili (22 s).** "Vara is built to fit S-mobiili. It lives inside the app's shell,

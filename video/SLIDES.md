@@ -12,7 +12,7 @@ still frame. `vara-pitch.mp4` is all fourteen joined (5 min 18 s). `vara-pitch-s
 | 04 | `04-s04-meet.mp4` | 0:59 | 18 s | Recording: Vara opens from the S-mobiili home shell on "Safe to spend until Sunday 37 €", and the Today cards scroll by. | Live app recording |
 | 05 | `05-s05-chat.mp4` | 1:17 | 30 s | Recording: "Can I afford new sneakers this month?", the answer as cards, "How I got this". Beside it: model asks, engine computes, guard checks. | Live app recording, waiting time shortened |
 | 06 | `06-s06-coach.mp4` | 1:47 | 24 s | Three recordings: the What-if slider, the weekly check-in story, the switch from English to Finnish. | Live app recording |
-| 07 | `07-s07-crave-idea.mp4` | 2:11 | 19 s | The idea of Crave mode in four steps, and the motto. | Concept |
+| 07 | `07-s07-crave-idea.mp4` | 2:11 | 19 s | The idea of Crave mode in five steps, and the motto. | Concept |
 | 08 | `08-s08-crave-live.mp4` | 2:30 | 49 s | Recording, uncut: craving, generated shop, basket, checkout, pay sheet with the chime, "nothing ships", inbox, Crave pot. | Live app recording |
 | 09 | `09-s09-crave-honest.mp4` | 3:19 | 24 s | The five guard rails, next to the simulated pay sheet and the Stripe test-mode sheet. | Live app screenshots |
 | 10 | `10-s10-models.mp4` | 3:43 | 26 s | The eight models as a table: each against its strongest simple baseline, with its verdict. | Model cards |
