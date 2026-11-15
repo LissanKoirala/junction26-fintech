@@ -2,8 +2,8 @@
 
 Two ways to use the deck:
 
-- **Play it.** `vara-pitch.mp4` is the whole pitch with a narrator, 5 min 18 s. `vara-pitch-short.mp4` is the
-  1 min 50 s cut: the problem, the one number, Crave mode and its live run, the close.
+- **Play it.** `vara-pitch.mp4` is the whole pitch with a narrator, 5 min 17 s. `vara-pitch-short.mp4` is the
+  1 min 47 s cut: the problem, the one number, Crave mode and its live run, the close.
 - **Present over it.** The fourteen clips in `videos/` each end on a complete, still frame. Mute the player,
   play a clip, talk, and move on when you are ready. The narrator's lines below are a script you can say
   yourself.
@@ -42,7 +42,7 @@ your own transactions, and every number shows how it was worked out. The languag
 arithmetic. An engine does, and a guard checks every figure before it reaches you."
 If asked: Claude Opus 5.5 calls tools in the engine; the guard compares every figure in the answer with the
 engine's results. The public endpoint is limited to 30 requests per 5 minutes per visitor and 2 000 AI calls
-a day. The recording cuts 4.4 seconds of waiting for the answer; the badge on the slide says so.
+a day. The recording cuts 4.1 seconds of waiting for the answer; the badge on the slide says so.
 
 **06 · A coach that comes to you (24 s).** "What-if lets you try a decision before you make it. Every week,
 Vara checks in first, with the story of your week. And it works in English and in Finnish."
@@ -51,12 +51,12 @@ Vara checks in first, with the story of your week. And it works in English and i
 Vara what you want, and it builds a shop for it on the spot. You hunt, you fill the basket, you check out.
 Nothing ships. The money goes to your savings instead."
 
-**08 · Crave mode, live (49 s).** "Here it is, live. New sneakers." … (let it play) … "The thrill of buying.
+**08 · Crave mode, live (46 s).** "Here it is, live. New sneakers." … (let it play) … "The thrill of buying.
 And the money is still hers."
 If asked: the shop "Hallo Stride" and its brands are invented by the model (Claude Haiku 5.5) for the craving;
 no real shop or brand is shown. The recording is uncut and uses the simulated pay sheet.
 
-**09 · Honest by design (24 s).** "Crave mode is honest by design. You opt in, and every screen says nothing
+**09 · Honest by design (26 s).** "Crave mode is honest by design. You opt in, and every screen says nothing
 ships. It never sets aside more than is free until payday, and you can release the money and buy it for real
 at any time. In this prototype the money movement is simulated, and the wallet button at checkout comes from
 Stripe, in test mode. No card is charged."

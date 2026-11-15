@@ -20,34 +20,34 @@
       "width": 780,
       "height": 1688,
       "fps": 30,
-      "frames": 607,
-      "seconds": 20.233,
+      "frames": 609,
+      "seconds": 20.3,
       "cut": [
         {
-          "at": 5.56,
-          "removed": 4.42,
+          "at": 5.66,
+          "removed": 4.14,
           "where": "waiting for the first words of the answer"
         }
       ],
       "events": [
         {
-          "t": 1.99,
+          "t": 1.93,
           "label": "typing-start"
         },
         {
-          "t": 4.75,
+          "t": 4.76,
           "label": "sent"
         },
         {
-          "t": 6.17,
+          "t": 6.26,
           "label": "answer-first-card"
         },
         {
-          "t": 6.17,
+          "t": 6.26,
           "label": "answer-complete"
         },
         {
-          "t": 16.14,
+          "t": 16.18,
           "label": "how-open"
         }
       ]
@@ -126,72 +126,72 @@
       "width": 780,
       "height": 1688,
       "fps": 30,
-      "frames": 1359,
-      "seconds": 45.3,
+      "frames": 1265,
+      "seconds": 42.167,
       "cut": [],
       "events": [
         {
-          "t": 3.17,
+          "t": 1.27,
           "label": "craving"
         },
         {
-          "t": 6.14,
+          "t": 2.81,
           "label": "open-shop"
         },
         {
-          "t": 7.92,
+          "t": 4.6,
           "label": "shop-visible"
         },
         {
-          "t": 13.2,
+          "t": 9.99,
           "label": "product-open"
         },
         {
-          "t": 14.65,
+          "t": 11.45,
           "label": "added"
         },
         {
-          "t": 16.26,
+          "t": 13.09,
           "label": "basket"
         },
         {
-          "t": 17.97,
+          "t": 14.8,
           "label": "checkout"
         },
         {
-          "t": 21.96,
+          "t": 18.81,
           "label": "sheet-open"
         },
         {
-          "t": 24.81,
+          "t": 21.68,
           "label": "pay-tap"
         },
         {
-          "t": 25.17,
+          "t": 22.05,
           "label": "scan"
         },
         {
-          "t": 26.63,
+          "t": 23.47,
           "label": "tick"
         },
         {
-          "t": 27.94,
+          "t": 24.81,
           "label": "reveal"
         },
         {
-          "t": 31.13,
+          "t": 28,
           "label": "twist"
         },
         {
-          "t": 32.43,
+          "t": 29.3,
           "label": "coins"
         },
         {
-          "t": 36.78,
+          "t": 33.63,
           "label": "inbox"
         },
         {
-          "t": 40.79,
+          "t": 37.64,
           "label": "pot"
         }
       ]

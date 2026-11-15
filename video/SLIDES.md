@@ -1,8 +1,8 @@
 # The fourteen slides
 
 Each slide is its own clip in `videos/` (1920 × 1080, 30 frames a second, with sound) and ends on a complete,
-still frame. `vara-pitch.mp4` is all fourteen joined (5 min 18 s). `vara-pitch-short.mp4` is slides 01, 04,
-07, 08 and 14 (1 min 50 s) for places with a time limit.
+still frame. `vara-pitch.mp4` is all fourteen joined (5 min 17 s). `vara-pitch-short.mp4` is slides 01, 04,
+07, 08 and 14 (1 min 47 s) for places with a time limit.
 
 | # | Clip | Starts at | Length | What plays | What it is |
 |---|---|---|---|---|---|
@@ -13,13 +13,13 @@ still frame. `vara-pitch.mp4` is all fourteen joined (5 min 18 s). `vara-pitch-s
 | 05 | `05-s05-chat.mp4` | 1:17 | 30 s | Recording: "Can I afford new sneakers this month?", the answer as cards, "How I got this". Beside it: model asks, engine computes, guard checks. | Live app recording, waiting time shortened |
 | 06 | `06-s06-coach.mp4` | 1:47 | 24 s | Three recordings: the What-if slider, the weekly check-in story, the switch from English to Finnish. | Live app recording |
 | 07 | `07-s07-crave-idea.mp4` | 2:11 | 19 s | The idea of Crave mode in five steps, and the motto. | Concept |
-| 08 | `08-s08-crave-live.mp4` | 2:30 | 49 s | Recording, uncut: craving, generated shop, basket, checkout, pay sheet with the chime, "nothing ships", inbox, Crave pot. | Live app recording |
-| 09 | `09-s09-crave-honest.mp4` | 3:19 | 24 s | The five guard rails, next to the simulated pay sheet and the Stripe test-mode sheet. | Live app screenshots |
-| 10 | `10-s10-models.mp4` | 3:43 | 26 s | The eight models as a table: each against its strongest simple baseline, with its verdict. | Model cards |
-| 11 | `11-s11-insights.mp4` | 4:09 | 18 s | Recording (at 1.2× speed): the insights site for the judges, from the findings to the model table. | Live site recording |
-| 12 | `12-s12-fit.mp4` | 4:27 | 22 s | Recording: a savings goal handed to Säästäjä, then connecting another bank. Beside it: how Vara fits S-mobiili, what is underneath, and the live address. | Live app recording, hand-offs are mocks |
-| 13 | `13-s13-criteria.mp4` | 4:49 | 20 s | The five judging criteria and one answer to each. | Summary |
-| 14 | `14-s14-close.mp4` | 5:09 | 9 s | The motto and where to open the prototype. | Close |
+| 08 | `08-s08-crave-live.mp4` | 2:30 | 46 s | Recording, uncut, starting on the craving form: craving, generated shop, basket, checkout, pay sheet with the chime, "nothing ships", inbox, Crave pot. | Live app recording |
+| 09 | `09-s09-crave-honest.mp4` | 3:16 | 26 s | The five guard rails, next to the simulated pay sheet and the sheet with Stripe's wallet button in test mode. | Live app screenshots |
+| 10 | `10-s10-models.mp4` | 3:42 | 26 s | The eight models as a table: each against its strongest simple baseline, with its verdict. | Model cards |
+| 11 | `11-s11-insights.mp4` | 4:08 | 18 s | Recording (at 1.2× speed): the insights site for the judges, from the findings to the model table. | Live site recording |
+| 12 | `12-s12-fit.mp4` | 4:26 | 22 s | Recording: a savings goal handed to Säästäjä, then connecting another bank. Beside it: how Vara fits S-mobiili, what is underneath, and the live address. | Live app recording, hand-offs are mocks |
+| 13 | `13-s13-criteria.mp4` | 4:48 | 20 s | The five judging criteria and one answer to each. | Summary |
+| 14 | `14-s14-close.mp4` | 5:08 | 9 s | The motto and where to open the prototype. | Close |
 
 ## Sound
 
@@ -35,6 +35,6 @@ still frame. `vara-pitch.mp4` is all fourteen joined (5 min 18 s). `vara-pitch-s
 `scripts/record-app.mjs` drives the live prototype in a phone-sized browser and captures it frame by frame;
 `src/timeline.json` holds the time of every tap and screen change, and the slides take their timing from it.
 The demo customer is synthetic ("Aino" is a fictional name), the date is fixed at 30 September 2026, and
-the recordings play as captured, with three exceptions: 4.4 seconds of waiting for the answer are cut on
+the recordings play as captured, with three exceptions: 4.1 seconds of waiting for the answer are cut on
 slide 05 (its badge says so), the insights site on slide 11 plays at 1.2× speed, and slide 12 starts its
 recording at the savings goal, skipping the baskets screen before it.

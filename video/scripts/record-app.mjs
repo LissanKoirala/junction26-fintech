@@ -624,19 +624,42 @@ const CLIPS = {
     const { ctx, page } = await newPhone({ wallet: "off" });
     await page.goto(BASE + "#/crave/pot", { waitUntil: "networkidle" }); // loads the Crave chunk (no skeleton later)
     await sleep(800);
-    await page.goto(BASE + "#/vara/today", { waitUntil: "networkidle" });
-    await when(page, () => document.body.innerText.includes("Got a craving?"));
-    await settle(page, 1200);
+    // Start on the plain intro, already scrolled to the craving form, so the intro's
+    // "Real shops" card (real brand names) is never on screen in this clip.
+    await page.goto(BASE + "#/crave", { waitUntil: "networkidle" });
+    await when(page, () => document.body.innerText.includes("I'm in, open the shop"));
+    await page.evaluate(() => {
+      const els = [document.scrollingElement, ...document.querySelectorAll("*")].filter((e) => e && e.scrollHeight > e.clientHeight + 4 && /(auto|scroll)/.test(getComputedStyle(e).overflowY) || e === document.scrollingElement);
+      for (const e of els) e.scrollTop = e.scrollHeight;
+    });
+    await settle(page, 1500);
+    const brandCheck = () => page.evaluate(() => {
+      const bad = /StockX|Zara|Uber Eats|Real shops/i;
+      const hits = [];
+      const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n; (n = w.nextNode());) {
+        if (!bad.test(n.textContent)) continue;
+        const r = document.createRange(); r.selectNodeContents(n);
+        for (const b of r.getClientRects()) if (b.bottom > 0 && b.top < innerHeight && b.width > 0) hits.push(n.textContent.slice(0, 40));
+      }
+      return hits;
+    });
+    log("crave brand text in viewport before start", JSON.stringify(await brandCheck()));
     const rec = new Recorder(page, "crave", PHONE);
     await rec.start();
+    let brandPoll = true, brandHits = [];
+    (async () => { while (brandPoll) { try { brandHits.push(...(await brandCheck())); } catch {} await sleep(100); } })();
     await sleep(1000);
-    await scroll(page, "#vara-scroll", { el: null, text: "Got a craving?", tag: "p", offset: 300 }, 1100);
-    await pause(700, 800);
+    const input = page.getByPlaceholder(/craving/i).or(page.locator("main input[type=text], input:not([type])")).first();
     rec.mark("craving", await tap(page, page.getByRole("button", { name: "new sneakers", exact: true })));
-    await when(page, () => document.body.innerText.includes("I'm in, open the shop"));
-    await sleep(1000);
-    await scroll(page, null, "bottom", 1100);
-    await pause(600, 700);
+    await sleep(300);
+    const val = await input.inputValue().catch(() => "");
+    log("crave input after chip", JSON.stringify(val), page.url());
+    if (!/new sneakers/i.test(val) && !/q=new/.test(page.url())) {
+      await tap(page, input);
+      await page.keyboard.type("new sneakers", { delay: 50 });
+    }
+    await pause(800, 1000);
     rec.mark("open-shop", await tap(page, page.getByRole("button", { name: "I'm in, open the shop" })));
     // the shop fades in: mark the frame where it is fully opaque
     rec.mark("shop-visible", await when(page, () => {
@@ -645,6 +668,8 @@ const CLIPS = {
       for (; e; e = e.parentElement) if (Number(getComputedStyle(e).opacity) < 0.98) return false;
       return true;
     }, null, 90000));
+    brandPoll = false;
+    log("crave brand text in viewport while recording", JSON.stringify([...new Set(brandHits)]));
     await when(page, () => !document.body.innerText.includes("Stocking the shelves") && !document.querySelector(".skeleton"), null, 90000);
     await settle(page, 1200);
     const sc = ".no-scrollbar.flex-1.overflow-y-auto.pb-28";

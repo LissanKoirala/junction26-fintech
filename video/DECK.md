@@ -164,7 +164,7 @@ time**." A five-step path arriving with the narration, each an icon disc and two
 "Say the craving" → "A shop appears" → "Hunt and fill the basket" → "Check out" → "Nothing ships: the money
 lands in savings". Show `<CravePill />`. No recording here (the next slide is the live run).
 
-**08 · s08-crave-live · about 54 s (set from the recording) · Crave.tsx `S08CraveLive`** — narration
+**08 · s08-crave-live · 46 s (set from the recording) · Crave.tsx `S08CraveLive`** — narration
 `crave-live-a` (2.5 s) at the start: "Here it is, live. New sneakers."; `crave-live-b` (3.3 s) once the reveal
 screen is showing: "The thrill of buying. And the money is still hers."
 Light or tinted slide. One large phone (about 430 px wide, centred or left of centre) playing `crave.mp4`
@@ -174,12 +174,12 @@ when its event time in `timeline.json` is reached (labels: `shop-visible`, `adde
 `sheet-open`, `tick`, `reveal`, `inbox`, `pot`). The app's own sounds play where the app plays them:
 `<Sound src="chime.m4a" at={clipFrame(at, tickTime)} />` at the `tick` event (the pay chime), `pop.m4a` at
 `added` (volume about 0.6) and `coins.m4a` at `coins` (volume about 0.7). Keep quiet around the chime: no
-narration within 2 s of it; start `crave-live-b` about 1 s after the `coins` event. The recording is 45.3 s:
+narration within 2 s of it; start `crave-live-b` about 1 s after the `coins` event. The recording is 42.2 s and starts on the craving form (the intro's Shopping Lab card, which names real shops, must never be on screen):
 slide length = 1 s lead + clip + about 2.5 s of hold, a whole number of seconds; change `seconds` for
 `s08-crave-live` in `src/deck.ts` (the only line of that file you may edit). Extra events in the timeline you
 can use for the step list: `craving`, `open-shop`, `product-open`, `twist`. Badge: live.
 
-**09 · s09-crave-honest · 24 s · Crave.tsx `S09CraveHonest`** — narration `crave-honest` (19.6 s): "Crave mode is
+**09 · s09-crave-honest · 26 s · Crave.tsx `S09CraveHonest`** — narration `crave-honest` (22.3 s): "Crave mode is
 honest by design. You opt in, and every screen says nothing ships. It never sets aside more than is free
 until payday, and you can release the money and buy it for real at any time. In this prototype the money
 movement is simulated, and the wallet button at checkout comes from Stripe, in test mode. No card is charged."
