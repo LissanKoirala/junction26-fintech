@@ -87,3 +87,17 @@ export function checkProse(prose: string, sources: unknown[]): { verified: boole
   }
   return { verified: unverified.length === 0, unverified: [...new Set(unverified)] };
 }
+
+/** Numbers the user wrote in their own messages (amounts with or without a currency sign). The model may repeat
+ *  these back ("a 300 € trip") without a tool having produced them. */
+export function userNumbers(texts: string[]): number[] {
+  const out: number[] = [];
+  for (const t of texts) {
+    for (const f of extractFigures(t)) out.push(Math.abs(f.value));
+    for (const m of t.matchAll(/(?<![\w.,])\d{1,3}(?:[  ]\d{3})+(?:[.,]\d{1,2})?|(?<![\w.,])\d+(?:[.,]\d{1,2})?/g)) {
+      const v = Number(m[0].replace(/[  ]/g, "").replace(",", "."));
+      if (Number.isFinite(v)) out.push(v);
+    }
+  }
+  return out;
+}

@@ -11,7 +11,7 @@ import { isCustomerId, loadCustomer } from "../data";
 import { EFFORT, MODEL, clientIp, llm, rateLimit, takeDailyBudget } from "../llm";
 import { STATIC_SYSTEM, snapshot } from "./prompt";
 import { TOOL_PARAMS, runTool, toolStatus, type ToolCtx } from "./tools";
-import { checkProse } from "./guard";
+import { checkProse, userNumbers } from "./guard";
 
 const MAX_ROUNDS = 8;
 const MAX_TOKENS = 4096;
@@ -263,7 +263,8 @@ export function registerChatRoutes(app: Hono) {
         }
         const sugg = suggestions.length ? suggestions : ["What is safe to spend this week?", "Show my three baskets", "How could I save more?"];
         await send({ type: "suggestions", items: sugg.slice(0, 3) });
-        const check = checkProse(prose, fullResults);
+        // the user's own amounts ("a 300 € trip") are valid sources too
+        const check = checkProse(prose, [...fullResults, userNumbers(req.messages.filter((m) => m.role === "user").map((m) => m.content))]);
         await send({ type: "check", verified: check.verified, unverified: check.unverified });
         Object.assign(log, { rounds: rounds + 1, tools: toolsUsed, cards: [...shown].map((id) => cards.get(id)!.kind), ttftMs: ttft, totalMs: Date.now() - t0, check });
       } catch (err) {

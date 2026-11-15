@@ -259,18 +259,27 @@ const basketsTool = tool({
   },
 });
 
+/** Next payday as the model sees it. Irregular income gets no date and no "usual salary": only a 30-day plan. */
+export function paydayModel(s: SafeToSpend) {
+  const p = s.nextPayday;
+  if (p.estimated)
+    return { predicted: false, irregular_income: true, plan_until: p.date, plan_days: p.daysAway, say: p.basis ?? "Your income is irregular, so Vara plans for the next 30 days.", rule: "Do not state a payday date or a usual salary amount." };
+  return { date: p.date, amount: p.amount, days_away: p.daysAway, basis: p.basis, latest_if_late: p.latest, late_in_last_12_months: p.lateCount, extra_musts_if_late: p.lateExtra, cushion_covers_late_pay: p.lateCovered, late_pay_note: p.lateNote };
+}
+
 function safeModel(s: SafeToSpend) {
   return {
     balance: s.balance,
-    next_payday: s.nextPayday,
+    next_payday: paydayModel(s),
     reserved: s.upcoming.map((u) => ({ label: u.label, amount: u.amount, when: u.from ? `${u.from}..${u.to}` : null, basis: u.basis })),
     reserved_total: s.reservedTotal,
     free_until_payday: s.freeUntilPayday,
     weeks_until_payday: s.weeksUntilPayday,
     safe_per_week: s.safePerWeek,
     safe_per_day: s.safePerDay,
-    this_week: s.week,
+    this_week: { ...s.week, safe_for_rest_of_week: s.week.remaining },
     status: s.status,
+    well_covered: s.wellCovered ?? false,
     note: s.note,
   };
 }
@@ -286,7 +295,7 @@ const safeTool = tool({
       kind: "safe_to_spend",
       title: "Safe to spend until payday",
       data: s,
-      explain: { tool: "engine.getSafeToSpend", filters: s.upcoming.map((u) => `${u.label}: ${u.basis}`), period: { from: s.asOf, to: s.nextPayday.date, label: `Today to payday (${dayName(s.nextPayday.date)})` }, formula: "(balance − musts still coming before payday) ÷ weeks until payday", source: SOURCE },
+      explain: { tool: "engine.getSafeToSpend", filters: s.upcoming.map((u) => `${u.label}: ${u.basis}`), period: { from: s.asOf, to: s.nextPayday.date, label: s.nextPayday.estimated ? `The next ${s.nextPayday.daysAway} days (irregular income)` : `Today to payday (${dayName(s.nextPayday.date)})` }, formula: "(balance − musts still coming before payday) ÷ weeks until payday", source: SOURCE },
     };
     return { model: { ...safeModel(s), cards: cardRef([card]) }, full: s, cards: [card] };
   },
@@ -304,7 +313,7 @@ const upcomingTool = tool({
     const card: CardSpec = {
       id: ctx.newCardId(),
       kind: "breakdown",
-      title: `Coming up before payday (${dayName(s.nextPayday.date)})`,
+      title: s.nextPayday.estimated ? `Coming up in the next ${s.nextPayday.daysAway} days` : `Coming up before payday (${dayName(s.nextPayday.date)})`,
       chart: "bars",
       unit: "eur",
       items: items.map((u) => ({ key: u.kind, label: u.label, value: u.amount })),
@@ -314,9 +323,13 @@ const upcomingTool = tool({
     };
     return {
       model: {
-        recurring: rec.map((r) => ({ kind: r.kind, typical: r.typicalAmount, low: r.amountLow, high: r.amountHigh, cadence: r.cadence, last: r.lastDate, next: r.nextFrom ? `${r.nextFrom}..${r.nextTo}` : null, note: r.note })),
+        recurring: rec.map((r) =>
+          r.kind === "salary" && s.nextPayday.estimated
+            ? { kind: "income_irregular", cadence: "irregular", last: r.lastDate, next: null, note: r.note }
+            : { kind: r.kind, typical: r.typicalAmount, low: r.amountLow, high: r.amountHigh, cadence: r.cadence, last: r.lastDate, next: r.nextFrom ? `${r.nextFrom}..${r.nextTo}` : null, note: r.note },
+        ),
         before_next_payday: items.map((u) => ({ label: u.label, amount: u.amount, when: u.from ? `${u.from}..${u.to}` : null })),
-        next_payday: s.nextPayday,
+        next_payday: paydayModel(s),
         cards: cardRef([card]),
       },
       full: { rec, upcoming: items },
@@ -574,7 +587,9 @@ const conceptTool = tool({
       case "pay_yourself_first":
         term = "Pay yourself first";
         definition = "Move a small fixed amount to savings on payday, before everyday spending starts. What you do not see, you do not spend.";
-        example = `Your salary is about ${eur(s.nextPayday.amount)}. Moving 5% on payday would be ${eur(r2(s.nextPayday.amount * 0.05))} a month, ${eur(r2(s.nextPayday.amount * 0.05 * 12))} a year.`;
+        example = s.nextPayday.estimated
+          ? "Your income comes at irregular times, so a percentage works better than a date: move 5% of each payment to savings the day it arrives."
+          : `Your salary is about ${eur(s.nextPayday.amount)}. Moving 5% on payday would be ${eur(r2(s.nextPayday.amount * 0.05))} a month, ${eur(r2(s.nextPayday.amount * 0.05 * 12))} a year.`;
         break;
       case "compound_interest": {
         term = "Compound interest";
@@ -724,7 +739,7 @@ const forecastTool = tool({
     };
     const end = f.fan[f.fan.length - 1];
     return {
-      model: { source: fromMl ? "ml_forecast" : "engine_simulation", balance: f.balance, next_payday: f.nextPayday, overdraft_prob_to_payday_pct: r2(f.overdraftProbToPayday * 100), spend: f.spend, end_of_horizon: end, fixed_events: f.fixedEvents, backtest: f.backtest, cards: cardRef([card]) },
+      model: { source: fromMl ? "ml_forecast" : "engine_simulation", balance: f.balance, next_payday: f.nextPayday, ...(engine.getSafeToSpend(ctx.c, ctx.opts).nextPayday.estimated ? { income_irregular: true, payday_rule: "Income is irregular: the payday above is only a 30-day planning horizon. Do not state a payday date or a usual salary." } : {}), overdraft_prob_to_payday_pct: r2(f.overdraftProbToPayday * 100), spend: f.spend, end_of_horizon: end, fixed_events: f.fixedEvents, backtest: f.backtest, cards: cardRef([card]) },
       full: f,
       cards: [card],
     };

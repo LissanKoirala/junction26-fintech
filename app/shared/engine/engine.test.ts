@@ -52,9 +52,10 @@ describe("resolvePeriod", () => {
     expect(engine.resolvePeriod(asOf, "last_week")).toMatchObject({ from: "2026-09-21", to: "2026-09-27" });
     expect(engine.resolvePeriod(asOf, "this_month")).toMatchObject({ from: "2026-09-01", to: "2026-09-30", label: "September 2026" });
     expect(engine.resolvePeriod(asOf, "last_month")).toMatchObject({ from: "2026-08-01", to: "2026-08-31", label: "August 2026" });
-    expect(engine.resolvePeriod(asOf, "last_3_months")).toMatchObject({ from: "2026-06-01", to: "2026-08-31" });
+    expect(engine.resolvePeriod(asOf, "last_3_months")).toMatchObject({ from: "2026-07-01", to: "2026-09-30" });
     expect(engine.resolvePeriod(asOf, "last_30_days")).toMatchObject({ from: "2026-09-01", to: "2026-09-30" });
-    expect(engine.resolvePeriod(asOf, "last_12_months")).toMatchObject({ from: "2025-09-01", to: "2026-08-31" });
+    expect(engine.resolvePeriod(asOf, "last_12_months")).toMatchObject({ from: "2025-10-01", to: "2026-09-30" });
+    expect(engine.resolvePeriod("2026-09-29", "last_12_months")).toMatchObject({ from: "2025-09-01", to: "2026-08-31" });
     expect(engine.resolvePeriod(asOf, "this_year")).toMatchObject({ from: "2026-01-01", to: "2026-09-30" });
     expect(engine.resolvePeriod(asOf, "all_time")).toMatchObject({ from: "2024-10-01", to: "2026-09-30" });
     expect(engine.resolvePeriod("2026-03-01", "this_week")).toMatchObject({ from: "2026-02-23", to: "2026-03-01" }); // Sunday

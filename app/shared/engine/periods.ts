@@ -1,8 +1,10 @@
-// Named periods relative to asOf. Weeks are ISO weeks (Monday start). "last_N_months" are the N previous full
-// calendar months, not counting the asOf month (so on 30 Sep 2026 last_month = August 2026, this_month = September).
+// Named periods relative to asOf. Weeks are ISO weeks (Monday start). "last_N_months" (3, 6, 12) are the N latest
+// complete months as decided by util.completeMonths, the same helper safe-to-spend and what-if use: on the last day of
+// a month that month is complete (so on 30 Sep 2026 last_12_months = Oct 2025-Sep 2026). "last_month" stays the
+// previous calendar month (August on 30 Sep), because that is what people mean by "last month".
 import type { PeriodName, ResolvePeriod } from "./api";
 import type { Period } from "../types";
-import { DOMAIN, addDays, addMonths, monthEnd, monthKey, monthStart, rangeLabel, weekStart, dayLabel } from "./util";
+import { DOMAIN, addDays, addMonths, completeMonths, monthEnd, monthKey, monthStart, rangeLabel, weekStart, dayLabel } from "./util";
 
 export const PERIOD_NAMES: PeriodName[] = [
   "this_week",
@@ -17,6 +19,14 @@ export const PERIOD_NAMES: PeriodName[] = [
   "this_year",
   "all_time",
 ];
+
+/** The N latest complete months (util.completeMonths decides whether the asOf month is complete). */
+const lastMonths = (asOf: string, n: number): Period => {
+  const ms = completeMonths(asOf, n);
+  const from = monthStart(ms[0]);
+  const to = monthEnd(ms[ms.length - 1]);
+  return { from, to, label: rangeLabel(from, to) };
+};
 
 const prevMonths = (asOf: string, n: number, label?: string): Period => {
   const last = addMonths(monthKey(asOf), -1);
@@ -52,11 +62,11 @@ export const resolvePeriod: ResolvePeriod = (asOf, name) => {
       return { from, to: asOf, label: `Last 90 days (${rangeLabel(from, asOf)})` };
     }
     case "last_3_months":
-      return prevMonths(asOf, 3);
+      return lastMonths(asOf, 3);
     case "last_6_months":
-      return prevMonths(asOf, 6);
+      return lastMonths(asOf, 6);
     case "last_12_months":
-      return prevMonths(asOf, 12);
+      return lastMonths(asOf, 12);
     case "this_year": {
       const from = `${asOf.slice(0, 4)}-01-01`;
       return { from, to: asOf, label: `${asOf.slice(0, 4)} so far` };

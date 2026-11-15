@@ -20,7 +20,7 @@ export type PeriodName =
   | "last_month" // previous full calendar month
   | "last_30_days"
   | "last_90_days"
-  | "last_3_months" // three previous full calendar months
+  | "last_3_months" // the three latest complete months (util.completeMonths: the asOf month counts on its last day)
   | "last_6_months"
   | "last_12_months"
   | "this_year"

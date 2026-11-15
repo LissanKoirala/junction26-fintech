@@ -103,7 +103,7 @@ async function buildDraft(c: CustomerData): Promise<Draft> {
     id: "outlook",
     kind: "outlook",
     card: { id: "outlook", kind: "safe_to_spend", title: "Until payday", data: s, explain: { tool: "engine.getSafeToSpend", filters: s.upcoming.map((u) => `${u.label}: ${u.basis}`), formula: "(balance − musts still coming) ÷ weeks until payday", source: SOURCE } },
-    facts: { balance: s.balance, next_payday: s.nextPayday.date, days_to_payday: s.nextPayday.daysAway, rent_due: housing?.amount ?? null, reserved_total: s.reservedTotal, free_until_payday: s.freeUntilPayday, safe_per_week: s.safePerWeek, status: s.status },
+    facts: { balance: s.balance, next_payday: s.nextPayday.estimated ? null : s.nextPayday.date, days_to_payday: s.nextPayday.estimated ? null : s.nextPayday.daysAway, income_irregular: s.nextPayday.estimated ?? false, rent_due: housing?.amount ?? null, reserved_total: s.reservedTotal, free_until_payday: s.freeUntilPayday, safe_per_week: s.safePerWeek, status: s.status },
     fallback: { eyebrow: "Looking ahead", title: `About ${eur0(s.safePerWeek)} a week is safe until payday`, body: `${eur(s.reservedTotal)} of your ${eur(s.balance)} is already promised to musts before ${dayName(s.nextPayday.date)}.` },
   });
   // 6. challenge with an engine-derived target
