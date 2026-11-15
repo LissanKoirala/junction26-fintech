@@ -202,10 +202,10 @@ leave the recording out and use `shots/models.png`. Badge: model.
 Sources: "Model cards in the app and on /insights/ · each re-checked independently".
 
 **11 · s11-insights · 18 s · Product.tsx `S11Insights`** — narration `insights` (8.9 s): "It's all written up for
-the judges on a separate insights site: seven findings, every model card, and the limits of what this data
+the judges on a separate insights site: eleven findings, every model card, and the limits of what this data
 can tell."
 Light slide. `<Browser width≈1180>` with `insights.mp4` playing. Beside or under it: eyebrow "For the judges",
-headline "Every figure, **written up**.", three chips arriving with the narration: "Seven findings",
+headline "Every figure, **written up**.", three chips arriving with the narration: "Eleven findings",
 "Eight model cards", "What this data cannot tell". Show the address `…/insights/`. Badge: live
 ("Live site recording · synthetic data").
 

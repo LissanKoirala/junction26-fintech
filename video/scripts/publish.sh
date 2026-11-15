@@ -6,7 +6,7 @@ OUT=${1:-$HOME/vidout/final}
 HERE=$(cd "$(dirname "$0")/.." && pwd)
 DEST=/srv/vara/video
 sudo mkdir -p "$DEST/clips" "$DEST/stills"
-sudo cp "$OUT/vara-pitch.mp4" "$DEST/"
+sudo cp "$OUT/vara-pitch.mp4" "$OUT/vara-pitch-short.mp4" "$DEST/"
 sudo cp "$OUT"/videos/[0-9][0-9]-*.mp4 "$DEST/clips/"
 sudo cp "$OUT"/stills/[0-9][0-9]-*-final.png "$DEST/stills/"
 sudo cp "$HERE/site/index.html" "$DEST/index.html"
