@@ -5,7 +5,8 @@ import { isReady, tribesOf, useMl, useMoneyMap, useTribes } from "@/features/ml/
 import { CardSkeleton, Meaning, MlCard, StillTraining } from "@/features/ml/ui";
 import { MapCaveat, MoneyMapView } from "@/features/ml/views/personality";
 import { num } from "@/lib/format";
-import { t, tData } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
+import { tD as tData } from "@/features/ml/words";
 import type { MlProfile } from "@shared/ml/typesA";
 
 function meaning(p: MlProfile | null): string {

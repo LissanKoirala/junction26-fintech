@@ -6,7 +6,8 @@ import type { MlForecast, MlRisk } from "@shared/ml/typesB";
 import { ForecastFan, type FanEvent } from "@/ui/charts/ForecastFan";
 import { Sparkline } from "@/ui/charts/Sparkline";
 import { dateDM, dateShort, daysBetween, money, pct } from "@/lib/format";
-import { t, tData, tn } from "@/lib/i18n";
+import { t, tn } from "@/lib/i18n";
+import { tD as tData } from "../words";
 import { Badge, cx, STROKE } from "@/ui/kit";
 import { chanceWords, RISK_WORDS } from "../words";
 

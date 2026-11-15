@@ -7,8 +7,8 @@ import { MoneyMapCanvas } from "@/ui/charts/MoneyMapCanvas";
 import { cx, STROKE } from "@/ui/kit";
 import { VaraAvatar } from "@/ui/hero";
 import { num, pct } from "@/lib/format";
-import { t, tData } from "@/lib/i18n";
-import { fmtFeature } from "../words";
+import { t } from "@/lib/i18n";
+import { fmtFeature, tD as tData } from "../words";
 import { Caveat, PercentileBar } from "../ui";
 
 const GREY = "#949494";

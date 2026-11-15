@@ -15,8 +15,8 @@ import { TwinDifferences, TwinsChart, TwinsLegend, TwinsMatched, twinsMeaning } 
 import { ChanceTile, engineForecast, FanLegend, ForecastChart, forecastMeaning, RiskBadge, RiskDrivers, riskMeaning, RiskTrend } from "@/features/ml/views/forecast";
 import { HabitCard, UnusualList, UnusualWeeks } from "@/features/ml/views/habits";
 import { FuturesView, HomeView, yearsText } from "@/features/ml/views/home";
-import { RISK_WORDS } from "@/features/ml/words";
-import { rich, t, tData, tn } from "@/lib/i18n";
+import { RISK_WORDS, tD as tData } from "@/features/ml/words";
+import { rich, t, tn } from "@/lib/i18n";
 
 const MapSection = lazy(() => import("./MapSection"));
 

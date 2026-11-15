@@ -9,8 +9,8 @@ import { Button, IconCircle, STROKE, cx } from "@/ui/kit";
 import { ErrorBoundary } from "@/ui/ErrorBoundary";
 import { dateShort, money, pct, pctSigned, dateDM } from "@/lib/format";
 import { isReady, useMl } from "./data";
-import { t, tData } from "@/lib/i18n";
-import { chanceWords, habitGood, habitName, openYou, topHabit } from "./words";
+import { t } from "@/lib/i18n";
+import { chanceWords, habitGood, habitName, openYou, tD as tData, topHabit } from "./words";
 
 export interface TodaySlotProps {
   customer: CustomerData;

@@ -6,8 +6,8 @@ import type { MlTxGpt } from "@shared/ml/typesB";
 import { Progress, Segmented, Slider, cx, IconCircle, STROKE } from "@/ui/kit";
 import { categoryIcon, categoryLabel } from "@/lib/domain";
 import { dateDM, dateShort, money, num, pct } from "@/lib/format";
-import { rich, t, tData, tn } from "@/lib/i18n";
-import { FUTURE_LABEL } from "../words";
+import { rich, t, tn } from "@/lib/i18n";
+import { FUTURE_LABEL, tD as tData } from "../words";
 import { MiniStat } from "../ui";
 
 export function yearsAt(h: MlHome, extra: number): number | null {

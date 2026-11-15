@@ -5,9 +5,9 @@ import type { ModelCard } from "@shared/ml/typesA";
 import { Badge, Card, ConceptNotice, Disclosure, Page, STROKE, cx } from "@/ui/kit";
 import { MODEL_KEYS, useModelCard, type ModelKey } from "@/features/ml/data";
 import { CardSkeleton, StillTraining } from "@/features/ml/ui";
-import { openYou, VERDICT } from "@/features/ml/words";
+import { openYou, tD as tData, VERDICT } from "@/features/ml/words";
 import { num } from "@/lib/format";
-import { getLang, t, tData } from "@/lib/i18n";
+import { getLang, t } from "@/lib/i18n";
 import { ErrorBoundary } from "@/ui/ErrorBoundary";
 
 /** English keys, translated where shown. */

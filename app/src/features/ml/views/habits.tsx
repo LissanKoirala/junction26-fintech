@@ -7,8 +7,8 @@ import { Badge, Button, cx, IconCircle, STROKE } from "@/ui/kit";
 import { actions, usePrefs, updatePrefs } from "@/state/store";
 import { basketMeta, categoryIcon, categoryLabel, mccLabel } from "@/lib/domain";
 import { addDays, dateDM, dateFi, dateShort, daysBetween, money, pctSigned } from "@/lib/format";
-import { t, tData, tn } from "@/lib/i18n";
-import { HABIT_STATUS, habitGood, habitHeadline, habitLevel, habitName, type Habit } from "../words";
+import { t, tn } from "@/lib/i18n";
+import { HABIT_STATUS, habitGood, habitHeadline, habitLevel, habitName, tD as tData, type Habit } from "../words";
 
 type Anom = MlAnomalies["transactions"][number];
 

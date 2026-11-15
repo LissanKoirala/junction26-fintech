@@ -150,6 +150,7 @@ const fi: Record<string, string> = {
   "Invented demo card": "Keksitty demokortti",
   "Pay {shop}": "Maksu: {shop}",
   "Goes to:": "Menee:",
+  "Only {amount} is free until payday, so that is what gets set aside.": "Palkkapäivään asti on vapaana vain {amount}, joten juuri se siirtyy pottiin.",
   "Double-click": "Paina kahdesti",
   "to pay": "maksaaksesi",
   "Double-click to pay": "Paina kahdesti maksaaksesi",

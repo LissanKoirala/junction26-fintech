@@ -5,7 +5,7 @@ import type { CardSpec } from "@shared/chat";
 import { CardFrame, ChartCaption } from "@/ui/chat";
 import { Badge } from "@/ui/kit";
 import { dateShort, money } from "@/lib/format";
-import { t, tData, tn } from "@/lib/i18n";
+import { t, tn } from "@/lib/i18n";
 import { useCustomer } from "@/state/customer";
 import { tribesOf, useTribes } from "./data";
 import { Caveat, ExperimentBadge, SeeMore } from "./ui";
@@ -14,7 +14,7 @@ import { TwinDifferences, TwinsChart, twinsMeaning } from "./views/twins";
 import { ChanceTile, ForecastChart, forecastMeaning, RiskBadge, RiskDrivers, riskMeaning, RiskTrend } from "./views/forecast";
 import { HabitCard, UnusualList, UnusualWeeks } from "./views/habits";
 import { FuturesView, HomeView } from "./views/home";
-import { habitName, RISK_WORDS, topHabit } from "./words";
+import { habitName, RISK_WORDS, tD as tData, topHabit } from "./words";
 
 type Of<K extends CardSpec["kind"]> = Extract<CardSpec, { kind: K }>;
 

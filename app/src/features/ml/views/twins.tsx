@@ -2,7 +2,8 @@
 import type { MlTwins } from "@shared/ml/typesA";
 import { TwoFuturesChart, type FuturePath } from "@/ui/charts/TwoFuturesChart";
 import { addMonths, monthAbbr, money, num } from "@/lib/format";
-import { t, tData } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
+import { tD as tData } from "../words";
 import { cx, Disclosure } from "@/ui/kit";
 import { Users } from "lucide-react";
 

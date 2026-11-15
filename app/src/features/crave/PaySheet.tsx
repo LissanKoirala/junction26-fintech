@@ -143,6 +143,9 @@ export function PaySheet({ open, header, total, stash, onClose, onPaid }: { open
                 <PiggyBank size={14} strokeWidth={STROKE} className="text-green-700" aria-hidden />
                 {t("Goes to:")} <span className="font-semibold text-green-700">{t("Your Crave pot")}{stash !== total ? ` · ${money(stash)}` : ""}</span>
               </p>
+              {stash !== total && (
+                <p className="mt-1 text-xs text-ink-muted">{t("Only {amount} is free until payday, so that is what gets set aside.", { amount: money(stash) })}</p>
+              )}
             </div>
 
             {/* the ritual */}

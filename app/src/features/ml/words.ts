@@ -3,7 +3,13 @@ import { actions } from "@/state/store";
 import { navigate } from "@/lib/router";
 import { categoryLabel } from "@/lib/domain";
 import { money, num } from "@/lib/format";
-import { t, tData } from "@/lib/i18n";
+import { getLang, t, tData } from "@/lib/i18n";
+
+/** tData for model strings, plus Finnish number style for values captured inside them ("1.2" -> "1,2", "42%" -> "42 %"). */
+export function tD(text: string): string {
+  const s = tData(text);
+  return getLang() === "fi" ? s.replace(/(\d)\.(\d)/g, "$1,$2").replace(/(\d)%/g, "$1 %") : s;
+}
 import type { MlHabits } from "@shared/ml/typesA";
 import type { MlRisk } from "@shared/ml/typesB";
 
