@@ -35,7 +35,11 @@ app.get("/api/global/:name", async (c) => {
 });
 
 // Feature routers (chat etc.) register themselves here. Keep this file small.
-const { registerRoutes } = await import("./routes").catch(() => ({ registerRoutes: (_: Hono) => {} }));
+const { registerRoutes } = await import("./routes").catch((err) => {
+  // Do not hide this: a broken import here used to show up only as a 404 on every feature route.
+  console.error("[server] could not load ./routes, feature routes are disabled:", err);
+  return { registerRoutes: (_: Hono) => {} };
+});
 registerRoutes(app);
 
 if (process.env.NODE_ENV === "production") {

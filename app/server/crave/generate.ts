@@ -50,8 +50,8 @@ export function cleanHeader(h: Record<string, unknown>): CraveShopHeader & { ref
     reviewCount: Math.round(clamp(h.reviewCount, 10, 99999, 1200)),
     deliveryFee: r2(clamp(h.deliveryFee, 0, 15, kind === "food" ? 2.99 : 5.9)),
     freeDeliveryFrom: r2(clamp(h.freeDeliveryFrom, 0, 200, kind === "food" ? 30 : 49)),
-    sections: Array.isArray(h.sections) ? h.sections.map((s) => str(s, 30)).filter(Boolean).slice(0, 6) : [],
-    facets: Array.isArray(h.facets) ? h.facets.map((s) => str(s, 24)).filter(Boolean).slice(0, 8) : [],
+    sections: [],
+    facets: [],
   };
 }
 
@@ -74,6 +74,15 @@ export function cleanProduct(p: Record<string, unknown>, idx: number): CraveProd
     ...cleanDetails(p),
     imagePrompt: str(p.imagePrompt, 220, str(p.name, 60)),
   };
+}
+
+/** Sections in order of appearance and the most used tags, derived from the products. */
+export function deriveFacets(products: CraveProduct[]): { sections: string[]; facets: string[] } {
+  const sections = [...new Set(products.map((p) => p.section).filter(Boolean))].slice(0, 6);
+  const n = new Map<string, number>();
+  for (const p of products) for (const t of p.tags) n.set(t, (n.get(t) ?? 0) + 1);
+  const facets = [...n.entries()].filter(([, c]) => c >= 2 && c < products.length).sort((a, b) => b[1] - a[1]).map(([t]) => t).slice(0, 6);
+  return { sections, facets };
 }
 
 export function cleanDetails(p: Record<string, unknown>): { variants: CraveVariant[]; addOns: CraveAddOn[]; reviews: CraveReview[] } {
@@ -192,7 +201,7 @@ export async function generateShop(craving: string, cb: GenCallbacks, signal: Ab
   const products = rawProducts.slice(0, 14).map((p, i) => cleanProduct(p, i));
   while (sent < products.length) cb.onProduct(products[sent++]);
   const hdr = full ?? scanned.header;
-  const header = hdr ? cleanHeader(hdr) : null;
+  const header = hdr ? { ...cleanHeader(hdr), ...deriveFacets(products) } : null;
   if (header && !headerSent) cb.onHeader(header);
   const ids = new Set(products.map((p) => p.id));
   const alsoBought = (full && Array.isArray(full.alsoBought) ? (full.alsoBought as unknown[]) : []).map(String).filter((id) => ids.has(id)).slice(0, 4);

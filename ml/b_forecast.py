@@ -75,6 +75,14 @@ def train_quantiles(L):
         tr = tr.iloc[rng.choice(len(tr), 1_400_000, replace=False)]
     log("train rows", len(tr), "val rows", len(va))
     models, info = {}, {}
+    if "--retrain" not in sys.argv and all(os.path.exists(os.path.join(MODEL_DIR, f"forecast_{qn}.txt")) for qn in QN):
+        for qn in QN:
+            m = lgb.Booster(model_file=os.path.join(MODEL_DIR, f"forecast_{qn}.txt"))
+            m.best_iteration = 0  # file holds exactly the early-stopped trees
+            models[qn] = m
+            info[qn] = m.current_iteration()
+        log("loaded saved quantile models", info)
+        return models, info
     for q, qn in zip(QS, QN):
         path = os.path.join(MODEL_DIR, f"forecast_{qn}.txt")
         params = dict(objective="quantile", alpha=q, learning_rate=0.05, num_leaves=63, min_data_in_leaf=200,
@@ -377,7 +385,10 @@ def main():
     metrics.append(dict(label="Brier score, overdraft before payday (simulator, calibrated scale)", model=od_stats["brierSimCalibrated"],
                         baseline=od_stats["brierSameAsLastCycle"], baselineName="same as last cycle (0/1)", unit="", better="lower"))
     beats = all(m["model"] < m["baseline"] for m in metrics)
-    imp = models["p50"].feature_importance("gain")
+    import shap
+    samp = te.sample(min(8000, len(te)), random_state=0)
+    sv = shap.TreeExplainer(models["p50"]).shap_values(samp[FEATS])
+    imp = np.abs(sv).mean(axis=0)
     fi = sorted(zip(FEATS, imp), key=lambda x: -x[1])[:15]
     n_tr = int(((L.split == "train") & ~L.unseen).sum())
     card = dict(
@@ -415,7 +426,8 @@ def main():
                    dict(method="Simulator, scale 1 (plain bootstrap)", value=od_stats["brierSimScale1"]),
                    dict(method="Base rate", value=od_stats["brierBaseRate"]),
                    dict(method="Same as last cycle", value=od_stats["brierSameAsLastCycle"])],
-            featureImportance=[dict(feature=f, label=LABELS.get(f, f), gain=float(g)) for f, g in fi],
+            featureImportance=[dict(feature=f, label=LABELS.get(f, f), meanAbsShap=float(g)) for f, g in fi],
+            featureImportanceUnit="mean |SHAP| of the median model, in units of the target ratio (spend / own normal spend for the horizon)",
             scaleDistribution=scale_dist,
             params=dict(models=5, objective="quantile", bestIterations=best, features=len(FEATS), numLeaves=63, learningRate=0.05),
             splits=dict(train=dict(cutoffs="2025-01-01..2026-03-31", rows=n_tr),

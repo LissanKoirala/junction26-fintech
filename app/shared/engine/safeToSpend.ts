@@ -7,7 +7,7 @@ import type { CustomerData } from "../types";
 import { kindsOf } from "./classify";
 import { dailyRate, housingDue, nextPayday, pendingInvestment, salaryInfo, utilitiesMonthly } from "./recurring";
 import { spendingByKind } from "./spending";
-import { addDays, completeMonths, currentBalance, dayLabel, isoWeekday, mean, monthEnd, monthStart, r2, weekStart } from "./util";
+import { addDays, completeMonths, currentBalance, dayLabel, isoWeekday, mean, monthEnd, monthStart, r2, weekStart, tEur } from "./util";
 
 /** Internal knobs used by the what-if simulator (reserve multipliers and deltas). */
 export interface SafeTweak {
@@ -53,7 +53,7 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
       amount: r2(amount),
       from: h.from,
       to: h.to,
-      basis: `Median of your last 6 housing payments, usually paid between day ${dayLabel(h.from).split(" ")[0]} and ${dayLabel(h.to).split(" ")[0]} of the month${tw.housingDelta ? `, adjusted by ${r2(tw.housingDelta)} € in this scenario` : ""}.`,
+      basis: `Median of your last 6 housing payments, usually paid between day ${dayLabel(h.from).split(" ")[0]} and ${dayLabel(h.to).split(" ")[0]} of the month${tw.housingDelta ? `, adjusted by ${tEur(tw.housingDelta)} in this scenario` : ""}.`,
     });
   }
   // utilities: monthly total pro-rated
@@ -65,7 +65,7 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
       amount: r2(((u.perMonth * nDays) / 30.44) * (tw.utilitiesMult ?? 1)),
       from: tomorrow,
       to: dayBeforePay,
-      basis: `Your utilities average ${r2(u.perMonth)} € a month over the last ${u.months.length} months, pro-rated for ${dLabel}.`,
+      basis: `Your utilities average ${tEur(u.perMonth)} a month over the last ${u.months.length} months, pro-rated for ${dLabel}.`,
     });
   }
   // groceries and other fixed-must purchases, pro-rated from the last 3 full months
@@ -77,7 +77,7 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
       amount: r2(gro.perDay * nDays * (tw.groceriesMult ?? 1)),
       from: tomorrow,
       to: dayBeforePay,
-      basis: `You spend about ${r2(gro.perDay * 7)} € a week on groceries (last 3 full months), so ${dLabel} need about this much.`,
+      basis: `You spend about ${tEur(gro.perDay * 7)} a week on groceries (last 3 full months), so ${dLabel} need about this much.`,
     });
   }
   const tr = dailyRate(c, 3, (t, k) => kinds[k] === "must_regular" && t.type === "purchase" && t.category !== "Groceries");
@@ -88,7 +88,7 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
       amount: r2(tr.perDay * nDays * (tw.transportMult ?? 1)),
       from: tomorrow,
       to: dayBeforePay,
-      basis: `Public transport, fuel and other fixed-must purchases average ${r2(tr.perDay * 7)} € a week (last 3 full months).`,
+      basis: `Public transport, fuel and other fixed-must purchases average ${tEur(tr.perDay * 7)} a week (last 3 full months).`,
     });
   }
   // the usual investment deposit, if it is still pending before payday
@@ -114,7 +114,7 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
       amount: r2(opts.goal.monthlyContribution * share),
       from: tomorrow,
       to: dayBeforePay,
-      basis: `${r2(opts.goal.monthlyContribution)} € a month toward "${opts.goal.name}", pro-rated for ${dLabel}.`,
+      basis: `${tEur(opts.goal.monthlyContribution)} a month toward "${opts.goal.name}", pro-rated for ${dLabel}.`,
     });
   }
   if (tw.extraMonthlySaving && tw.extraMonthlySaving > 0) {
@@ -124,7 +124,7 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
       amount: r2(tw.extraMonthlySaving * share),
       from: tomorrow,
       to: dayBeforePay,
-      basis: `${r2(tw.extraMonthlySaving)} € a month moved to savings, pro-rated for ${dLabel}.`,
+      basis: `${tEur(tw.extraMonthlySaving)} a month moved to savings, pro-rated for ${dLabel}.`,
     });
   }
   // buffer
@@ -168,7 +168,7 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
 
   let note: string | undefined;
   if (safePerWeek > 200 && safePerWeek > 3 * typicalWeek)
-    note = `Most of this is savings you have already built up. Your everyday extras usually take about ${r2(typicalWeek)} € a week; staying near that keeps the cushion growing.`;
+    note = `Most of this is savings you have already built up. Your everyday extras usually take about ${tEur(typicalWeek)} a week; staying near that keeps the cushion growing.`;
   else if (free < 0) note = "The musts coming before payday are bigger than your balance. Small cuts now, or moving a bill, can stop the account going below zero.";
   if (pay.estimated) note = (note ? note + " " : "") + pay.basis;
   else if (c.hasSalarySweep) note = (note ? note + " " : "") + "Most of your salary moves to another account right after payday, so this only covers the money in this account.";

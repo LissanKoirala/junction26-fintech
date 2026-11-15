@@ -7,7 +7,7 @@ import { CRAVE_ACCENTS, CRAVE_BADGES, CRAVE_CATEGORIES, CRAVE_ICONS } from "../.
 
 export const LiteProductSchema = z.object({
   id: z.string().describe("p1, p2, ... in order"),
-  section: z.string().describe("One of the shop's sections"),
+  section: z.string().describe("Menu section (food) or product type (store); 3-4 distinct sections across the shop"),
   brand: z.string().describe("Invented brand (store) or the restaurant's own name (food). Never a real brand."),
   name: z.string().describe("Product or dish name, short"),
   pitch: z.string().describe("One-line pitch, at most 60 characters"),
@@ -17,8 +17,8 @@ export const LiteProductSchema = z.object({
   reviewCount: z.number().describe("Whole number, 12 to 4800"),
   badge: z.enum(CRAVE_BADGES),
   stockLeft: z.number().nullable().describe("Only for 1-2 scarce products: 2 to 6, else null"),
-  tags: z.array(z.string()).describe("1-2 facets from the shop's shared facet list"),
-  imagePrompt: z.string().describe("Short visual description for a photo: object, colour, material. No brands, no text, no people."),
+  tags: z.array(z.string()).describe("1-2 short filter facets, reused across products from a set of 4-6 (e.g. Wireless, Noise cancelling, Vegan, Spicy)"),
+  imagePrompt: z.string().describe("Visual description for a photo in at most 12 words: object, colour, material. No brands, no text, no people."),
 });
 
 export const ShopSchema = z.object({
@@ -30,16 +30,14 @@ export const ShopSchema = z.object({
   tagline: z.string().describe("At most 45 characters"),
   accent: z.enum(CRAVE_ACCENTS),
   icon: z.enum(CRAVE_ICONS),
+  products: z.array(LiteProductSchema).describe("10 products when not refused, else empty"),
+  alsoBought: z.array(z.string()).describe("3 product ids that go well together"),
   deliveryPromise: z.string().describe('store: e.g. "Free delivery tomorrow"; food: e.g. "25-35 min"'),
   etaMinutes: z.number().describe("food: delivery minutes (20-45); store: 0"),
   rating: z.number().describe("Shop rating 4.1-4.9"),
   reviewCount: z.number(),
   deliveryFee: z.number().describe("store 4.90-6.90, food 1.99-4.99"),
   freeDeliveryFrom: z.number().describe("store 39-79, food 25-35"),
-  sections: z.array(z.string()).describe("3-4 sections (menu sections for food, product types for store)"),
-  facets: z.array(z.string()).describe("4-6 short filter facets used as product tags, e.g. Wireless, Noise cancelling, Vegan, Spicy"),
-  products: z.array(LiteProductSchema).describe("10 products when not refused, else empty"),
-  alsoBought: z.array(z.string()).describe("3 product ids that go well together"),
 });
 
 export const DetailsSchema = z.object({

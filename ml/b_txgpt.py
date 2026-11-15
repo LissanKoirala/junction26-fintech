@@ -383,6 +383,11 @@ def sample_futures(model, s, t, n=200, horizon=14, gen_max=100, rng=None):
         a = amts[cells == c]
         tab[c] = rng.choice(a, K, replace=True)
     have = np.isin(np.arange(len(CATS) * NAB), np.unique(cells))
+    for c in np.nonzero(~have)[0]:  # unseen cell: the customer's own median for that category, if any
+        same = amts[(cells // NAB) == c // NAB]
+        if len(same):
+            tab[c] = np.median(same)
+            have[c] = True
     caches = [dict() for _ in model.blocks]
     with torch.no_grad():
         lg = model(torch.from_numpy(ctx)[None], caches)[0, -1]

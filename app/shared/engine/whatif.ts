@@ -4,7 +4,7 @@ import type { CustomerData, FlowKind } from "../types";
 import { isBasket, kindsOf } from "./classify";
 import { dailyRate, housingInfo, utilitiesMonthly } from "./recurring";
 import { computeSafeToSpend, type SafeTweak } from "./safeToSpend";
-import { basketLabel, categoryLabel, completeMonths, mccLabel, monthEnd, monthStart, r1, r2, rangeLabel, txRange } from "./util";
+import { basketLabel, categoryLabel, completeMonths, mccLabel, monthEnd, monthStart, r1, r2, rangeLabel, txRange, tEur, tNum } from "./util";
 
 const MUST_TRANSPORT = new Set(["4111", "5541", "5542"]);
 
@@ -78,12 +78,12 @@ export const simulateWhatIf: SimulateWhatIf = (c, scenario, opts) => {
   const equivalents: string[] = [];
   if (savedMonthly > 0) {
     const gWeek = dailyRate(c, 3, (t) => t.category === "Groceries").perDay * 7;
-    if (gWeek > 0) equivalents.push(`about ${r1((savedMonthly * 12) / gWeek)} weeks of your groceries per year`);
+    if (gWeek > 0) equivalents.push(`about ${tNum((savedMonthly * 12) / gWeek)} weeks of your groceries per year`);
     const u = utilitiesMonthly(c, 6).perMonth;
     if (h.active && h.typical > 0) equivalents.push(`about ${Math.round((savedMonthly / h.typical) * 100)}% of a month's rent, every month`);
-    else if (u > 0) equivalents.push(`about ${r1((savedMonthly * 12) / u)} months of your utility bills per year`);
+    else if (u > 0) equivalents.push(`about ${tNum((savedMonthly * 12) / u)} months of your utility bills per year`);
   } else if (savedMonthly < 0) {
-    equivalents.push(`${r2(-savedMonthly)} € more spending every month`);
+    equivalents.push(`${tEur(-savedMonthly)} more spending every month`);
   }
 
   const res: WhatIfResult = {

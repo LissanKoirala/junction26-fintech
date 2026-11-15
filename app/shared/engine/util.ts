@@ -16,6 +16,12 @@ const roundTo = (x: number, f: number): number => {
 export const r2 = (x: number): number => roundTo(x, 100);
 export const r1 = (x: number): number => roundTo(x, 10);
 
+const _fi2 = new Intl.NumberFormat("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/** Amount for use inside a sentence, in the same Finnish style as the rest of the app: "1 277,37 €". */
+export const tEur = (x: number): string => `${_fi2.format(x).replace("-", "\u2212")}\u00a0€`;
+/** Plain number for use inside a sentence: "2,3". */
+export const tNum = (x: number, digits = 1): string => new Intl.NumberFormat("fi-FI", { maximumFractionDigits: digits }).format(x).replace("-", "\u2212");
+
 export function dayNum(s: string): number {
   return Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10)) / DAY;
 }
