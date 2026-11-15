@@ -15,10 +15,10 @@ html{scroll-behavior:smooth;scroll-padding-top:70px}
 body{margin:0;font-family:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:var(--g100);-webkit-font-smoothing:antialiased;line-height:1.55;font-size:16px}
 a{color:var(--g700)}
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
-.hero{background:var(--g900);color:#fff;padding:44px 0 40px}
-.hero h1{font-size:clamp(40px,7vw,68px);line-height:1;margin:10px 0 12px;letter-spacing:-.025em;font-weight:800;color:var(--g300)}
+.hero{background:var(--g900);color:#fff;padding:26px 0 26px}
+.hero h1{font-size:clamp(30px,4.4vw,44px);line-height:1;margin:8px 0 8px;letter-spacing:-.025em;font-weight:800;color:var(--g300)}
 .hero p{font-size:19px;max-width:60ch;margin:0;color:#dff3e4}
-.hrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:22px}
+.hrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:16px}
 .btn{display:inline-flex;align-items:center;border-radius:999px;padding:12px 20px;font-weight:700;text-decoration:none;background:var(--g300);color:var(--g900)}
 .pill{display:inline-flex;border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:600;background:rgba(255,255,255,.12);color:#dff3e4}
 .eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--g700)}
@@ -96,6 +96,33 @@ details.method p,details.method ul{margin-top:8px;max-width:none}
 .mk{position:absolute;transform:translate(-50%,-50%);pointer-events:none}
 .mk b{display:block;width:16px;height:16px;border-radius:50%;background:#1F1F1F;border:3px solid #fff;box-shadow:0 0 0 2px #1F1F1F}
 .mk span{position:absolute;left:22px;top:-3px;background:#1F1F1F;color:#fff;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.hero .hdata{font-size:14px;color:#cfe9d6;margin-top:8px;max-width:none}
+.hero .hdata b{color:#fff}
+.hk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0 14px}
+.hk>div{background:rgba(255,255,255,.08);border-radius:14px;padding:13px 14px}
+.hk .n{font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--g300);line-height:1.05}
+.hk .l{font-weight:700;font-size:14px;line-height:1.3;margin-top:4px;color:#fff}
+.hk .s{font-size:12.5px;line-height:1.4;color:#bfe0c8;margin-top:5px}
+.hero .bl{font-size:15.5px;max-width:92ch;color:#eaf7ec;margin:0}
+.hero .bl b{color:var(--g300)}
+.score td:first-child{white-space:nowrap}
+.score .m{font-size:12.5px;color:var(--ink2);display:block;margin-top:2px}
+.score .warnl{color:var(--warn);font-weight:600}
+ol.flist{list-style:none;padding:0;margin:6px 0 12px;max-width:none;display:grid;gap:6px}
+ol.flist li{margin:0}
+ol.flist a{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:baseline;text-decoration:none;color:var(--ink);padding:9px 12px;border-radius:12px;background:var(--g50);border:1px solid var(--line)}
+ol.flist a:hover{border-color:var(--g500)}
+ol.flist .fi{font-size:12px;font-weight:800;color:var(--g700)}
+ol.flist .fn{font-weight:800;color:var(--g900)}
+ol.flist .go{font-size:12.5px;font-weight:700;color:var(--g700);white-space:nowrap}
+ul.keys{margin:4px 0 14px;padding-left:18px;max-width:80ch}
+ul.keys li{margin:4px 0}
+.res{background:var(--g50);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:4px 0 14px;max-width:none}
+details.fold{border:1px solid var(--line);border-radius:14px;margin:12px 0;padding:0 14px;font-size:14px}
+details.fold>summary{cursor:pointer;font-weight:700;color:var(--g700);padding:10px 0}
+details.fold[open]>summary{border-bottom:1px solid var(--line);margin-bottom:10px}
+details.fold>div{padding-bottom:10px}
+details.fold p,details.fold ul{max-width:none}
 .limits li{margin:9px 0}
 #tip{position:fixed;display:none;z-index:50;background:#1F1F1F;color:#fff;font-size:12.5px;padding:6px 10px;border-radius:8px;pointer-events:none;max-width:280px;line-height:1.35}
 footer{color:var(--ink2);font-size:13px;padding:0 20px 50px;max-width:1180px;margin:0 auto}
@@ -111,15 +138,31 @@ footer{color:var(--ink2);font-size:13px;padding:0 20px 50px;max-width:1180px;mar
   .tbl{font-size:12.5px}
   .tbl th,.tbl td{padding:7px 8px}
   .tbl.num td:not(:first-child),.tbl.num th:not(:first-child){white-space:normal}
+  .hk{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .hk>div{padding:11px 11px}
+  .hk .n{font-size:28px}
+  .hk .l{font-size:13px}
+  .hk .s{font-size:12px}
+  .hero .bl{font-size:14.5px}
+  ol.flist a{grid-template-columns:26px minmax(0,1fr);padding:9px 10px}
+  ol.flist .go{display:none}
 }
+@media(max-width:640px){
+  .score thead{display:none}
+  .score,.score tbody,.score tr,.score td{display:block;width:100%}
+  .score tr{border-bottom:1px solid var(--line);padding:10px 12px}
+  .score tr:last-child{border-bottom:0}
+  .score td{border:0;padding:2px 0}
+  .score td:first-child{white-space:normal;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .score td.vd{display:none}
+  .score .bm{display:inline-block}
+}
+@media(min-width:641px){.score .bm{display:none}}
 </style>
 </head>
 <body>
 <header class="hero"><div class="wrap">
-  <div class="eyebrow">Junction 2026 · S-Pankki challenge · companion analysis</div>
-  <h1>Vara Insights</h1>
-  <p>The data analysis and model evidence behind Vara, an AI money trainer for S-mobiili. Saving money, a craving at a time.</p>
-  <div class="hrow"><a class="btn" href="/">Open the prototype</a><span class="pill">Junction 2026 concept · not an official S-Pankki product · synthetic data</span></div>
+<!--HERO-->
 </div></header>
 <div class="layout">
 <nav class="toc" id="toc"><!--NAV--></nav>
@@ -177,7 +220,7 @@ R.cols=function(el,s){
 R.line=function(el,s){
   var all=[];s.series.forEach(function(z){all=all.concat(z.y)});
   var fr=frame(el,s,all),n=s.x.length,X=function(i){return fr.ml+(n>1?i*fr.pw/(n-1):fr.pw/2)},g=fr.g;
-  var every=s.every||Math.max(1,Math.ceil(n/Math.max(1,Math.floor(fr.pw/50))));
+  var lw=Math.max(50,Math.max.apply(null,s.x.map(function(l){return String(l).length}))*7+8);var every=Math.max(s.every||1,Math.ceil(n/Math.max(1,Math.floor(fr.pw/lw))));
   s.x.forEach(function(lab,i){if(i%every===0)g+='<text x="'+X(i).toFixed(1)+'" y="'+(fr.H-fr.mb+16)+'" text-anchor="middle" class="t">'+esc(lab)+'</text>'});
   s.series.forEach(function(z){
     var d=z.y.map(function(v,i){return(i?'L':'M')+X(i).toFixed(1)+' '+fr.y(v).toFixed(1)}).join('');
