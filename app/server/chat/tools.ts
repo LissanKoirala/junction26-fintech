@@ -992,7 +992,8 @@ export const TOOLS = [
 
 const byName = new Map(TOOLS.map((t) => [t.name, t]));
 
-/** Tool definitions for the Messages API (deterministic order and content, so they cache). */
+/** Tool definitions in Messages API shape; gemini.ts sends the same name, description and JSON schema as Gemini
+ *  function declarations (deterministic order and content, so they cache). */
 export const TOOL_PARAMS: Anthropic.Tool[] = TOOLS.map((t) => {
   const { $schema: _s, ...schema } = z.toJSONSchema(t.schema) as Record<string, unknown>;
   return { name: t.name, description: t.description, input_schema: schema as Anthropic.Tool.InputSchema };

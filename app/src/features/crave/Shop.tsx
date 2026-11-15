@@ -11,7 +11,7 @@ import { CRAVE_MOTTO } from "@shared/crave";
 import { engine } from "@shared/engine";
 import { useCustomer, useEngineOpts } from "@/state/customer";
 import { useEngine } from "@/lib/safeEngine";
-import { money } from "@/lib/format";
+import { dateDM, money } from "@/lib/format";
 import { t, tn, rich } from "@/lib/i18n";
 import { goBack } from "@/lib/router";
 import { Banner, Button, Card, ConceptNotice, cx, IconButton, Muted, Progress, STROKE } from "@/ui/kit";
@@ -761,7 +761,7 @@ function Summary({ subtotal, fee, express, total, bare }: { subtotal: number; fe
   return bare ? rows : <Card>{rows}</Card>;
 }
 
-const paydayLabel = (d: string | null) => (d ? ` (${d.slice(8, 10).replace(/^0/, "")}.${d.slice(5, 7).replace(/^0/, "")}.)` : "");
+const paydayLabel = (d: string | null) => (d ? ` (${dateDM(d)})` : ""); // "15 Oct" (fi: "15.10.")
 
 /** The safe-to-spend guard: the pot only ever takes money that is free until payday. */
 function Guard({ total, free, pot, payday, overSafe, maxStash, stash, setStash }: { total: number; free: number | null; pot: number; payday: string | null; overSafe: boolean; maxStash: number; stash: number; setStash: (n: number) => void }) {

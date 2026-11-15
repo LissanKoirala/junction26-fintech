@@ -69,11 +69,11 @@ export function dateDM(iso: string | null | undefined): string {
   if (!iso) return "–";
   return dayMonth.format(d(iso));
 }
-/** "30.9.2026" */
+/** Full date: "30 Sep 2026" (fi: "30.9.2026"). */
 export function dateFi(iso: string | null | undefined): string {
   if (!iso) return "–";
   const x = d(iso);
-  return `${x.getUTCDate()}.${x.getUTCMonth() + 1}.${x.getUTCFullYear()}`;
+  return fi() ? `${x.getUTCDate()}.${x.getUTCMonth() + 1}.${x.getUTCFullYear()}` : `${x.getUTCDate()} ${MON[x.getUTCMonth()]} ${x.getUTCFullYear()}`;
 }
 export function monthLabel(isoMonth: string): string {
   return monthYear.format(d(isoMonth.length === 7 ? isoMonth + "-01" : isoMonth));

@@ -12,6 +12,7 @@ const fi: Record<string, string> = {
   "Opening the shopping demo…": "Avataan ostosdemoa…",
   "Having trouble loading the shop? Retry or open the demo in a new tab.": "Eikö kauppa avaudu? Yritä uudelleen tai avaa demo uuteen välilehteen.",
   "Open in new tab": "Avaa uuteen välilehteen",
+  Shop: "Kauppa",
   // ---------------------------------------------------------------- names, motto, the deal
   "Saving money, a craving at a time.": "Säästöä, mieliteko kerrallaan.",
   "Crave mode": "Mielitekotila",

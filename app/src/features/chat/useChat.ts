@@ -4,14 +4,15 @@ import type { ChatMessage, ChatRequest } from "@shared/chat";
 import { streamChat } from "@/lib/api";
 import { getState } from "@/state/store";
 import { heldInCravePot, useCustomer } from "@/state/customer";
-import { getMessages, newId, patchMessage, setMessages, useMessages } from "./store";
+import { chatThread, getMessages, newId, patchMessage, setMessages, useMessages } from "./store";
 import { summarise } from "@/features/crave/diary";
-import { getLang, locale, t } from "@/lib/i18n";
+import { getLang, locale, t, useLang } from "@/lib/i18n";
 
 const controllers = new Map<string, AbortController>();
 
 export function useChat(customerId: string) {
-  const messages = useMessages(customerId);
+  const thread = chatThread(customerId, useLang());
+  const messages = useMessages(thread);
   const customer = useCustomer();
   const busy = messages.some((m) => m.streaming);
 
@@ -19,13 +20,13 @@ export function useChat(customerId: string) {
     async (text: string, screen?: string) => {
       const q = text.trim();
       if (!q) return;
-      if (getMessages(customerId).some((m) => m.streaming)) return;
-      const history: ChatMessage[] = getMessages(customerId)
+      if (getMessages(thread).some((m) => m.streaming)) return;
+      const history: ChatMessage[] = getMessages(thread)
         .filter((m) => !m.error && (m.text || m.cards.length))
         .map((m) => ({ role: m.role, content: m.text, cards: m.cards.length ? m.cards : undefined }));
       const userId = newId();
       const botId = newId();
-      setMessages(customerId, (ms) => [
+      setMessages(thread, (ms) => [
         ...ms,
         { id: userId, role: "user", text: q, cards: [] },
         { id: botId, role: "assistant", text: "", cards: [], streaming: true, status: t("Looking at your transactions…") },
@@ -44,13 +45,13 @@ export function useChat(customerId: string) {
         cravePot: heldInCravePot(prefs?.cravings),
       };
       const ctl = new AbortController();
-      controllers.set(customerId, ctl);
+      controllers.set(thread, ctl);
       try {
         const { mocked } = await streamChat(
           req,
           customer,
           (ev) => {
-            patchMessage(customerId, botId, (m) => {
+            patchMessage(thread, botId, (m) => {
               switch (ev.type) {
                 case "status":
                   return { ...m, status: ev.label };
@@ -73,23 +74,23 @@ export function useChat(customerId: string) {
           },
           ctl.signal,
         );
-        patchMessage(customerId, botId, (m) => ({ ...m, mocked }));
+        patchMessage(thread, botId, (m) => ({ ...m, mocked }));
       } catch (e) {
         if (!ctl.signal.aborted)
-          patchMessage(customerId, botId, (m) => ({ ...m, error: t("Vara couldn't answer just now. Please try again."), status: null }));
+          patchMessage(thread, botId, (m) => ({ ...m, error: t("Vara couldn't answer just now. Please try again."), status: null }));
       } finally {
-        patchMessage(customerId, botId, (m) => ({ ...m, streaming: false, status: null }));
-        controllers.delete(customerId);
+        patchMessage(thread, botId, (m) => ({ ...m, streaming: false, status: null }));
+        controllers.delete(thread);
       }
     },
-    [customerId, customer],
+    [customerId, thread, customer],
   );
 
-  const stop = useCallback(() => controllers.get(customerId)?.abort(), [customerId]);
+  const stop = useCallback(() => controllers.get(thread)?.abort(), [thread]);
   const clear = useCallback(() => {
-    controllers.get(customerId)?.abort();
-    setMessages(customerId, () => []);
-  }, [customerId]);
+    controllers.get(thread)?.abort();
+    setMessages(thread, () => []);
+  }, [thread]);
 
   return { messages, busy, send, stop, clear };
 }

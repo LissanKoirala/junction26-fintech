@@ -1,14 +1,14 @@
-// Generates a Crave shop with Claude (via the existing Runware client) using structured output, streamed: the
+// Generates a Crave shop with the active language model (Gemini by default, see llm.ts) using structured output, streamed: the
 // header and each product are parsed out of the partial JSON as soon as they are complete, so the client can
 // render them progressively. Only the craving text is sent to the model.
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import { llm } from "../llm";
+import { CRAVE_DEFAULT_MODEL, streamMessage } from "../llm";
 import { capCravePrice, shortenAtWord, CRAVE_ACCENTS, CRAVE_BADGES, CRAVE_CATEGORIES, CRAVE_ICONS, type CraveAddOn, type CraveProduct, type CraveReview, type CraveShopHeader, type CraveVariant } from "../../shared/crave";
 import { DetailsSchema, ShopSchema } from "./schema";
 import { tr, type Lang } from "../../shared/i18n";
 
-export const CRAVE_MODEL = process.env.CRAVE_MODEL ?? "anthropic:claude@haiku-5.5";
+export const CRAVE_MODEL = CRAVE_DEFAULT_MODEL;
 
 const SYSTEM = `You generate a believable, original online shop on the fly for "Crave mode" in a Finnish bank's app (a Junction 2026 hackathon concept). The customer has chosen to scratch a shopping craving by browsing and checking out in a simulated shop; nothing ships and the money goes to their own savings. Your job is to make the hunt fun and realistic.
 
@@ -169,7 +169,7 @@ const systemFor = (lang: Lang) => SYSTEM.replace("{LANGUAGE}", LANGUAGE[lang]);
 export async function generateShop(craving: string, cb: GenCallbacks, signal: AbortSignal, model = CRAVE_MODEL, lang: Lang = "en"): Promise<GenResult> {
   const t0 = Date.now();
   let ttft = 0;
-  const isHaiku = /haiku/.test(model);
+  const isHaiku = /haiku|gemini/.test(model); // Gemini: thinking "disabled" maps to the lowest thinking level
   const params: Anthropic.MessageCreateParamsNonStreaming = {
     model,
     max_tokens: 8000,
@@ -180,7 +180,7 @@ export async function generateShop(craving: string, cb: GenCallbacks, signal: Ab
   // Fastest settings that keep quality: no thinking where the model allows it.
   if (isHaiku) (params as unknown as Record<string, unknown>).thinking = { type: "disabled" };
   else if (/sonnet-5\.5/.test(model)) (params as unknown as Record<string, unknown>).thinking = { type: "between_tools" };
-  const ms = llm().messages.stream(params, { signal });
+  const ms = streamMessage(params, { signal });
   let text = "";
   let headerSent = false;
   let sent = 0;
@@ -241,11 +241,11 @@ export async function generateDetails(
     messages: [{ role: "user", content: JSON.stringify(input) }],
     output_config: { effort: "low", format: zodOutputFormat(DetailsSchema) },
   };
-  if (/haiku/.test(model)) (params as unknown as Record<string, unknown>).thinking = { type: "disabled" };
+  if (/haiku|gemini/.test(model)) (params as unknown as Record<string, unknown>).thinking = { type: "disabled" };
   else if (/sonnet-5\.5/.test(model)) (params as unknown as Record<string, unknown>).thinking = { type: "between_tools" };
   const ids = new Set(products.map((p) => p.id));
   const done = new Set<string>();
-  const ms = llm().messages.stream(params, { signal });
+  const ms = streamMessage(params, { signal });
   let text = "";
   for await (const ev of ms) {
     if (ev.type === "content_block_delta" && ev.delta.type === "text_delta") {

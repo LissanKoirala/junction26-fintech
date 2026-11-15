@@ -16,11 +16,11 @@ export function VaraCard({ compact }: { compact?: boolean }) {
 
   if (compact)
     return (
-      <Card onClick={open} label={t("Open Talousvalmentaja Vara")}>
+      <Card onClick={open} label={t("Open Vara money coach")}>
         <div className="flex items-center gap-3">
           <VaraAvatar size={40} />
           <div className="min-w-0 flex-1">
-            <p className="text-lg font-bold text-title">Talousvalmentaja Vara</p>
+            <p className="text-lg font-bold text-title">{t("Vara money coach")}</p>
             <p className="text-sm text-ink-muted">
               {sts?.ok ? `${safeView(sts.value).title}: ${safeView(sts.value).figure != null ? money(safeView(sts.value).figure, { whole: true }) : t("Plenty of room")}` : t("Your personal economic trainer")}
             </p>

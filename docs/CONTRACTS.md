@@ -43,13 +43,18 @@ Target user: young adults 18-30. UI language: English. The coach answers in what
   hot-reload after every sync). Log: `bin/vmx 'tail -40 ~/dev.log'`. Restart only if needed:
   `bin/vmx "tmux kill-session -t dev; tmux new-session -d -s dev 'cd ~/proj/app && set -a && . ../.env && set +a && export DATA_DIR=\$HOME/data && npm run dev 2>&1 | tee ~/dev.log'"`.
 - Public URL (Caddy, HTTPS): **https://vara-junction26.swedencentral.cloudapp.azure.com** (`/api/*` → API, rest → Vite).
-- Toolchain is new: TypeScript 7, Vite 8, React 19, Tailwind 4, Hono 4, zod 4, vitest 5, `@anthropic-ai/sdk` 1.x.
+- Toolchain is new: TypeScript 7, Vite 8, React 19, Tailwind 4, Hono 4, zod 4, vitest 5, `@anthropic-ai/sdk` 1.x (kept for
+  the Claude rollback path; the default language model is Google Gemini through its REST API, `app/server/gemini.ts`).
   Do not assume older APIs; when something fails, read the package's own types or README in `node_modules` on the VM.
 - **File ownership.** Other agents are editing this repo at the same time. Only create or edit files inside the paths
   your brief gives you. If you need a change elsewhere, say so in your final report instead of making it.
 - Do not run `git commit`. Do not touch `.vm/`, `.env`, `bin/`, the Caddy config or the Azure setup.
-- Secrets: the LLM key is the env var `RUNWARE_API_KEY` on the VM. Never print it, never write it into a file in the
-  repo, never send it to the browser.
+- Language model: Gemini by default (`GEMINI_API_KEY`; models `GEMINI_MODEL` for the coach and check-in,
+  `GEMINI_CRAVE_MODEL` for Crave shops, each a comma-separated fallback chain). `LLM_PROVIDER=anthropic` switches back
+  to Claude via Runware (`RUNWARE_API_KEY`, `VARA_MODEL`, `CRAVE_MODEL`). Crave product photos always use Runware
+  (`CRAVE_IMAGE_MODEL`, default `bfl:flux@3-image-klein`).
+- Secrets: the keys are the env vars `GEMINI_API_KEY` and `RUNWARE_API_KEY` on the VM. Never print them, never write
+  them into a file in the repo, never send them to the browser.
 - Honesty rules: never invent data, merchant names or metrics. If a model does not beat its baseline, say so in its
   model card. Report failures and skipped work plainly in your final message.
 

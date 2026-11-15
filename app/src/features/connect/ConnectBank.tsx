@@ -132,7 +132,7 @@ export default function ConnectBank() {
                 <div className="flex items-start gap-3">
                   <Clock size={20} strokeWidth={STROKE} className="mt-0.5 shrink-0 text-green-700" aria-hidden />
                   <p className="text-ink">
-                    {tr("Valid for {n} days, until {date}. You can withdraw it any time in Minä, and Vara will ask before renewing.", { n: CONSENT_DAYS, date: dateFi(addDays(asOf, CONSENT_DAYS)) })}
+                    {tr("Valid for {n} days, until {date}. You can withdraw it any time under Me, and Vara will ask before renewing.", { n: CONSENT_DAYS, date: dateFi(addDays(asOf, CONSENT_DAYS)) })}
                   </p>
                 </div>
               </Card>
@@ -168,7 +168,7 @@ export default function ConnectBank() {
               </Card>
               <Card>
                 <CardTitle>{tr("Your accounts")}</CardTitle>
-                <ListRow icon={Landmark} title="S-Pankki Käyttötili" subtitle={tr("This account")} right={c ? money(c.tx[c.tx.length - 1]?.balance) : "–"} />
+                <ListRow icon={Landmark} title={tr("S-Pankki current account")} subtitle={tr("This account")} right={c ? money(c.tx[c.tx.length - 1]?.balance) : "–"} />
                 <ListRow
                   leading={<IconCircle icon={Landmark} tone="sunken" />}
                   title={tr(prefs.bank.bankName)}

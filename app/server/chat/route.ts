@@ -8,7 +8,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { CardSpec, ChatEvent } from "../../shared/chat";
 import type { CustomerData } from "../../shared/types";
 import { isCustomerId, loadCustomer } from "../data";
-import { EFFORT, MODEL, clientIp, llm, rateLimit, takeDailyBudget } from "../llm";
+import { EFFORT, MODEL, PROVIDER, clientIp, isRateLimitError, rateLimit, streamMessage, takeDailyBudget } from "../llm";
 import { STATIC_SYSTEM, languageLine, snapshot } from "./prompt";
 import { tr, type Lang } from "../../shared/i18n";
 import { TOOL_PARAMS, runTool, toolStatus, type ToolCtx } from "./tools";
@@ -115,7 +115,7 @@ export function registerChatRoutes(app: Hono) {
       let ttft = 0;
       const lang: Lang = req.lang ?? "en";
       const T = tr(lang);
-      const log: Record<string, unknown> = { customer: req.customerId, model: MODEL, effort: EFFORT, lang };
+      const log: Record<string, unknown> = { customer: req.customerId, provider: PROVIDER, model: MODEL, effort: EFFORT, lang };
       try {
         if (!customer) throw new UserError(T.t("I could not find that customer."));
         const limited = rateLimit(ip);
@@ -196,7 +196,7 @@ export function registerChatRoutes(app: Hono) {
           if (!takeDailyBudget()) throw new UserError(T.t("Vara has answered a lot of questions today and is resting. Please try again tomorrow."));
           const lastRound = rounds === MAX_ROUNDS - 1;
           if (prose && !/\s$/.test(prose)) parser.push("\n\n"); // text from an earlier round must not run into the next
-          const ms = llm().messages.stream(
+          const ms = streamMessage(
             {
               model: MODEL,
               max_tokens: MAX_TOKENS,
@@ -229,7 +229,7 @@ export function registerChatRoutes(app: Hono) {
           }
           const msg = await ms.finalMessage();
           if (!live && held && msg.stop_reason !== "tool_use") parser.push(held);
-          log[`usage${rounds}`] = { in: msg.usage.input_tokens, out: msg.usage.output_tokens, cacheRead: msg.usage.cache_read_input_tokens, cacheWrite: msg.usage.cache_creation_input_tokens };
+          log[`usage${rounds}`] = { model: msg.model, in: msg.usage.input_tokens, out: msg.usage.output_tokens, cacheRead: msg.usage.cache_read_input_tokens, cacheWrite: msg.usage.cache_creation_input_tokens };
           const uses = msg.content.filter((b): b is Anthropic.ToolUseBlock => b.type === "tool_use");
           if (msg.stop_reason === "refusal") {
             parser.push("\n" + T.t("Sorry, I can't help with that one. Ask me anything about your money."));
@@ -287,7 +287,7 @@ export function registerChatRoutes(app: Hono) {
             ? err.message
             : ac.signal.aborted
               ? T.t("That took too long. Please try again.")
-              : err instanceof Anthropic.RateLimitError
+              : isRateLimitError(err)
                 ? T.t("Vara is very busy right now. Please try again in a moment.")
                 : T.t("Something went wrong on my side. Please try again.");
         if (!(err instanceof UserError)) console.error("[chat] error", err);

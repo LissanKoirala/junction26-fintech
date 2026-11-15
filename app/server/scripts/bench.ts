@@ -1,7 +1,9 @@
-// Latency benchmark for /api/chat through the real route code (in-process). Model from VARA_MODEL.
-// Usage: VARA_MODEL=anthropic:claude@sonnet-5.5 VARA_EFFORT=low npx tsx server/scripts/bench.ts 3
+// Latency benchmark for /api/chat through the real route code (in-process). Model from GEMINI_MODEL (or, with
+// LLM_PROVIDER=anthropic, VARA_MODEL).
+// Usage: GEMINI_MODEL=gemini-3.5-flash-lite npx tsx server/scripts/bench.ts 3
 import { Hono } from "hono";
 import { registerChatRoutes } from "../chat/route";
+import { MODEL } from "../llm";
 
 const app = new Hono();
 registerChatRoutes(app);
@@ -45,4 +47,4 @@ for (let k = 0; k < n; k++) {
   console.log(JSON.stringify(rows[rows.length - 1]), "|", text.replace(/\s+/g, " ").slice(0, 160));
 }
 const med = (xs: number[]) => xs.sort((a, b) => a - b)[xs.length >> 1];
-console.log(`${process.env.VARA_MODEL} effort=${process.env.VARA_EFFORT ?? "low"}: median first text ${med(rows.map((r) => r.ttft))} ms, first card ${med(rows.map((r) => r.firstCard))} ms, total ${med(rows.map((r) => r.total))} ms`);
+console.log(`${MODEL} effort=${process.env.VARA_EFFORT ?? "low"}: median first text ${med(rows.map((r) => r.ttft))} ms, first card ${med(rows.map((r) => r.firstCard))} ms, total ${med(rows.map((r) => r.total))} ms`);

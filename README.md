@@ -48,7 +48,7 @@ The dataset is not in this repository. Download it from the challenge repository
 ```bash
 # app
 cd app && npm install
-RUNWARE_API_KEY=... DATA_DIR=~/data npm run dev
+GEMINI_API_KEY=... RUNWARE_API_KEY=... DATA_DIR=~/data npm run dev   # Gemini for text, Runware for Crave photos
 
 # models (Python 3.11+, see ml/FEATURES.md)
 bash ml/a_run_all.sh

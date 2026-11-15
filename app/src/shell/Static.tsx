@@ -16,8 +16,8 @@ export function Etukortti() {
       </Card>
       <Card>
         <CardTitle>{t("In S-mobiili")}</CardTitle>
-        <ListRow icon={ShoppingBag} title="Bonus ja ostot" subtitle={t("Purchase breakdown for S Group stores")} chevron onClick={() => notInDemo("Bonus ja ostot")} />
-        <ListRow icon={Receipt} title="Kuitit" subtitle={t("Digital receipts")} chevron onClick={() => notInDemo("Kuitit")} />
+        <ListRow icon={ShoppingBag} title={t("Bonus and purchases")} subtitle={t("Purchase breakdown for S Group stores")} chevron onClick={() => notInDemo("Bonus and purchases")} />
+        <ListRow icon={Receipt} title={t("Receipts")} subtitle={t("Digital receipts")} chevron onClick={() => notInDemo("Receipts")} />
       </Card>
       <ConceptNotice />
     </Page>
@@ -28,11 +28,11 @@ export function Maksu() {
   return (
     <Page>
       <Card>
-        <CardTitle>Maksa ja siirrä</CardTitle>
-        <ListRow icon={FileText} title="Maksa lasku" subtitle={t("Pay a bill")} chevron onClick={() => notInDemo("Bill payment")} />
-        <ListRow icon={ArrowLeftRight} title="Oma siirto" subtitle={t("Move money between your accounts")} chevron onClick={() => notInDemo("Transfers")} />
+        <CardTitle>{t("Pay and transfer")}</CardTitle>
+        <ListRow icon={FileText} title={t("Pay a bill")} subtitle={t("With a reference number")} chevron onClick={() => notInDemo("Bill payment")} />
+        <ListRow icon={ArrowLeftRight} title={t("Own transfer")} subtitle={t("Move money between your accounts")} chevron onClick={() => notInDemo("Transfers")} />
         <ListRow icon={Smartphone} title="MobilePay" subtitle={t("Pay a friend")} chevron onClick={() => notInDemo("MobilePay")} />
-        <ListRow icon={QrCode} title="Skannaa viivakoodi" subtitle={t("Scan a bill barcode")} chevron onClick={() => notInDemo("Scanning")} />
+        <ListRow icon={QrCode} title={t("Scan barcode")} subtitle={t("Scan a bill barcode")} chevron onClick={() => notInDemo("Scanning")} />
       </Card>
       <Muted className="px-1 text-center">{t("Payments are not part of this concept demo.")}</Muted>
       <ConceptNotice />

@@ -24,7 +24,7 @@ function QuickAction({ icon: Icon, label, onClick }: { icon: LucideIcon; label: 
 
 export function greeting(id: string) {
   const p = PERSONAS.find((x) => x.id === id);
-  return p ? `Hei ${p.alias}!` : "Hei!";
+  return p ? t("Hi {name}!", { name: p.alias }) : t("Hi!");
 }
 
 export function Koti() {
@@ -36,25 +36,25 @@ export function Koti() {
       <div className="px-1 pt-1">
         <p className="text-2xl font-bold text-green-900">{greeting(cs.id)}</p>
         <Muted>
-          {cs.status === "ready" ? `Tilanne ${dateFi(cs.data.asOf)}` : "Ladataan…"} · {cs.id} <span className="text-ink-muted">({t("demo customer")})</span>
+          {cs.status === "ready" ? t("As of {date}", { date: dateFi(cs.data.asOf) }) : t("Loading…")} · {cs.id} <span className="text-ink-muted">({t("demo customer")})</span>
         </Muted>
       </div>
 
       <div className="flex gap-2 py-2">
-        <QuickAction icon={ArrowLeftRight} label="Siirrä" onClick={() => notInDemo("Transfers")} />
-        <QuickAction icon={FileText} label="Maksa lasku" onClick={() => notInDemo("Bill payment")} />
-        <QuickAction icon={QrCode} label="Skannaa" onClick={() => notInDemo("Scanning")} />
+        <QuickAction icon={ArrowLeftRight} label={t("Transfer")} onClick={() => notInDemo("Transfers")} />
+        <QuickAction icon={FileText} label={t("Pay a bill")} onClick={() => notInDemo("Bill payment")} />
+        <QuickAction icon={QrCode} label={t("Scan")} onClick={() => notInDemo("Scanning")} />
         <QuickAction icon={PiggyBank} label="Säästäjä" onClick={() => navigate("/flow/goal")} />
       </div>
 
       <VaraCard />
 
       <Card>
-        <CardTitle right={<TextLink onClick={() => navigate("/pankki", { replace: true })}>Kaikki</TextLink>}>Tilit ja kortit</CardTitle>
+        <CardTitle right={<TextLink onClick={() => navigate("/pankki", { replace: true })}>{t("All")}</TextLink>}>{t("Accounts and cards")}</CardTitle>
         <ListRow
           leading={<IconCircle icon={PiggyBank} />}
-          title="Käyttötili"
-          subtitle={cs.status === "ready" ? `Saldo ${dateFi(cs.data.asOf)}` : "Saldo"}
+          title={t("Current account")}
+          subtitle={cs.status === "ready" ? t("Balance {date}", { date: dateFi(cs.data.asOf) }) : t("Balance")}
           right={cs.status === "ready" ? money(bal) : cs.status === "error" ? "–" : <Skeleton className="h-5 w-24" />}
         />
         {prefs.bank && (

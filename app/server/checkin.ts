@@ -13,7 +13,7 @@ import type { CheckIn, CheckInSlide, Challenge } from "../shared/checkin";
 import type { CustomerData } from "../shared/types";
 import type { MlAnomalies, MlHabits } from "../shared/ml/typesA";
 import { DATA_DIR, isCustomerId, loadCustomer, loadMl } from "./data";
-import { EFFORT, MODEL, clientIp, llm, rateLimit, takeDailyBudget } from "./llm";
+import { EFFORT, MODEL, clientIp, parseMessage, rateLimit, takeDailyBudget } from "./llm";
 import { runTool, SOURCE, type ToolCtx } from "./chat/tools";
 import { checkProse } from "./chat/guard";
 import { eur, eur0, dayName } from "./chat/format";
@@ -167,10 +167,10 @@ const wordingSystem = (lang: Lang) => `You write the weekly check-in of Vara, a 
 ${lang === "fi" ? 'Write everything in natural, informal Finnish (sinä), calm and never shaming. Terms: käyttövara (safe to spend), palkkapäivä, saldo, puskuri, säästötavoite, viikkokatsaus. Write amounts the Finnish way, like "224 €" or "1 743,50 €".\n' : ""}Rules: plain, warm, concrete, never moralising; praise small steps. Each slide: eyebrow (1-3 words), title (one short sentence, at most 70 characters), body (1-3 short sentences, at most 220 characters). Use the three basket names exactly: "${basketLabel("must_regular", lang)}", "${basketLabel("must_irregular", lang)}", "${basketLabel("everyday", lang)}".
 Numbers: use only numbers that appear in the facts, copied exactly or rounded to whole euros (written like "224 €"). Never compute new numbers (no sums, differences or percentages of your own). No merchant names exist; do not invent any. The lesson slide teaches the concept using the given example. The challenge title must contain the target amount. Two different week figures: the fact all_spending_in_a_typical_week (everything spent, rent included) and the fact usual_week_of_everyday_extras (everyday extras only). In the text call them ${lang === "fi" ? '"kaikki kulusi tyypillisenä viikkona" and "tavallinen viikkosi arjen ekstroihin"' : '"all your spending in a typical week" and "your usual week of everyday extras"'}; never write the field names, and never call either just "a typical week". Say "most" (Finnish "suurin osa") only for a share above half of the total; otherwise say it was the largest part ("eniten meni"). Keep one slide per given id, same order.`;
 
-async function wordIt(d: Draft, lang: Lang = "en"): Promise<{ headline: string; slides: Map<string, { eyebrow: string; title: string; body: string }>; challengeTitle?: string; challengeWhy?: string } | null> {
+async function wordIt(d: Draft, lang: Lang = "en"): Promise<{ headline: string; slides: Map<string, { eyebrow: string; title: string; body: string }>; challengeTitle?: string; challengeWhy?: string; model: string } | null> {
   if (!takeDailyBudget()) return null;
   const input = { customer: d.facts, slides: d.slides.map((s) => ({ id: s.id, kind: s.kind, facts: s.facts, example_wording: s.fallback })), challenge: { target: d.challenge.target, usual_week_of_everyday_extras: d.challenge.baseline, potential_monthly_saving: d.challenge.potentialMonthlySaving } };
-  const res = await llm().messages.parse({
+  const res = await parseMessage({
     model: MODEL,
     max_tokens: 4000,
     system: wordingSystem(lang),
@@ -188,7 +188,7 @@ async function wordIt(d: Draft, lang: Lang = "en"): Promise<{ headline: string; 
     else console.warn(`[checkin] slide ${s.id} wording dropped, unverified: ${chk.unverified.join(", ")}`);
   }
   const chTitleOk = checkProse(out.challengeTitle + " " + out.challengeWhy, sources).verified;
-  return { headline: checkProse(out.headline, sources).verified ? out.headline : d.headlineFallback, slides, challengeTitle: chTitleOk ? out.challengeTitle : undefined, challengeWhy: chTitleOk ? out.challengeWhy : undefined };
+  return { headline: checkProse(out.headline, sources).verified ? out.headline : d.headlineFallback, slides, challengeTitle: chTitleOk ? out.challengeTitle : undefined, challengeWhy: chTitleOk ? out.challengeWhy : undefined, model: res.model };
 }
 
 export async function generateCheckIn(c: CustomerData, lang: Lang = "en"): Promise<CheckIn & { generatedBy: string }> {
@@ -211,7 +211,7 @@ export async function generateCheckIn(c: CustomerData, lang: Lang = "en"): Promi
     headline: words?.headline ?? d.headlineFallback,
     slides,
     challenge,
-    generatedBy: words ? `${MODEL} (wording) + engine (numbers)` : "templates + engine (language model unavailable)",
+    generatedBy: words ? `${words.model} (wording) + engine (numbers)` : "templates + engine (language model unavailable)",
   };
 }
 

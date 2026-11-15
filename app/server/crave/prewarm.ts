@@ -2,7 +2,8 @@
 //   npx tsx server/crave/prewarm.ts                       -> caches the demo cravings (skips ones already cached)
 //   npx tsx server/crave/prewarm.ts --force sushi         -> regenerates one
 //   npx tsx server/crave/prewarm.ts --lang=fi             -> caches the Finnish demo cravings
-//   npx tsx server/crave/prewarm.ts --bench=anthropic:claude@haiku-5.5,anthropic:claude@sonnet-5.5 "sushi" "wireless headphones"
+//   npx tsx server/crave/prewarm.ts --bench=gemini-3.5-flash-lite,gemini-3.6-flash "sushi" "wireless headphones"
+//   (model ids of the active provider, LLM_PROVIDER; a Gemini id may be a comma-separated fallback chain)
 import { generateShop } from "./generate";
 import { buildShop, loadCachedShop } from "./route";
 

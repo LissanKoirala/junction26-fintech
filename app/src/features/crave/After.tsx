@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import { Bike, Box, Check, Inbox as InboxIcon, Mail, PiggyBank, Truck, UtensilsCrossed } from "lucide-react";
 import { CRAVE_MOTTO, type CraveEntry } from "@shared/crave";
 import { money } from "@/lib/format";
-import { rich, t, tn } from "@/lib/i18n";
+import { locale, rich, t, tn } from "@/lib/i18n";
 import { goBack, navigate, useRoute } from "@/lib/router";
 import { FullScreen, ScreenHeader, ScrollArea } from "@/ui/hero";
 import { Badge, Button, Card, ConceptNotice, cx, Muted, Page, STROKE, Unavailable } from "@/ui/kit";
@@ -214,7 +214,7 @@ export function InboxView() {
                   <span className={cx("block truncate text-sm", m.read ? "text-ink-muted" : "font-bold text-ink")}>{mailFrom(m)}</span>
                   <span className={cx("block truncate", m.read ? "text-ink-strong" : "font-semibold text-ink")}>{mailSubject(m, list.find((e) => e.id === m.orderId)?.kind === "food")}</span>
                 </span>
-                <span className="shrink-0 text-xs text-ink-muted">{new Date(m.at).toLocaleTimeString("fi-FI", { hour: "2-digit", minute: "2-digit" })}</span>
+                <span className="shrink-0 text-xs text-ink-muted">{new Date(m.at).toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" })}</span>
               </motion.button>
             ))}
             {!visible.length && <p className="flex items-center gap-2 p-4 text-ink-muted"><Mail size={18} strokeWidth={STROKE} aria-hidden /> {t("No emails yet.")}</p>}

@@ -5,6 +5,7 @@ import { money } from "@/lib/format";
 import { navigate } from "@/lib/router";
 import { Card, ConceptNotice, IconCircle, Page, Skeleton, STROKE } from "@/ui/kit";
 import { notInDemo } from "@/ui/toast";
+import { t } from "@/lib/i18n";
 import { VaraCard } from "@/features/vara/VaraCard";
 import { currentBalance } from "@/features/vara/useVaraData";
 import { ChevronRight } from "lucide-react";
@@ -32,15 +33,15 @@ export function Pankki() {
     <Page>
       <BankCard
         icon={Wallet}
-        title="Tilit"
-        sub="Käyttötili"
+        title={t("Accounts")}
+        sub={t("Current account")}
         onClick={() => notInDemo("Account details")}
         right={cs.status === "ready" ? <span className="tnum font-semibold">{money(bal)}</span> : <Skeleton className="h-5 w-20" />}
       />
-      <BankCard icon={FileText} title="Maksut ja e-laskut" sub="Maksa, siirrä ja hallitse e-laskuja" onClick={() => notInDemo("Payments")} />
-      <BankCard icon={CreditCard} title="Kortit" sub="S-Etukortti Visa" onClick={() => notInDemo("Cards")} />
-      <BankCard icon={PiggyBank} title="Säästäjä" sub="Säästä ostojen yhteydessä" onClick={() => navigate("/flow/goal")} />
-      <BankCard icon={ChartLine} title="Sijoitukset" sub="Rahastot ja osakkeet" onClick={() => notInDemo("Investments")} />
+      <BankCard icon={FileText} title={t("Payments and e-invoices")} sub={t("Pay, transfer and manage e-invoices")} onClick={() => notInDemo("Payments")} />
+      <BankCard icon={CreditCard} title={t("Cards")} sub="S-Etukortti Visa" onClick={() => notInDemo("Cards")} />
+      <BankCard icon={PiggyBank} title="Säästäjä" sub={t("Save as you shop")} onClick={() => navigate("/flow/goal")} />
+      <BankCard icon={ChartLine} title={t("Investments")} sub={t("Funds and shares")} onClick={() => notInDemo("Investments")} />
       <VaraCard compact />
       <ConceptNotice />
     </Page>

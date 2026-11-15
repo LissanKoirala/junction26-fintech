@@ -12,7 +12,7 @@ import { useCustomer, useEngineOpts } from "@/state/customer";
 import { actions, usePrefs } from "@/state/store";
 import { useEngine } from "@/lib/safeEngine";
 import { money, pct } from "@/lib/format";
-import { locale, rich, t, tn } from "@/lib/i18n";
+import { getLang, locale, rich, t, tn } from "@/lib/i18n";
 import { navigate } from "@/lib/router";
 import { Badge, Button, ConceptNotice, STROKE } from "@/ui/kit";
 import { VaraAvatar } from "@/ui/hero";
@@ -83,7 +83,7 @@ export function Reveal({ entry, header, lines, onNewCraving }: { entry: CraveEnt
 
   const thumbs = useMemo(() => lines.filter((l) => l.product).slice(0, 4), [lines]);
   const coolingEnds = new Date(entry.at + COOLING_OFF_MS);
-  const coolingLabel = t("{day} {date} at {time}", { day: coolingEnds.toLocaleDateString(locale(), { weekday: "short" }), date: `${coolingEnds.getDate()}.${coolingEnds.getMonth() + 1}.`, time: hhmm(coolingEnds) });
+  const coolingLabel = t("{day} {date} at {time}", { day: coolingEnds.toLocaleDateString(locale(), { weekday: "short" }), date: coolingEnds.toLocaleDateString(locale(), { day: "numeric", month: getLang() === "fi" ? "numeric" : "short" }), time: hhmm(coolingEnds) });
   const inbox = useInbox();
   const unread = inbox.filter((m) => m.orderId === entry.id && !m.read && m.at <= Date.now() + 500).length;
   // the "New email" toasts would sit on top of the release button here; the Inbox button shows a count instead
