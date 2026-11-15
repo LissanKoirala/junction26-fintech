@@ -181,7 +181,7 @@ export const S11Insights: React.FC = () => {
         {chips.map(c => <Chip key={c.text} {...c} ring={c.text === "Eight model cards" ? tableAt : undefined} />)}
       </div>
     </div>
-    <In delay={s(1.2)} style={{ position: "absolute", left: 96 + BW + 64, top: 916 }}><Badge kind="live" text="Live site recording · synthetic data" /></In>
+    <In delay={s(1.2)} style={{ position: "absolute", left: 96 + BW + 64, top: 916 }}><Badge kind="live" text="Live site recording · 1.2× speed · synthetic data" /></In>
   </Slide>;
 };
 /** A card-like chip; `ring` = frame at which the matching part of the recording comes up (a ring settles onto the chip). */

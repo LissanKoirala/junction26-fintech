@@ -205,7 +205,7 @@ const wedge = (c: number, r: number, f: number) => {
 /** A 5% trim of everyday extras: kept as a cushion vs kept only until payday. */
 const Trim: React.FC<{ at: number }> = ({ at }) => {
   const rows = [
-    { label: "Kept as a cushion", v: 72, color: C.green, d: at + 10 },
+    { label: "Kept, and built up as a cushion", v: 72, color: C.green, d: at + 10 },
     { label: "Kept only until the next payday", v: 15, color: C.faint, d: at + 34 },
   ];
   return <div style={{ position: "absolute", left: 1080, top: 318, width: 744 }}>
@@ -216,6 +216,9 @@ const Trim: React.FC<{ at: number }> = ({ at }) => {
     <div style={{ marginTop: 38, display: "grid", gap: 34 }}>
       {rows.map(r => <TrimBar key={r.label} {...r} />)}
     </div>
+    <In delay={at + 66} from="up" dist={10} style={{ marginTop: 26 }}>
+      <div style={{ fontSize: 22, color: C.muted }}>A replay of two years of data, all else unchanged. Not a prediction.</div>
+    </In>
   </div>;
 };
 const TrimBar: React.FC<{ label: string; v: number; color: string; d: number }> = ({ label, v, color, d }) => {
