@@ -28,6 +28,7 @@ if (opt.customer) {
 }
 const page = await ctx.newPage();
 const errors = [];
+const missing = new Set();
 page.on("console", (m) => {
   if (m.type() === "error" || m.type() === "warning") {
     const t = m.text();
@@ -63,6 +64,12 @@ for (const spec of shots) {
   const file = `${out}/${opt.prefix ?? ""}${name}.png`;
   await page.screenshot({ path: file, fullPage: opt.full === "1" });
   console.log("saved", file);
+  if (opt.missing) {
+    const m = await page.evaluate(() => (typeof window.__i18nMissing === "function" ? window.__i18nMissing() : [])).catch(() => []);
+    for (const k of Array.isArray(m) ? m : Object.keys(m ?? {})) missing.add(typeof k === "string" ? k : JSON.stringify(k));
+  }
 }
 console.log(errors.length ? "CONSOLE:\n" + [...new Set(errors)].join("\n") : "no console errors");
+// --missing=1: print the Finnish dictionary misses recorded while visiting (window.__i18nMissing from shared/i18n)
+if (opt.missing) console.log(`I18N MISSING (${missing.size}):\n` + [...missing].join("\n"));
 await browser.close();

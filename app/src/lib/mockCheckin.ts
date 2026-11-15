@@ -6,6 +6,7 @@ import type { CardSpec } from "@shared/chat";
 import type { CustomerData } from "@shared/types";
 import { basketMeta, BASKETS, domain } from "./domain";
 import { addDays, dateDM, money } from "./format";
+import { getLang, t } from "@shared/i18n";
 
 const median = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b);
@@ -14,45 +15,46 @@ const median = (xs: number[]) => {
 const round5 = (v: number) => Math.max(5, Math.round(v / 5) * 5);
 
 export function mockCheckin(c: CustomerData): CheckIn {
-  const last = engine.getWeekSummary(c, -1);
-  const prev = [-2, -3, -4, -5, -6, -7, -8, -9].map((o) => engine.getWeekSummary(c, o));
+  const lang = getLang();
+  const last = engine.getWeekSummary(c, -1, { lang });
+  const prev = [-2, -3, -4, -5, -6, -7, -8, -9].map((o) => engine.getWeekSummary(c, o, { lang }));
   const typicalEveryday = median(prev.map((w) => w.byBasket.everyday));
   const typicalSmall = median(prev.map((w) => w.smallPurchases.count));
   const week = { from: last.from, to: last.to, label: `${dateDM(last.from)} – ${dateDM(last.to)}` };
-  const tool = (t: string, extra: Partial<NonNullable<CardSpec["explain"]>> = {}) => ({ tool: t, filters: [`week ${week.label}`], period: week, ...extra });
+  const tool = (name: string, extra: Partial<NonNullable<CardSpec["explain"]>> = {}) => ({ tool: name, filters: [t("week {week}", { week: week.label })], period: week, ...extra });
 
   const slides: CheckInSlide[] = [];
   const vs = last.vsTypicalWeekPct;
   slides.push({
     id: "recap",
     kind: "recap",
-    eyebrow: "Your week",
-    title: `You spent ${money(last.spending, { whole: true })} last week.`,
+    eyebrow: t("Your week"),
+    title: t("You spent {v} last week.", { v: money(last.spending, { whole: true }) }),
     body:
       vs == null
-        ? "That's everything that left your account as spending, from rent to coffees."
+        ? t("That's everything that left your account as spending, from rent to coffees.")
         : Math.abs(vs) < 8
-          ? "That's close to a typical week for you. Steady is good."
+          ? t("That's close to a typical week for you. Steady is good.")
           : vs < 0
-            ? `That's ${Math.round(-vs)} % less than a typical week for you. Nice work.`
-            : `That's ${Math.round(vs)} % more than a typical week for you. Let's see where it went.`,
+            ? t("That's {pct} % less than a typical week for you. Nice work.", { pct: Math.round(-vs) })
+            : t("That's {pct} % more than a typical week for you. Let's see where it went.", { pct: Math.round(vs) }),
     card: {
       id: "ci-stat",
       kind: "stat",
-      label: "Spending last week",
+      label: t("Spending last week"),
       value: last.spending,
       unit: "eur",
-      comparison: vs == null ? undefined : { label: "vs your typical week", deltaPct: vs, good: vs <= 0 },
-      explain: tool("engine.getWeekSummary", { formula: "sum of purchases, bills and rent in the week; typical = median of the 12 weeks before" }),
+      comparison: vs == null ? undefined : { label: t("vs your typical week"), deltaPct: vs, good: vs <= 0 },
+      explain: tool("engine.getWeekSummary", { formula: t("sum of purchases, bills and rent in the week; typical = median of the 12 weeks before") }),
     },
   });
 
   slides.push({
     id: "baskets",
     kind: "baskets",
-    eyebrow: "Three baskets",
+    eyebrow: t("Three baskets"),
     title: `${basketMeta("everyday").label}: ${money(last.byBasket.everyday, { whole: true })}.`,
-    body: `Fixed musts like rent come back every month. Surprise musts can't be planned. Everyday extras, like ${basketMeta("everyday").example}, are where small changes add up.`,
+    body: t("Fixed musts like rent come back every month. Surprise musts can't be planned. Everyday extras, like {example}, are where small changes add up.", { example: basketMeta("everyday").example }),
     card: {
       id: "ci-baskets",
       kind: "breakdown",
@@ -61,7 +63,7 @@ export function mockCheckin(c: CustomerData): CheckIn {
       items: BASKETS.map((b) => ({ key: b, label: basketMeta(b).label, value: last.byBasket[b] })),
       total: last.spending,
       period: week,
-      explain: tool("engine.getWeekSummary", { filters: [`week ${week.label}`, "grouped by basket"] }),
+      explain: tool("engine.getWeekSummary", { filters: [t("week {week}", { week: week.label }), t("grouped by basket")] }),
     },
   });
 
@@ -69,36 +71,36 @@ export function mockCheckin(c: CustomerData): CheckIn {
     slides.push({
       id: "small",
       kind: "habit",
-      eyebrow: "Small stuff",
-      title: `${last.smallPurchases.count} purchases under ${domain.smallPurchaseThreshold} € added up to ${money(last.smallPurchases.total, { whole: true })}.`,
-      body: "Each one feels like nothing. Together they are a real line in your budget, and the easiest one to nudge.",
+      eyebrow: t("Small stuff"),
+      title: t("{n} purchases under {limit} € added up to {v}.", { n: last.smallPurchases.count, limit: domain.smallPurchaseThreshold, v: money(last.smallPurchases.total, { whole: true }) }),
+      body: t("Each one feels like nothing. Together they are a real line in your budget, and the easiest one to nudge."),
     });
   }
 
   slides.push({
     id: "lesson",
     kind: "lesson",
-    eyebrow: "One thing to learn",
-    title: "Your balance is not your budget.",
-    body: "Part of what's on your account already belongs to rent and bills before payday. Vara sets that aside first and shows what's really free.",
+    eyebrow: t("One thing to learn"),
+    title: t("Your balance is not your budget."),
+    body: t("Part of what's on your account already belongs to rent and bills before payday. Vara sets that aside first and shows what's really free."),
     card: {
       id: "ci-concept",
       kind: "concept",
-      term: "Safe to spend",
-      definition: "What's left after the musts due before your next payday, shared across the weeks until then.",
+      term: t("Safe to spend"),
+      definition: t("What's left after the musts due before your next payday, shared across the weeks until then."),
       example: (() => {
         try {
-          const s = engine.getSafeToSpend(c);
-          return `Right now: ${money(s.balance, { whole: true })} on the account, ${money(s.reservedTotal, { whole: true })} set aside for musts, so ${money(s.safePerWeek, { whole: true })} a week is safe.`;
+          const s = engine.getSafeToSpend(c, { lang });
+          return t("Right now: {balance} on the account, {reserved} set aside for musts, so {safe} a week is safe.", { balance: money(s.balance, { whole: true }), reserved: money(s.reservedTotal, { whole: true }), safe: money(s.safePerWeek, { whole: true }) });
         } catch {
-          return "Balance minus the musts before payday, divided by the weeks until payday.";
+          return t("Balance minus the musts before payday, divided by the weeks until payday.");
         }
       })(),
     },
   });
 
   // challenge for the current week
-  const thisWeek = engine.getWeekSummary(c, 0);
+  const thisWeek = engine.getWeekSummary(c, 0, { lang });
   const sunday = addDays(thisWeek.from, 6);
   const useSmall = typicalSmall >= 4;
   const target = useSmall ? Math.max(1, Math.floor(typicalSmall * 0.7)) : round5(typicalEveryday * 0.85);
@@ -106,11 +108,11 @@ export function mockCheckin(c: CustomerData): CheckIn {
   const challenge: Challenge = {
     id: `ch-${thisWeek.from}`,
     title: useSmall
-      ? `Keep purchases under ${domain.smallPurchaseThreshold} € to ${target} this week`
-      : `Keep everyday extras under ${money(target, { whole: true })} this week`,
+      ? t("Keep purchases under {limit} € to {n} this week", { limit: domain.smallPurchaseThreshold, n: target })
+      : t("Keep everyday extras under {v} this week", { v: money(target, { whole: true }) }),
     why: useSmall
-      ? `You usually make about ${Math.round(typicalSmall)} small purchases a week.`
-      : `A typical week of everyday extras for you is about ${money(typicalEveryday, { whole: true })}.`,
+      ? t("You usually make about {n} small purchases a week.", { n: Math.round(typicalSmall) })
+      : t("A typical week of everyday extras for you is about {v}.", { v: money(typicalEveryday, { whole: true }) }),
     metric: useSmall ? { kind: "small_purchases", unit: "count" } : { kind: "everyday_spend", unit: "eur" },
     target,
     baseline: useSmall ? Math.round(typicalSmall) : Math.round(typicalEveryday),
@@ -120,9 +122,9 @@ export function mockCheckin(c: CustomerData): CheckIn {
   slides.push({
     id: "challenge",
     kind: "challenge",
-    eyebrow: "This week's challenge",
+    eyebrow: t("This week's challenge"),
     title: challenge.title + ".",
-    body: `${challenge.why} Hitting the target would free about ${money(challenge.potentialMonthlySaving, { whole: true })} a month.`,
+    body: `${challenge.why} ${t("Hitting the target would free about {v} a month.", { v: money(challenge.potentialMonthlySaving, { whole: true }) })}`,
   });
 
   return {

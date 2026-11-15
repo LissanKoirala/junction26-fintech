@@ -7,46 +7,49 @@ import { Badge, Button, cx, IconCircle, STROKE } from "@/ui/kit";
 import { actions, usePrefs, updatePrefs } from "@/state/store";
 import { basketMeta, categoryIcon, categoryLabel, mccLabel } from "@/lib/domain";
 import { addDays, dateDM, dateFi, dateShort, daysBetween, money, pctSigned } from "@/lib/format";
+import { t, tData, tn } from "@/lib/i18n";
 import { HABIT_STATUS, habitGood, habitHeadline, habitLevel, habitName, type Habit } from "../words";
 
 type Anom = MlAnomalies["transactions"][number];
 
 function findTx(c: CustomerData | null, a: Anom) {
   if (!c) return null;
-  const t = c.tx[a.i];
-  if (t && t.i === a.i) return t;
-  return c.tx.find((x) => x.i === a.i) ?? null;
+  const x = c.tx[a.i];
+  if (x && x.i === a.i) return x;
+  return c.tx.find((y) => y.i === a.i) ?? null;
 }
 
 const SURPRISE: Basket = "must_irregular";
+const cap = (s: string) => s.replace(/^./, (c) => c.toUpperCase());
 
 export function UnusualList({ a, customer, limit = 5, compact }: { a: MlAnomalies; customer: CustomerData | null; limit?: number; compact?: boolean }) {
   const prefs = usePrefs();
   const items = a.transactions.slice(0, limit);
-  if (!items.length) return <p className="text-sm text-ink-muted">Nothing stood out in the last 12 months. Your spending followed your own usual pattern.</p>;
+  if (!items.length) return <p className="text-sm text-ink-muted">{t("Nothing stood out in the last 12 months. Your spending followed your own usual pattern.")}</p>;
   return (
     <ul className="flex flex-col divide-y divide-line">
-      {items.map((t) => {
-        const tx = findTx(customer, t);
-        const override = prefs.overrides.byTx?.[t.i];
-        const current = (override ?? t.basket) as Basket | undefined;
+      {items.map((an) => {
+        const tx = findTx(customer, an);
+        const override = prefs.overrides.byTx?.[an.i];
+        const current = (override ?? an.basket) as Basket | undefined;
         const isSurprise = current === SURPRISE;
-        const suggested = t.suggestedBasket === SURPRISE;
+        const suggested = an.suggestedBasket === SURPRISE;
         const canMove = !!tx && !compact && !isSurprise;
-        const title = (tx && tx.type === "purchase" && mccLabel(tx.mcc)) || categoryLabel(t.category);
+        const title = (tx && tx.type === "purchase" && mccLabel(tx.mcc)) || categoryLabel(an.category);
+        const move = () => actions.overrideTx(an.i, SURPRISE, t("{what} on {date} ({amount}) is a Surprise must", { what: title, date: dateFi(an.date), amount: money(an.amount) }));
         return (
-          <li key={t.i} className="py-2.5">
+          <li key={an.i} className="py-2.5">
             <div className="flex items-start gap-3">
-              <IconCircle icon={categoryIcon(t.category)} />
+              <IconCircle icon={categoryIcon(an.category)} />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold leading-snug text-ink">{(t.reasons[0] ?? "Unusual for you").replace(/^./, (s) => s.toUpperCase())}</p>
+                <p className="text-sm font-semibold leading-snug text-ink">{cap(an.reasons[0] ? tData(an.reasons[0]) : t("Unusual for you"))}</p>
                 <p className="text-xs text-ink-muted">
-                  {title} · {dateShort(t.date)}
-                  {t.time ? ` · ${t.time.slice(0, 5)}` : ""}
-                  {t.reasons.length > 1 ? ` · ${t.reasons.slice(1).join(", ")}` : ""}
+                  {title} · {dateShort(an.date)}
+                  {an.time ? ` · ${an.time.slice(0, 5)}` : ""}
+                  {an.reasons.length > 1 ? ` · ${an.reasons.slice(1).map((r) => tData(r)).join(", ")}` : ""}
                 </p>
               </div>
-              <span className="tnum shrink-0 text-sm font-semibold text-ink">{money(t.amount)}</span>
+              <span className="tnum shrink-0 text-sm font-semibold text-ink">{money(an.amount)}</span>
             </div>
             {!compact && (
               <div className="mt-1.5 flex flex-wrap items-center gap-2 pl-12">
@@ -59,7 +62,7 @@ export function UnusualList({ a, customer, limit = 5, compact }: { a: MlAnomalie
                 {override === SURPRISE ? (
                   <>
                     <Badge tone="success">
-                      <Check size={12} strokeWidth={2} aria-hidden /> Moved
+                      <Check size={12} strokeWidth={2} aria-hidden /> {t("Moved")}
                     </Badge>
                     <button
                       type="button"
@@ -67,33 +70,23 @@ export function UnusualList({ a, customer, limit = 5, compact }: { a: MlAnomalie
                       onClick={() =>
                         updatePrefs((p) => {
                           const byTx = { ...(p.overrides.byTx ?? {}) };
-                          delete byTx[t.i];
+                          delete byTx[an.i];
                           return { ...p, overrides: { ...p.overrides, byTx } };
                         })
                       }
                     >
-                      <Undo2 size={12} strokeWidth={STROKE} aria-hidden /> Undo
+                      <Undo2 size={12} strokeWidth={STROKE} aria-hidden /> {t("Undo")}
                     </button>
                   </>
                 ) : canMove ? (
                   suggested ? (
-                    <Button
-                      size="sm"
-                      variant="soft"
-                      icon={Umbrella}
-                      className="min-h-8 px-3 text-xs"
-                      onClick={() => actions.overrideTx(t.i, SURPRISE, `${title} on ${dateFi(t.date)} (${money(t.amount)}) is a Surprise must`)}
-                    >
-                      Move to Surprise musts
+                    <Button size="sm" variant="soft" icon={Umbrella} className="min-h-8 px-3 text-xs" onClick={move}>
+                      {t("Move to Surprise musts")}
                     </Button>
                   ) : (
-                    <button
-                      type="button"
-                      className="inline-flex min-h-8 items-center gap-1 rounded-pill px-1 text-xs font-semibold text-green-700 hover:underline"
-                      onClick={() => actions.overrideTx(t.i, SURPRISE, `${title} on ${dateFi(t.date)} (${money(t.amount)}) is a Surprise must`)}
-                    >
+                    <button type="button" className="inline-flex min-h-8 items-center gap-1 rounded-pill px-1 text-xs font-semibold text-green-700 hover:underline" onClick={move}>
                       <Umbrella size={14} strokeWidth={STROKE} aria-hidden />
-                      It was a must
+                      {t("It was a must")}
                     </button>
                   )
                 ) : null}
@@ -115,32 +108,37 @@ export function UnusualWeeks({ a }: { a: MlAnomalies }) {
   for (const w of weeks) {
     const i = Math.floor(daysBetween(start, w.weekStart) / 7);
     if (i < 0 || i >= 52) continue;
+    const d = dateDM(w.weekStart);
     slots[i] = {
       key: w.weekStart,
-      label: `Week of ${dateDM(w.weekStart)}${w.drivers[0] ? ` · mostly ${categoryLabel(w.drivers[0].category)}` : ""}`,
+      label: w.drivers[0] ? t("Week of {date} · mostly {category}", { date: d, category: categoryLabel(w.drivers[0].category) }) : t("Week of {date}", { date: d }),
       value: w.spend,
       highlight: true,
       ref: w.typical,
     };
   }
+  const n = weeks.length;
   return (
     <div>
       <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-2 text-xs text-ink-muted">
-        <span>{weeks.length} unusual weeks in the last year</span>
+        <span>{tn("{n} unusual week in the last year", "{n} unusual weeks in the last year", n)}</span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-0.5 w-3 bg-ink/50" aria-hidden />
-          your typical week {money(weeks[0].typical, { whole: true })}
+          {t("your typical week {amount}", { amount: money(weeks[0].typical, { whole: true }) })}
         </span>
       </div>
       <BarStrip
         items={slots}
         format={(v) => money(v, { whole: true })}
-        ariaLabel={`${weeks.length} unusual weeks in the last year, spending from ${money(Math.min(...weeks.map((w) => w.spend)), { whole: true })} to ${money(Math.max(...weeks.map((w) => w.spend)), { whole: true })} a week`}
+        ariaLabel={tn("{n} unusual week in the last year, spending from {from} to {to} a week", "{n} unusual weeks in the last year, spending from {from} to {to} a week", n, {
+          from: money(Math.min(...weeks.map((w) => w.spend)), { whole: true }),
+          to: money(Math.max(...weeks.map((w) => w.spend)), { whole: true }),
+        })}
         height={56}
       />
       <div className="mt-1 flex justify-between text-[11px] text-ink-muted">
         <span>{dateDM(start)}</span>
-        <span>now</span>
+        <span>{t("now")}</span>
       </div>
     </div>
   );
@@ -163,8 +161,8 @@ export function HabitCard({ h, compact }: { h: Habit; compact?: boolean }) {
         <IconCircle icon={good ? PartyPopper : MessageCircleQuestion} tone={good ? "white" : "white"} size={32} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <Badge tone={good ? "success" : "warning"}>{HABIT_STATUS[h.status]}</Badge>
-            <span className="text-xs text-ink-muted">since {dateDM(h.since)} · {h.weeks} weeks</span>
+            <Badge tone={good ? "success" : "warning"}>{t(HABIT_STATUS[h.status])}</Badge>
+            <span className="text-xs text-ink-muted">{tn("since {date} · {n} week", "since {date} · {n} weeks", h.weeks, { date: dateDM(h.since) })}</span>
           </div>
           <p className="mt-1 text-sm font-semibold leading-snug text-ink">{habitHeadline(h)}</p>
         </div>
@@ -172,18 +170,18 @@ export function HabitCard({ h, compact }: { h: Habit; compact?: boolean }) {
       <div className="mt-2">
         <Sparkline
           values={h.series.map((p) => p.value)}
-          labels={h.series.map((p) => `Week of ${dateDM(p.weekStart)}`)}
+          labels={h.series.map((p) => t("Week of {date}", { date: dateDM(p.weekStart) }))}
           format={fmt}
           color={good ? "#007841" : "#CF8300"}
           height={compact ? 46 : 58}
           markerIndex={ci}
-          markerLabel="change"
+          markerLabel={t("change")}
           levels={[
             { from: 0, to: ci, value: h.before },
             { from: ci, to: n - 1, value: h.after },
           ]}
           zero
-          ariaLabel={`${habitName(h)} per week over ${n} weeks: about ${fmt(h.before)} before ${dateDM(h.since)}, about ${fmt(h.after)} since`}
+          ariaLabel={t("{name} per week over {n} weeks: about {before} before {date}, about {after} since", { name: habitName(h), n, before: fmt(h.before), date: dateDM(h.since), after: fmt(h.after) })}
         />
       </div>
       <div className="tnum mt-1.5 flex flex-wrap items-baseline justify-between gap-x-2 text-sm">
@@ -192,7 +190,7 @@ export function HabitCard({ h, compact }: { h: Habit; compact?: boolean }) {
           <span className="ml-1 text-xs text-ink-muted">({pctSigned(h.changePct)})</span>
         </span>
         <span className={cx("font-semibold", good ? "text-green-700" : "text-warning")}>
-          {good ? `≈ ${money(h.monthlyImpact, { whole: true })} a month saved` : `≈ ${money(Math.abs(h.monthlyImpact), { whole: true })} a month more`}
+          {good ? t("≈ {amount} a month saved", { amount: money(h.monthlyImpact, { whole: true }) }) : t("≈ {amount} a month more", { amount: money(Math.abs(h.monthlyImpact), { whole: true }) })}
         </span>
       </div>
     </div>

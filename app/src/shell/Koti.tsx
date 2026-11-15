@@ -60,7 +60,7 @@ export function Koti() {
         {prefs.bank && (
           <ListRow
             leading={<IconCircle icon={PiggyBank} tone="sunken" />}
-            title={t("{bank} (simulated)", { bank: prefs.bank.bankName })}
+            title={t("{bank} (simulated)", { bank: t(prefs.bank.bankName) })}
             subtitle={t("Connected via open banking · demo")}
             right={<span className="text-sm font-normal text-ink-muted">{t("Simulated")}</span>}
           />

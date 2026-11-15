@@ -27,7 +27,10 @@ export function StatCard({ card }: { card: CardOf<"stat"> }) {
   const other = comparisonValue(card);
   // a two-bar comparison only when both sides are real, non-negative amounts and at least one is non-zero
   const showBars = cmp != null && other != null && card.unit !== "pct" && card.value >= 0 && other >= 0 && (card.value > 0 || other > 0);
-  const cmpName = cmp ? cmp.label.replace(/^(vs\.?|verrattuna:?)\s*/i, "").replace(/\s*\([^)]*\)\s*$/, "") : "";
+  // Row name for the comparison bar. The "typical week" comparison gets its own wording: stripping the
+  // "vs" prefix would leave Finnish in the wrong case ("tavalliseen viikkoon").
+  const typical = cmp ? [t("vs a typical week"), t("vs your typical week")].includes(cmp.label) : false;
+  const cmpName = !cmp ? "" : typical ? t("A typical week") : cmp.label.replace(/^(vs\.?|verrattuna:?)\s*/i, "").replace(/\s*\([^)]*\)\s*$/, "");
   return (
     <CardFrame icon={ICON[card.unit] ?? Coins} title={card.title ?? card.label} explain={card.explain}>
       {card.title && <p className="text-sm text-ink-muted">{card.label}</p>}

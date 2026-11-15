@@ -6,6 +6,7 @@ import { useRoute } from "@/lib/router";
 import { useCustomerState } from "@/state/customer";
 import { ConceptNotice, Page, SkeletonCard, STROKE } from "@/ui/kit";
 import { openModels } from "@/features/ml/words";
+import { t } from "@/lib/i18n";
 import {
   ForecastSection, FuturesSection, Guard, HabitsSection, HomeSection, MoneyMapSection, PersonalitySection, RiskSection, TwinsSection, UnusualSection,
 } from "./sections";
@@ -29,11 +30,11 @@ function ModelsEntry({ big }: { big?: boolean }) {
       <span className="min-w-0 flex-1">
         {big ? (
           <>
-            <span className="block text-lg font-bold text-title">How these models were tested</span>
-            <span className="block text-sm text-ink-muted">Eight models, each checked against a simple baseline</span>
+            <span className="block text-lg font-bold text-title">{t("How these models were tested")}</span>
+            <span className="block text-sm text-ink-muted">{t("Eight models, each checked against a simple baseline")}</span>
           </>
         ) : (
-          <>Eight models trained on 5,000 customers · <span className="font-semibold text-green-700">how they were tested</span></>
+          <>{t("Eight models trained on 5,000 customers")} · <span className="font-semibold text-green-700">{t("how they were tested")}</span></>
         )}
       </span>
       <ChevronRight size={big ? 20 : 16} strokeWidth={STROKE} className="shrink-0 text-icon-muted" aria-hidden />
@@ -53,10 +54,10 @@ export default function You() {
     const tick = () => {
       const el = document.getElementById(`you-${focus}`);
       if (el) el.scrollIntoView({ behavior: n ? "smooth" : "auto", block: "start" });
-      if (++n < 4) t = setTimeout(tick, 350);
+      if (++n < 4) timer = setTimeout(tick, 350);
     };
-    let t = setTimeout(tick, 120);
-    return () => clearTimeout(t);
+    let timer = setTimeout(tick, 120);
+    return () => clearTimeout(timer);
   }, [focus, view, cs.status]);
 
   if (view === "models")

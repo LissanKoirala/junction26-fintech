@@ -15,6 +15,7 @@ import { VaraAvatar } from "@/ui/hero";
 import { StoryCard, StoryClose, StorySegments, StorySurface, StoryText } from "@/ui/story";
 import { Button, IconHero, Skeleton, STROKE, Unavailable } from "@/ui/kit";
 import { ErrorBoundary } from "@/ui/ErrorBoundary";
+import { rich, t } from "@/lib/i18n";
 
 const CardRenderer = lazy(() =>
   import("@/features/chat/cards/registry").then((m) => ({
@@ -46,7 +47,7 @@ export default function CheckInStories() {
         const res = safe(() => {
           throw e;
         });
-        alive && setErr(res.ok ? null : res.notImplemented ? "Vara's calculator is being updated. Try again in a moment." : e.message);
+        alive && setErr(res.ok ? null : res.notImplemented ? t("Vara's calculator is being updated. Try again in a moment.") : e.message);
       },
     );
     return () => {
@@ -80,18 +81,18 @@ export default function CheckInStories() {
   return (
     <StorySurface>
       <div className="flex items-center gap-2 px-3 pt-[max(env(safe-area-inset-top),12px)]">
-        <div className="flex-1">{n > 0 && <StorySegments count={n} index={i} label={`Slide ${i + 1} of ${n}`} />}</div>
+        <div className="flex-1">{n > 0 && <StorySegments count={n} index={i} label={t("Slide {i} of {n}", { i: i + 1, n })} />}</div>
         <StoryClose onClick={close} />
       </div>
-      {data?.mocked && <p className="px-4 text-xs text-hero-meta/70">Generated in your browser from your transactions (offline mode)</p>}
+      {data?.mocked && <p className="px-4 text-xs text-hero-meta/70">{t("Generated in your browser from your transactions (offline mode)")}</p>}
 
       {err ? (
         <div className="p-4">
-          <Unavailable title="Your check-in isn't ready yet" reason={err} action={<Button size="sm" onClick={close}>Back to Today</Button>} />
+          <Unavailable title={t("Your check-in isn't ready yet")} reason={err} action={<Button size="sm" onClick={close}>{t("Back to Today")}</Button>} />
         </div>
       ) : !data || !slide ? (
         <div className="flex flex-col gap-3 p-6 pt-10" aria-busy="true">
-          <p className="mb-2 flex items-center gap-2 text-hero-meta"><VaraAvatar size={28} inverse /> Vara is looking back at your week…</p>
+          <p className="mb-2 flex items-center gap-2 text-hero-meta"><VaraAvatar size={28} inverse /> {t("Vara is looking back at your week…")}</p>
           <Skeleton className="h-4 w-24 opacity-30" />
           <Skeleton className="h-10 w-4/5 opacity-30" />
           <Skeleton className="h-5 w-full opacity-30" />
@@ -101,15 +102,15 @@ export default function CheckInStories() {
           <motion.span initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.3 }}>
             <IconHero icon={PartyPopper} tone="hero" />
           </motion.span>
-          <h2 className="text-3xl font-bold text-hero-num">Challenge accepted</h2>
-          <p className="text-lg text-hero-meta">You'll see your progress on Today. Small steps count, and every week is a fresh start.</p>
-          <Button variant="soft" onClick={() => navigate("/vara/today", { replace: true })}>See it on Today</Button>
+          <h2 className="text-3xl font-bold text-hero-num">{t("Challenge accepted")}</h2>
+          <p className="text-lg text-hero-meta">{t("You'll see your progress on Today. Small steps count, and every week is a fresh start.")}</p>
+          <Button variant="soft" onClick={() => navigate("/vara/today", { replace: true })}>{t("See it on Today")}</Button>
         </div>
       ) : (
         <div className="relative flex flex-1 flex-col">
           {/* tap zones */}
-          <button type="button" className="sr-only focus:not-sr-only" onClick={() => go(-1)}>Previous slide</button>
-          {!isLast && <button type="button" className="sr-only focus:not-sr-only" onClick={() => go(1)}>Next slide</button>}
+          <button type="button" className="sr-only focus:not-sr-only" onClick={() => go(-1)}>{t("Previous slide")}</button>
+          {!isLast && <button type="button" className="sr-only focus:not-sr-only" onClick={() => go(1)}>{t("Next slide")}</button>}
           <AnimatePresence mode="wait" custom={dir} initial={false}>
             <motion.div
               key={slide.id}
@@ -150,19 +151,19 @@ export default function CheckInStories() {
                       <Trophy size={28} strokeWidth={STROKE} className="text-green-700" aria-hidden />
                       <div className="tnum text-sm">
                         <p>
-                          Target{" "}
-                          <span className="font-bold">
-                            {data.ci.challenge.metric.unit === "eur" ? money(data.ci.challenge.target, { whole: true }) : num(data.ci.challenge.target)}
-                          </span>{" "}
-                          · usual{" "}
-                          {data.ci.challenge.metric.unit === "eur" ? money(data.ci.challenge.baseline, { whole: true }) : num(data.ci.challenge.baseline)}
+                          {rich(
+                            t("Target **{target}** · usual {usual}", {
+                              target: data.ci.challenge.metric.unit === "eur" ? money(data.ci.challenge.target, { whole: true }) : num(data.ci.challenge.target),
+                              usual: data.ci.challenge.metric.unit === "eur" ? money(data.ci.challenge.baseline, { whole: true }) : num(data.ci.challenge.baseline),
+                            }),
+                          )}
                         </p>
-                        <p className="text-ink-muted">Could free about {money(data.ci.challenge.potentialMonthlySaving, { whole: true })} a month</p>
+                        <p className="text-ink-muted">{t("Could free about {v} a month", { v: money(data.ci.challenge.potentialMonthlySaving, { whole: true }) })}</p>
                       </div>
                     </div>
                   </StoryCard>
                   {already ? (
-                    <Button variant="soft" full onClick={close}>Already accepted · back to Today</Button>
+                    <Button variant="soft" full onClick={close}>{t("Already accepted · back to Today")}</Button>
                   ) : (
                     <Button
                       variant="soft"
@@ -172,11 +173,11 @@ export default function CheckInStories() {
                         setAccepted(true);
                       }}
                     >
-                      Accept challenge
+                      {t("Accept challenge")}
                     </Button>
                   )}
                   <Button variant="ghost" full className="text-white hover:bg-white/10" onClick={close}>
-                    Maybe later
+                    {t("Maybe later")}
                   </Button>
                 </div>
               )}

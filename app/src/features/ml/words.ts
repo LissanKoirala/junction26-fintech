@@ -58,9 +58,10 @@ export function habitLevel(h: Habit, v: number): string {
   return t("{v} a week", { v: h.metric === "weekly_count" ? num(v, v < 10 ? 1 : 0) : money(v, { whole: v >= 100 }) });
 }
 export function habitName(h: Habit): string {
-  const en = categoryLabel(h.category);
-  const c = tData(en);
-  return h.metric === "weekly_count" && !/purchase/i.test(en) ? t("{c} purchases", { c }) : c;
+  // the habits file carries display names ("Eating out", "Small purchases"); domain keys are translated by categoryLabel
+  const lab = categoryLabel(h.category);
+  const c = lab !== h.category ? lab : tData(h.category);
+  return h.metric === "weekly_count" && !/purchase/i.test(h.category) ? t("{c} purchases", { c }) : c;
 }
 /** One-line headline. Good habits celebrate; slipping ones are a gentle question. */
 export function habitHeadline(h: Habit): string {

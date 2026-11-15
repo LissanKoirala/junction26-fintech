@@ -7,6 +7,7 @@ import { addDays, dateFi, money, monthLabel } from "@/lib/format";
 import { goBack, navigate } from "@/lib/router";
 import { FullScreen, ScreenHeader, ScrollArea } from "@/ui/hero";
 import { Badge, Banner, Button, Card, CardTitle, ConceptNotice, IconCircle, IconHero, ListRow, Muted, Page, STROKE, cx } from "@/ui/kit";
+import { t as tr } from "@/lib/i18n";
 
 const BANKS = [
   { id: "a", name: "Bank A (example)", sub: "Placeholder bank for the demo" },
@@ -64,36 +65,36 @@ export default function ConnectBank() {
 
   return (
     <FullScreen>
-      <ScreenHeader title="Connect another bank" onBack={back} />
+      <ScreenHeader title={tr("Connect another bank")} onBack={back} />
       <ScrollArea>
         <Page>
           {step === "intro" && (
             <>
               <Card className="flex flex-col items-center gap-3 py-6 text-center">
                 <IconHero icon={Link2} />
-                <h2 className="text-xl font-bold text-title">See all your money in one place</h2>
+                <h2 className="text-xl font-bold text-title">{tr("See all your money in one place")}</h2>
                 <p className="text-ink">
-                  With your consent, Vara can read your accounts in other banks through open banking (PSD2). Your safe-to-spend and baskets then count everything, not just this account.
+                  {tr("With your consent, Vara can read your accounts in other banks through open banking (PSD2). Your safe-to-spend and baskets then count everything, not just this account.")}
                 </p>
               </Card>
               {c?.hasSalarySweep && facts && (
-                <Banner tone="info" title="Why Vara suggests this">
-                  Most of your salary leaves this account right after payday: {money(facts.monthTotal, { whole: true })} in {monthLabel(facts.month)}. Vara can't see how that money is spent.
+                <Banner tone="info" title={tr("Why Vara suggests this")}>
+                  {tr("Most of your salary leaves this account right after payday: {amount} in {month}. Vara can't see how that money is spent.", { amount: money(facts.monthTotal, { whole: true }), month: monthLabel(facts.month) })}
                 </Banner>
               )}
-              <Button full onClick={() => setStep("pick")}>Choose a bank</Button>
-              <div className="flex justify-center"><Badge tone="neutral">Demo: this is a simulated flow</Badge></div>
+              <Button full onClick={() => setStep("pick")}>{tr("Choose a bank")}</Button>
+              <div className="flex justify-center"><Badge tone="neutral">{tr("Demo: this is a simulated flow")}</Badge></div>
             </>
           )}
 
           {step === "pick" && (
             <>
-              <Muted className="px-1">Pick the bank to connect. These are placeholder names for the demo.</Muted>
+              <Muted className="px-1">{tr("Pick the bank to connect. These are placeholder names for the demo.")}</Muted>
               <Card padded={false} className="px-4">
                 <ul className="divide-y divide-line">
                   {BANKS.map((b) => (
                     <li key={b.id}>
-                      <ListRow icon={Landmark} title={b.name} subtitle={b.sub} chevron onClick={() => { setBank(b.id); setStep("consent"); }} />
+                      <ListRow icon={Landmark} title={tr(b.name)} subtitle={tr(b.sub)} chevron onClick={() => { setBank(b.id); setStep("consent"); }} />
                     </li>
                   ))}
                 </ul>
@@ -104,25 +105,25 @@ export default function ConnectBank() {
           {step === "consent" && (
             <>
               <div className="px-1">
-                <h2 className="text-xl font-bold text-title">Share account data with Vara?</h2>
-                <Muted>From {BANKS.find((b) => b.id === bank)?.name}, read-only.</Muted>
+                <h2 className="text-xl font-bold text-title">{tr("Share account data with Vara?")}</h2>
+                <Muted>{tr("From {bank}, read-only.", { bank: tr(BANKS.find((b) => b.id === bank)?.name ?? BANKS[0].name) })}</Muted>
               </div>
               <Card>
-                <CardTitle>What is shared</CardTitle>
+                <CardTitle>{tr("What is shared")}</CardTitle>
                 <ul className="mt-2 flex flex-col gap-2">
                   {SHARED.map((s) => (
                     <li key={s} className="flex items-start gap-2 text-ink">
-                      <Eye size={18} strokeWidth={STROKE} className="mt-0.5 shrink-0 text-green-700" aria-hidden /> {s}
+                      <Eye size={18} strokeWidth={STROKE} className="mt-0.5 shrink-0 text-green-700" aria-hidden /> {tr(s)}
                     </li>
                   ))}
                 </ul>
               </Card>
               <Card>
-                <CardTitle>What is never shared</CardTitle>
+                <CardTitle>{tr("What is never shared")}</CardTitle>
                 <ul className="mt-2 flex flex-col gap-2">
                   {NOT_SHARED.map((s) => (
                     <li key={s} className="flex items-start gap-2 text-ink">
-                      <EyeOff size={18} strokeWidth={STROKE} className="mt-0.5 shrink-0 text-ink-muted" aria-hidden /> {s}
+                      <EyeOff size={18} strokeWidth={STROKE} className="mt-0.5 shrink-0 text-ink-muted" aria-hidden /> {tr(s)}
                     </li>
                   ))}
                 </ul>
@@ -131,13 +132,13 @@ export default function ConnectBank() {
                 <div className="flex items-start gap-3">
                   <Clock size={20} strokeWidth={STROKE} className="mt-0.5 shrink-0 text-green-700" aria-hidden />
                   <p className="text-ink">
-                    Valid for {CONSENT_DAYS} days, until {dateFi(addDays(asOf, CONSENT_DAYS))}. You can withdraw it any time in Minä, and Vara will ask before renewing.
+                    {tr("Valid for {n} days, until {date}. You can withdraw it any time in Minä, and Vara will ask before renewing.", { n: CONSENT_DAYS, date: dateFi(addDays(asOf, CONSENT_DAYS)) })}
                   </p>
                 </div>
               </Card>
               <div className="flex flex-col gap-2">
-                <Button full icon={ShieldCheck} onClick={() => setStep("linking")}>Give consent (simulated)</Button>
-                <Button full variant="ghost" onClick={close}>Cancel</Button>
+                <Button full icon={ShieldCheck} onClick={() => setStep("linking")}>{tr("Give consent (simulated)")}</Button>
+                <Button full variant="ghost" onClick={close}>{tr("Cancel")}</Button>
               </div>
             </>
           )}
@@ -149,8 +150,8 @@ export default function ConnectBank() {
                 <span className="h-2.5 w-2.5 rounded-pill bg-green-700" />
                 <span className="h-2.5 w-2.5 rounded-pill bg-green-700" />
               </span>
-              <p className="font-semibold text-ink" role="status">Confirming with your bank…</p>
-              <Muted>In real life you would sign in to the other bank here.</Muted>
+              <p className="font-semibold text-ink" role="status">{tr("Confirming with your bank…")}</p>
+              <Muted>{tr("In real life you would sign in to the other bank here.")}</Muted>
             </Card>
           )}
 
@@ -160,29 +161,35 @@ export default function ConnectBank() {
                 <span className={cx("flex h-14 w-14 items-center justify-center rounded-pill bg-green-150 text-green-700")}>
                   <CircleCheck size={32} strokeWidth={STROKE} aria-hidden />
                 </span>
-                <h2 className="text-xl font-bold text-title">Showing 2 banks (simulated)</h2>
-                <Muted>{prefs.bank.bankName} connected on {dateFi(prefs.bank.connectedAt)} · consent valid until {dateFi(prefs.bank.validUntil)}</Muted>
+                <h2 className="text-xl font-bold text-title">{tr("Showing 2 banks (simulated)")}</h2>
+                <Muted>
+                  {tr("{bank} connected on {date} · consent valid until {until}", { bank: tr(prefs.bank.bankName), date: dateFi(prefs.bank.connectedAt), until: dateFi(prefs.bank.validUntil) })}
+                </Muted>
               </Card>
               <Card>
-                <CardTitle>Your accounts</CardTitle>
-                <ListRow icon={Landmark} title="S-Pankki Käyttötili" subtitle="This account" right={c ? money(c.tx[c.tx.length - 1]?.balance) : "–"} />
+                <CardTitle>{tr("Your accounts")}</CardTitle>
+                <ListRow icon={Landmark} title="S-Pankki Käyttötili" subtitle={tr("This account")} right={c ? money(c.tx[c.tx.length - 1]?.balance) : "–"} />
                 <ListRow
                   leading={<IconCircle icon={Landmark} tone="sunken" />}
-                  title={prefs.bank.bankName}
-                  subtitle="Simulated connection"
-                  right={<span className="text-sm font-normal text-ink-muted">No data</span>}
+                  title={tr(prefs.bank.bankName)}
+                  subtitle={tr("Simulated connection")}
+                  right={<span className="text-sm font-normal text-ink-muted">{tr("No data")}</span>}
                 />
                 {facts ? (
                   <Muted className="mt-2">
-                    What Vara already knows: right after payday you moved {money(facts.year, { whole: true })} out of your S-Pankki account in the last 12 months ({money(facts.monthTotal, { whole: true })} in {monthLabel(facts.month)}). With a real connection Vara would also see how it is spent. The dataset has no other-bank data, so the figures elsewhere stay S-Pankki only.
+                    {tr("What Vara already knows: right after payday you moved {year} out of your S-Pankki account in the last 12 months ({month} in {monthName}). With a real connection Vara would also see how it is spent. The dataset has no other-bank data, so the figures elsewhere stay S-Pankki only.", {
+                      year: money(facts.year, { whole: true }),
+                      month: money(facts.monthTotal, { whole: true }),
+                      monthName: monthLabel(facts.month),
+                    })}
                   </Muted>
                 ) : (
-                  <Muted className="mt-2">The dataset has no other-bank data, so Vara keeps showing this account's figures only.</Muted>
+                  <Muted className="mt-2">{tr("The dataset has no other-bank data, so Vara keeps showing this account's figures only.")}</Muted>
                 )}
               </Card>
               <div className="flex flex-col gap-2">
-                <Button full onClick={() => navigate("/vara/today", { replace: true })}>Back to Today</Button>
-                <Button full variant="ghost" icon={Unlink} onClick={() => { actions.connectBank(null); setStep("intro"); }}>Disconnect</Button>
+                <Button full onClick={() => navigate("/vara/today", { replace: true })}>{tr("Back to Today")}</Button>
+                <Button full variant="ghost" icon={Unlink} onClick={() => { actions.connectBank(null); setStep("intro"); }}>{tr("Disconnect")}</Button>
               </div>
             </>
           )}

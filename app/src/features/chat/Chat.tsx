@@ -44,7 +44,7 @@ function AssistantMessage({ m, last, onAsk }: { m: UiMessage; last: boolean; onA
       {last && !m.streaming && m.suggestions && m.suggestions.length > 0 && (
         <div className="flex flex-wrap gap-2 pt-1">
           {m.suggestions.map((s) => (
-            <Chip key={s} icon={questionIcon(s)} onClick={() => onAsk(s)}>{s}</Chip>
+            <Chip key={s} icon={questionIcon(s)} onClick={() => onAsk(s)} className="max-w-full !shrink py-2 text-left">{s}</Chip>
           ))}
         </div>
       )}

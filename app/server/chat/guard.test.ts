@@ -29,4 +29,13 @@ describe("number guard", () => {
     expect(userNumbers(["Onko varaa 1 200 euron reissuun?", "what about 450"])).toEqual(expect.arrayContaining([1200, 450]));
     expect(checkProse("That leaves 520 €.", [...tools, userNumbers(["Can I afford a 300 € trip?"])]).unverified).toEqual(["520 €"]);
   });
+  it("checks a Finnish answer the same way as an English one", () => {
+    const src = [{ spending: 1743.5, restaurants: 224.22, safe_per_week: 64.03, deltaPct: -12.4 }];
+    // non-breaking spaces as Intl fi-FI writes them, and the plain-space form the model writes
+    const fi = "Käytit syyskuussa 1 743,50 €, siitä noin 224 € ravintoloihin. Käyttövarasi on noin 64 € viikossa, 12 % vähemmän kuin tavallisesti. Yhteensä 1 743,50 €.";
+    expect(checkProse(fi, src)).toEqual({ verified: true, unverified: [] });
+    const bad = checkProse("Voisit säästää 1 900 € vuodessa, noin 35 % enemmän.", src);
+    expect(bad.verified).toBe(false);
+    expect(bad.unverified.length).toBe(2);
+  });
 });

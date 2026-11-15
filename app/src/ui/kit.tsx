@@ -137,7 +137,7 @@ export function Chip({
         className,
       )}
     >
-      {Icon && <Icon size={16} strokeWidth={STROKE} aria-hidden />}
+      {Icon && <Icon size={16} strokeWidth={STROKE} aria-hidden className="shrink-0" />}
       <span className="text-left">{children}</span>
     </button>
   );

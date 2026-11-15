@@ -6,9 +6,11 @@ import type { MlForecast, MlRisk } from "@shared/ml/typesB";
 import { ForecastFan, type FanEvent } from "@/ui/charts/ForecastFan";
 import { Sparkline } from "@/ui/charts/Sparkline";
 import { dateDM, dateShort, daysBetween, money, pct } from "@/lib/format";
+import { t, tData, tn } from "@/lib/i18n";
 import { Badge, cx, STROKE } from "@/ui/kit";
 import { chanceWords, RISK_WORDS } from "../words";
 
+/** English keys, translated where shown. */
 const KIND_LABEL: Record<FixedEvent["kind"], string> = { salary: "Payday", housing: "Rent", investment: "Investing", other_income: "Income", goal: "Goal" };
 
 /** Same shape as the ML file, computed in the browser by the shared engine (no calibration). */
@@ -35,7 +37,7 @@ export function fanToPayday(f: MlForecast) {
   const events: FanEvent[] = f.fixedEvents
     .map((e) => ({ day: daysBetween(f.asOf, e.date), e }))
     .filter(({ day }) => day > 0 && day <= end)
-    .map(({ day, e }) => ({ day, label: `${KIND_LABEL[e.kind] ?? e.kind} ${dateDM(e.date)}`, amount: money(e.amount, { whole: true, sign: true }) }));
+    .map(({ day, e }) => ({ day, label: `${KIND_LABEL[e.kind] ? t(KIND_LABEL[e.kind]) : e.kind} ${dateDM(e.date)}`, amount: money(e.amount, { whole: true, sign: true }) }));
   return { fan, events };
 }
 
@@ -47,15 +49,15 @@ export function ForecastChart({ f, height }: { f: MlForecast; height?: number })
 export function forecastMeaning(f: MlForecast): string {
   const p = f.overdraftProbToPayday;
   const minP10 = Math.min(...fanToPayday(f).fan.map((x) => x.p10));
-  if (p >= 0.05)
-    return `The chance of dipping below zero before payday on ${dateShort(f.nextPayday.date)} is ${chanceWords(p)}. On a bad run your lowest point could be ${money(minP10, { whole: true })}.`;
-  return `You are very likely to stay above zero until payday on ${dateShort(f.nextPayday.date)}. Even on a bad run your lowest point is about ${money(minP10, { whole: true })}.`;
+  const v = { date: dateShort(f.nextPayday.date), chance: chanceWords(p), low: money(minP10, { whole: true }) };
+  if (p >= 0.05) return t("The chance of dipping below zero before payday on {date} is {chance}. On a bad run your lowest point could be {low}.", v);
+  return t("You are very likely to stay above zero until payday on {date}. Even on a bad run your lowest point is about {low}.", v);
 }
 
-export function ChanceTile({ p, label = "Chance of going below zero before payday" }: { p: number; label?: string }) {
+export function ChanceTile({ p, label }: { p: number; label?: string }) {
   return (
     <div className="rounded-md bg-green-50 px-3 py-2.5">
-      <p className="text-xs text-ink-muted">{label}</p>
+      <p className="text-xs text-ink-muted">{label ?? t("Chance of going below zero before payday")}</p>
       <p className="text-xl font-bold leading-tight text-ink">
         {chanceWords(p).replace(/^./, (s) => s.toUpperCase())}
         <span className="tnum ml-1.5 text-sm font-semibold text-ink-muted">({pct(p)})</span>
@@ -67,10 +69,10 @@ export function ChanceTile({ p, label = "Chance of going below zero before payda
 export function FanLegend() {
   return (
     <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink-strong">
-      <li className="flex items-center gap-1.5"><span className="h-0.5 w-4 rounded-pill bg-green-700" aria-hidden />Most likely</li>
-      <li className="flex items-center gap-1.5"><span className="h-2.5 w-4 rounded-sm" style={{ background: "#00AA4645" }} aria-hidden />Half of outcomes</li>
-      <li className="flex items-center gap-1.5"><span className="h-2.5 w-4 rounded-sm" style={{ background: "#00AA4624" }} aria-hidden />8 in 10 outcomes</li>
-      <li className="flex items-center gap-1.5"><span className="h-px w-4" style={{ background: "#B70000" }} aria-hidden />Zero</li>
+      <li className="flex items-center gap-1.5"><span className="h-0.5 w-4 rounded-pill bg-green-700" aria-hidden />{t("Most likely")}</li>
+      <li className="flex items-center gap-1.5"><span className="h-2.5 w-4 rounded-sm" style={{ background: "#00AA4645" }} aria-hidden />{t("Half of outcomes")}</li>
+      <li className="flex items-center gap-1.5"><span className="h-2.5 w-4 rounded-sm" style={{ background: "#00AA4624" }} aria-hidden />{t("8 in 10 outcomes")}</li>
+      <li className="flex items-center gap-1.5"><span className="h-px w-4" style={{ background: "#B70000" }} aria-hidden />{t("Zero")}</li>
     </ul>
   );
 }
@@ -78,13 +80,15 @@ export function FanLegend() {
 // ------------------------------------------------------------------ risk
 export function RiskBadge({ r }: { r: MlRisk }) {
   const w = RISK_WORDS[r.level];
-  return <Badge tone={w.tone === "accent" ? "accent" : "warning"}>{w.label}</Badge>;
+  return <Badge tone={w.tone === "accent" ? "accent" : "warning"}>{t(w.label)}</Badge>;
 }
 
 export function riskMeaning(r: MlRisk): string {
   const rel = r.baseRate > 0 ? r.probability / r.baseRate : 1;
-  const cmp = rel > 1.3 ? "higher than for most customers" : rel < 0.77 ? "lower than for most customers" : "about the same as for most customers";
-  return `Chance of going below zero in the next ${r.horizonDays} days: ${chanceWords(r.probability)}, ${cmp} (${pct(r.baseRate)} on average).`;
+  const v = { n: r.horizonDays, chance: chanceWords(r.probability), avg: pct(r.baseRate) };
+  if (rel > 1.3) return t("Chance of going below zero in the next {n} days: {chance}, higher than for most customers ({avg} on average).", v);
+  if (rel < 0.77) return t("Chance of going below zero in the next {n} days: {chance}, lower than for most customers ({avg} on average).", v);
+  return t("Chance of going below zero in the next {n} days: {chance}, about the same as for most customers ({avg} on average).", v);
 }
 
 export function RiskDrivers({ r, limit = 3, stack }: { r: MlRisk; limit?: number; stack?: boolean }) {
@@ -100,22 +104,22 @@ export function RiskDrivers({ r, limit = 3, stack }: { r: MlRisk; limit?: number
         <ul className="flex flex-col gap-1.5">
           {items.map((d) => (
             <li key={d.feature} className="text-sm leading-snug">
-              <span className="text-ink">{d.label}</span>
+              <span className="text-ink">{tData(d.label)}</span>
               {!d.label.replace(/\s/g, "").includes(d.display.replace(/\s/g, "")) && (
-                <span className="tnum ml-1.5 inline-block rounded-pill bg-card px-1.5 text-xs font-semibold text-ink">{d.display}</span>
+                <span className="tnum ml-1.5 inline-block rounded-pill bg-card px-1.5 text-xs font-semibold text-ink">{tData(d.display)}</span>
               )}
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-sm text-ink-muted">Nothing notable</p>
+        <p className="text-sm text-ink-muted">{t("Nothing notable")}</p>
       )}
     </div>
   );
   return (
     <div className={cx("grid grid-cols-1 gap-2", !stack && "min-[380px]:grid-cols-2")}>
-      <Col title="Pushing risk up" items={up} upward />
-      <Col title="Keeping it down" items={down} upward={false} />
+      <Col title={t("Pushing risk up")} items={up} upward />
+      <Col title={t("Keeping it down")} items={down} upward={false} />
     </div>
   );
 }
@@ -124,22 +128,25 @@ export function RiskTrend({ r, weeks = 12 }: { r: MlRisk; weeks?: number }) {
   const h = r.history.slice(-weeks);
   if (h.length < 2) return null;
   const dipped = h.filter((x) => x.wentNegative).length;
+  const below = t("went below zero");
   return (
     <div>
       <div className="mb-1 flex items-baseline justify-between text-xs text-ink-muted">
-        <span>Risk week by week, last {h.length} weeks</span>
-        <span className="tnum">now {pct(r.probability)}</span>
+        <span>{t("Risk week by week, last {n} weeks", { n: h.length })}</span>
+        <span className="tnum">{t("now {v}", { v: pct(r.probability) })}</span>
       </div>
       <Sparkline
         values={h.map((x) => x.probability * 100)}
-        labels={h.map((x) => dateDM(x.date) + (x.wentNegative ? " · went below zero" : ""))}
+        labels={h.map((x) => dateDM(x.date) + (x.wentNegative ? ` · ${below}` : ""))}
         format={(v) => `${Math.round(v)} %`}
         height={54}
         zero
-        ariaLabel={`Risk over the last ${h.length} weeks, from ${pct(h[0].probability)} to ${pct(h[h.length - 1].probability)}`}
+        ariaLabel={t("Risk over the last {n} weeks, from {from} to {to}", { n: h.length, from: pct(h[0].probability), to: pct(h[h.length - 1].probability) })}
       />
       <p className={cx("mt-1 text-xs text-ink-muted")}>
-        {dipped ? `In ${dipped} of these weeks the balance did go below zero.` : "In none of these weeks did the balance go below zero."}
+        {dipped
+          ? tn("In {n} of these weeks the balance did go below zero.", "In {n} of these weeks the balance did go below zero.", dipped)
+          : t("In none of these weeks did the balance go below zero.")}
       </p>
     </div>
   );
