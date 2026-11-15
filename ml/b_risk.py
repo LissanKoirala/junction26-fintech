@@ -331,7 +331,7 @@ def main():
         trainedAt=time.strftime("%Y-%m-%dT%H:%M:%S"),
         trainSeconds=round(time.time() - T0, 1),
         validation=dict(testAll=mt, testUnseenCustomers=R["mt_unseen"], variant14d=dict(testAll=R14["mt"], testUnseenCustomers=R14["mt_unseen"], threshold=R14["thr"], reliability=R14["rel"]),
-                        leakageChecks=LEAKAGE),
+                        leakageChecks=LEAKAGE, leakageCheckResult=_leak()),
         evidence=dict(reliability=R["rel"], roc=R["roc"], pr=R["pr"], liftByDecile=R["lift"], baseRate=R["base_rate"], testPositiveRate=float(R["y"].mean()),
                       featureImportance=[dict(feature=f, label=LABELS.get(f, f), meanAbsShap=float(v)) for f, v in fi],
                       threshold=dict(value=thr, precision=mt[L]["precision"], recall=mt[L]["recall"], alertRate=mt[L]["alertRate"]),
@@ -342,6 +342,12 @@ def main():
     )
     write_json(os.path.join(GLOBAL_DIR, "modelcard-risk.json"), card)
     log("done; verdict", card["verdict"])
+
+
+def _leak():
+    import json
+    p = os.path.join(CACHE_DIR, "b_leakage.json")
+    return json.load(open(p)) if os.path.exists(p) else None
 
 
 LEAKAGE = [

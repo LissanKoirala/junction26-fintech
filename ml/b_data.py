@@ -447,3 +447,7 @@ if __name__ == "__main__":
         print("arrays", time.time() - t0)
     df = build_table(force="--force" in sys.argv)
     print(df.shape, time.time() - t0)
+    import json
+    res = leakage_check(40)
+    json.dump(res, open(os.path.join(CACHE_DIR, "b_leakage.json"), "w"))
+    print("leakage check", res)

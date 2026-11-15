@@ -4,8 +4,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { llm } from "../llm";
-import { CRAVE_ACCENTS, CRAVE_BADGES, CRAVE_CATEGORIES, CRAVE_ICONS, type CraveProduct, type CraveShopHeader } from "../../shared/crave";
-import { ShopSchema } from "./schema";
+import { CRAVE_ACCENTS, CRAVE_BADGES, CRAVE_CATEGORIES, CRAVE_ICONS, type CraveAddOn, type CraveProduct, type CraveReview, type CraveShopHeader, type CraveVariant } from "../../shared/crave";
+import { DetailsSchema, ShopSchema } from "./schema";
 
 export const CRAVE_MODEL = process.env.CRAVE_MODEL ?? "anthropic:claude@haiku-5.5";
 
@@ -15,7 +15,7 @@ Rules:
 - Everything is invented: shop name, brand names, product names. NEVER use or imitate a real retailer, delivery app, restaurant chain, brand, product line or trademark (no Apple, Nike, Sony, Wolt, Foodora, Zalando, IKEA, etc.). Invent plausible, tasteful names (Nordic-sounding names are welcome).
 - Decide the shop type: "food" for meals, snacks, drinks, takeaway and restaurant cravings (a delivery-app style menu of one invented restaurant, with dishes, add-ons, spice levels or sizes); "store" for things (an online store with a product grid).
 - Prices in euros at realistic Finnish market level (e.g. sushi set 14-24 €, wireless headphones 39-349 €, sneakers 69-189 €). Use prices like 12.90, 79.00, 149.95. Make a spread from affordable to premium.
-- 10 products, varied, each with a one-line pitch, 2-3 short believable reviews (mixed ratings, mostly positive, one sentence each), and 1-3 tags drawn from a small shared set of 4-6 facets so filters are useful. 2-3 products on sale with compareAtPrice 15-30% higher, 1-2 with stockLeft, a few badges, most badges empty.
+- 10 products, varied, each with a one-line pitch and 1-2 tags drawn from the shop's 4-6 facets so filters are useful. 2-3 products on sale with compareAtPrice 15-30% higher, 1-2 with stockLeft, a few badges, most badges empty.
 - imagePrompt: a concrete visual description for a product photo (object, colour, material, styling). No brand names, no text, no logos, no people.
 - Write in English. Keep strings short.
 - Refuse (refused=true, products empty, a kind one-sentence refusalMessage) for cravings a bank app should not simulate: weapons, drugs or other controlled substances, adult or sexual content, gambling or betting, tobacco or vaping, anything illegal or harmful, or anything about hurting people. Alcohol: keep it to food pairings, do not build a liquor shop. For non-shoppable or unclear cravings (e.g. "love", "a holiday"), still make a sensible shop if you can (e.g. a travel gear store) without refusing.`;
@@ -51,13 +51,13 @@ export function cleanHeader(h: Record<string, unknown>): CraveShopHeader & { ref
     deliveryFee: r2(clamp(h.deliveryFee, 0, 15, kind === "food" ? 2.99 : 5.9)),
     freeDeliveryFrom: r2(clamp(h.freeDeliveryFrom, 0, 200, kind === "food" ? 30 : 49)),
     sections: Array.isArray(h.sections) ? h.sections.map((s) => str(s, 30)).filter(Boolean).slice(0, 6) : [],
+    facets: Array.isArray(h.facets) ? h.facets.map((s) => str(s, 24)).filter(Boolean).slice(0, 8) : [],
   };
 }
 
 export function cleanProduct(p: Record<string, unknown>, idx: number): CraveProduct {
   const price = r2(clamp(p.price, 0.5, 5000, 19.9));
   const cmp = typeof p.compareAtPrice === "number" && p.compareAtPrice > price * 1.04 ? r2(Math.min(p.compareAtPrice, price * 2)) : null;
-  const arr = (v: unknown) => (Array.isArray(v) ? (v as Record<string, unknown>[]) : []);
   return {
     id: `p${idx + 1}`,
     section: str(p.section, 30),
@@ -71,6 +71,14 @@ export function cleanProduct(p: Record<string, unknown>, idx: number): CraveProd
     badge: oneOf(CRAVE_BADGES, p.badge, ""),
     stockLeft: typeof p.stockLeft === "number" && p.stockLeft >= 1 && p.stockLeft <= 9 ? Math.round(p.stockLeft) : null,
     tags: (Array.isArray(p.tags) ? p.tags : []).map((t) => str(t, 24)).filter(Boolean).slice(0, 3),
+    ...cleanDetails(p),
+    imagePrompt: str(p.imagePrompt, 220, str(p.name, 60)),
+  };
+}
+
+export function cleanDetails(p: Record<string, unknown>): { variants: CraveVariant[]; addOns: CraveAddOn[]; reviews: CraveReview[] } {
+  const arr = (v: unknown) => (Array.isArray(v) ? (v as Record<string, unknown>[]) : []);
+  return {
     variants: arr(p.variants)
       .map((v) => ({ name: str(v.name, 24), options: (Array.isArray(v.options) ? v.options : []).map((o) => str(o, 24)).filter(Boolean).slice(0, 6) }))
       .filter((v) => v.name && v.options.length > 1)
@@ -83,13 +91,12 @@ export function cleanProduct(p: Record<string, unknown>, idx: number): CraveProd
       .map((r) => ({ name: str(r.name, 24, "Customer"), rating: Math.round(clamp(r.rating, 1, 5, 5)), text: str(r.text, 200) }))
       .filter((r) => r.text)
       .slice(0, 3),
-    imagePrompt: str(p.imagePrompt, 220, str(p.name, 60)),
   };
 }
 
 /** Pulls the header and the complete product objects out of a partial JSON string. */
-export function scanPartial(text: string): { header: Record<string, unknown> | null; products: Record<string, unknown>[] } {
-  const m = /"products"\s*:\s*\[/.exec(text);
+export function scanPartial(text: string, key = "products"): { header: Record<string, unknown> | null; products: Record<string, unknown>[] } {
+  const m = new RegExp(`"${key}"\\s*:\\s*\\[`).exec(text);
   if (!m) return { header: null, products: [] };
   let header: Record<string, unknown> | null = null;
   try {
@@ -190,4 +197,44 @@ export async function generateShop(craving: string, cb: GenCallbacks, signal: Ab
   const ids = new Set(products.map((p) => p.id));
   const alsoBought = (full && Array.isArray(full.alsoBought) ? (full.alsoBought as unknown[]) : []).map(String).filter((id) => ids.has(id)).slice(0, 4);
   return { refused: !!header?.refused, refusalMessage: header?.refusalMessage ?? "", header, products, alsoBought, usage, ttftMs: ttft };
+}
+
+const DETAILS_SYSTEM = `You write product details for an invented online shop in a Finnish bank's "Crave mode" (a Junction 2026 concept; nothing ships). For each product id you get, write variants, add-ons and 2-3 short believable reviews. Variants must fit the product (sizes for clothes and shoes, colours for gadgets, spice level or size for dishes). Add-on prices in euros at Finnish level. Reviewer names are invented first names with an initial. Never mention real brands, retailers or people. English, short strings.`;
+
+/** Second pass: variants, add-ons and reviews for some products, streamed item by item. */
+export async function generateDetails(
+  header: CraveShopHeader,
+  products: CraveProduct[],
+  onItem: (id: string, d: ReturnType<typeof cleanDetails>) => void,
+  signal: AbortSignal,
+  model = CRAVE_MODEL,
+): Promise<{ in: number; out: number }> {
+  const input = { shop: { name: header.shopName, kind: header.kind, tagline: header.tagline }, products: products.map((p) => ({ id: p.id, brand: p.brand, name: p.name, pitch: p.pitch, price: p.price, section: p.section })) };
+  const params: Anthropic.MessageCreateParamsNonStreaming = {
+    model,
+    max_tokens: 6000,
+    system: DETAILS_SYSTEM,
+    messages: [{ role: "user", content: JSON.stringify(input) }],
+    output_config: { effort: "low", format: zodOutputFormat(DetailsSchema) },
+  };
+  if (/haiku/.test(model)) (params as unknown as Record<string, unknown>).thinking = { type: "disabled" };
+  else if (/sonnet-5\.5/.test(model)) (params as unknown as Record<string, unknown>).thinking = { type: "between_tools" };
+  const ids = new Set(products.map((p) => p.id));
+  const done = new Set<string>();
+  const ms = llm().messages.stream(params, { signal });
+  let text = "";
+  for await (const ev of ms) {
+    if (ev.type === "content_block_delta" && ev.delta.type === "text_delta") {
+      text += ev.delta.text;
+      for (const it of scanPartial(text, "items").products) {
+        const id = String(it.id);
+        if (ids.has(id) && !done.has(id)) {
+          done.add(id);
+          onItem(id, cleanDetails(it));
+        }
+      }
+    }
+  }
+  const msg = await ms.finalMessage();
+  return { in: msg.usage.input_tokens, out: msg.usage.output_tokens };
 }

@@ -12,7 +12,7 @@ import { z } from "zod";
 import type { CraveEvent, CraveProduct, CraveShop, CraveShopHeader } from "../../shared/crave";
 import { isCustomerId } from "../data";
 import { clientIp, rateLimit, takeDailyBudget } from "../llm";
-import { CRAVE_MODEL, generateShop } from "./generate";
+import { CRAVE_MODEL, generateDetails, generateShop } from "./generate";
 import { CRAVE_DIR, IMAGE_MODEL, productImage, readImage } from "./images";
 
 const VERSION = 1;
@@ -59,6 +59,8 @@ export interface BuildLog {
   llmMs: number;
   totalMs: number;
   usage: { in: number; out: number };
+  detailsMs?: number;
+  detailsUsage: { in: number; out: number };
   images: { n: number; ok: number; cost: number; maxMs: number };
 }
 
@@ -87,6 +89,27 @@ export async function buildShop(craving: string, send: (ev: CraveEvent) => void 
     );
   };
   const pending: CraveProduct[] = [];
+  // second pass: details for the first 5 products start as soon as they have streamed, the rest at the end
+  const details = new Map<string, Pick<CraveProduct, "variants" | "addOns" | "reviews">>();
+  const detailJobs: Promise<void>[] = [];
+  const dUsage = { in: 0, out: 0 };
+  let detailsMs: number | undefined;
+  const streamed: CraveProduct[] = [];
+  const startDetails = (batch: CraveProduct[]) => {
+    if (!header || !batch.length) return;
+    detailJobs.push(
+      generateDetails(header, batch, (id, d) => {
+        details.set(id, d);
+        void send({ type: "details", id, ...d });
+      }, signal, model)
+        .then((u) => {
+          dUsage.in += u.in;
+          dUsage.out += u.out;
+          detailsMs = Date.now() - t0;
+        })
+        .catch((e) => console.warn("[crave] details failed", (e as Error).message)),
+    );
+  };
   const res = await generateShop(
     craving,
     {
@@ -104,15 +127,17 @@ export async function buildShop(craving: string, send: (ev: CraveEvent) => void 
         if (refused) return;
         firstProductMs ??= Date.now() - t0;
         void send({ type: "product", product: p });
+        streamed.push(p);
         if (header) startImage(p);
         else pending.push(p);
+        if (streamed.length === 5) startDetails(streamed.slice(0, 5));
       },
     },
     signal,
     model,
   );
   const llmMs = Date.now() - t0;
-  const log: BuildLog = { model, ttftMs: res.ttftMs, firstProductMs, llmMs, totalMs: 0, usage: res.usage, images: img };
+  const log: BuildLog = { model, ttftMs: res.ttftMs, firstProductMs, llmMs, totalMs: 0, usage: res.usage, detailsUsage: dUsage, images: img };
   if (res.refused || refused || !res.header) {
     await send({ type: "refused", message: res.refusalMessage || "Crave mode can't open a shop for that one." });
     log.totalMs = Date.now() - t0;
@@ -120,12 +145,22 @@ export async function buildShop(craving: string, send: (ev: CraveEvent) => void 
   }
   header ??= res.header;
   for (const p of res.products) startImage(p);
-  await Promise.race([Promise.allSettled([...imgs.values()]), new Promise((r) => setTimeout(r, IMAGE_WAIT_MS))]);
-  const shop: CraveShop = { ...res.header, craving, products: res.products.map((p) => ({ ...p, image: imageUrl.get(p.id) ?? null })), alsoBought: res.alsoBought };
+  startDetails(res.products.slice(streamed.length >= 5 ? 5 : 0));
+  await Promise.race([Promise.allSettled([...imgs.values(), ...detailJobs]), new Promise((r) => setTimeout(r, IMAGE_WAIT_MS))]);
+  const shop: CraveShop = {
+    ...res.header,
+    craving,
+    products: res.products.map((p) => {
+      const d = details.get(p.id);
+      return { ...p, ...(d ?? {}), details: !!d, image: imageUrl.get(p.id) ?? null };
+    }),
+    alsoBought: res.alsoBought,
+  };
   log.totalMs = Date.now() - t0;
+  log.detailsMs = detailsMs;
   if (shop.products.length >= 4) {
     // cache only complete shops whose images all arrived (a later visit retries missing images)
-    if (shop.products.every((p) => p.image)) {
+    if (shop.products.every((p) => p.image && p.details)) {
       await mkdir(CRAVE_DIR, { recursive: true });
       await writeFile(shopFile(normaliseCraving(craving)), JSON.stringify(shop));
     }
@@ -173,7 +208,7 @@ export function registerCraveRoutes(app: Hono) {
         }
         const limited = rateLimit(ip) ?? craveLimit(ip);
         if (limited) throw new UserError(limited);
-        if (!takeDailyBudget()) throw new UserError("Crave mode is resting for today. Try one of the demo cravings.");
+        if (!takeDailyBudget(3)) throw new UserError("Crave mode is resting for today. Try one of the demo cravings.");
         const { shop, log } = await buildShop(craving, send, ac.signal);
         console.log(`[crave] ${JSON.stringify({ ...log, imageModel: IMAGE_MODEL, chars: craving.length, ok: !!shop })}`);
         if (shop) await send({ type: "done", shop, meta: { model: log.model, cached: false, ms: log.totalMs, firstProductMs: log.firstProductMs } });
