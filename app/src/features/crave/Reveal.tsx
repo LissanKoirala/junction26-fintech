@@ -210,7 +210,7 @@ export function Reveal({ entry, header, lines, onNewCraving }: { entry: CraveEnt
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <Button variant="soft" icon={PackageCheck} onClick={() => navigate(`/crave/track?id=${entry.id}`)}>{t("Track order")}</Button>
+                <Button variant="soft" icon={PackageCheck} onClick={() => navigate(`/crave/track?id=${entry.id}`)}>{t("Tracking")}</Button>
                 <Button variant="soft" icon={Inbox} onClick={() => navigate("/crave/inbox")}>
                   {t("Inbox")}
                   {unread > 0 && <span className="tnum ml-1 rounded-pill bg-green-700 px-1.5 text-xs font-bold text-white" aria-label={tn("{n} new email", "{n} new emails", unread)}>{unread}</span>}

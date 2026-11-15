@@ -6,6 +6,7 @@ import { getState } from "@/state/store";
 import { useCustomer } from "@/state/customer";
 import { getMessages, newId, patchMessage, setMessages, useMessages } from "./store";
 import { summarise } from "@/features/crave/diary";
+import { getLang, locale, t } from "@/lib/i18n";
 
 const controllers = new Map<string, AbortController>();
 
@@ -27,13 +28,15 @@ export function useChat(customerId: string) {
       setMessages(customerId, (ms) => [
         ...ms,
         { id: userId, role: "user", text: q, cards: [] },
-        { id: botId, role: "assistant", text: "", cards: [], streaming: true, status: "Looking at your transactions…" },
+        { id: botId, role: "assistant", text: "", cards: [], streaming: true, status: t("Looking at your transactions…") },
       ]);
       const prefs = getState().byCustomer[customerId];
+      const lang = getLang();
       const req: ChatRequest = {
         customerId,
         messages: [...history, { role: "user", content: q }],
-        locale: getState().voiceLang === "fi-FI" ? "fi-FI" : "en-GB",
+        locale: locale(lang),
+        lang,
         overrides: prefs?.overrides,
         goal: prefs?.goal ?? null,
         screen: screen ?? "chat",
@@ -72,7 +75,7 @@ export function useChat(customerId: string) {
         patchMessage(customerId, botId, (m) => ({ ...m, mocked }));
       } catch (e) {
         if (!ctl.signal.aborted)
-          patchMessage(customerId, botId, (m) => ({ ...m, error: "Vara couldn't answer just now. Please try again.", status: null }));
+          patchMessage(customerId, botId, (m) => ({ ...m, error: t("Vara couldn't answer just now. Please try again."), status: null }));
       } finally {
         patchMessage(customerId, botId, (m) => ({ ...m, streaming: false, status: null }));
         controllers.delete(customerId);

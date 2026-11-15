@@ -1,6 +1,7 @@
 // Typed access to app/shared/domain.json plus the icon mapping to lucide.
 import domainJson from "@shared/domain.json";
 import type { Basket, Category, FlowKind, Tx } from "@shared/types";
+import { t } from "@shared/i18n";
 import {
   ArrowRightLeft, Banknote, Bus, CirclePlus, HeartPulse, House, Plane, Shirt, ShoppingBasket, Sofa, Ticket,
   TrendingDown, TrendingUp, Utensils, Zap, CircleDashed, CalendarCheck, Umbrella, Coffee, type LucideIcon,
@@ -18,7 +19,11 @@ export const domain = domainJson as unknown as {
 };
 
 export const BASKETS: Basket[] = ["must_regular", "must_irregular", "everyday"];
-export const basketMeta = (b: Basket) => domain.baskets[b];
+/** Basket texts in the current language (domain.json holds the English). */
+export const basketMeta = (b: Basket): BasketMeta => {
+  const m = domain.baskets[b];
+  return m && { ...m, label: t(m.label), short: t(m.short), tagline: t(m.tagline), description: t(m.description), example: t(m.example) };
+};
 export const basketColor = (b: Basket) => domain.baskets[b]?.color ?? "#949494";
 
 /** Basket icons: regular musts (like rent), surprise musts (rainy-day), everyday extras (like coffees). */
@@ -30,8 +35,9 @@ export function flowColor(k: FlowKind): string {
   return domain.flowKinds[k]?.color ?? "#949494";
 }
 export function flowLabel(k: FlowKind): string {
-  if (k === "must_regular" || k === "must_irregular" || k === "everyday") return domain.baskets[k].label;
-  return domain.flowKinds[k]?.label ?? k;
+  if (k === "must_regular" || k === "must_irregular" || k === "everyday") return t(domain.baskets[k].label);
+  const l = domain.flowKinds[k]?.label;
+  return l ? t(l) : k;
 }
 
 const ICONS: Record<string, LucideIcon> = {
@@ -41,7 +47,8 @@ const ICONS: Record<string, LucideIcon> = {
 };
 
 export function categoryLabel(c: string): string {
-  return (domain.categories as Record<string, { label: string }>)[c]?.label ?? c;
+  const l = (domain.categories as Record<string, { label: string }>)[c]?.label;
+  return l ? t(l) : c;
 }
 export function categoryIcon(c: string): LucideIcon {
   const name = (domain.categories as Record<string, { icon: string }>)[c]?.icon;
@@ -49,7 +56,8 @@ export function categoryIcon(c: string): LucideIcon {
 }
 export function mccLabel(mcc: string | null | undefined): string | null {
   if (!mcc) return null;
-  return domain.mcc[mcc]?.label ?? null;
+  const l = domain.mcc[mcc]?.label;
+  return l ? t(l) : null;
 }
 /** What to show as the "merchant" of a transaction: the merchant type from the MCC, else the category label. */
 export function txTitle(tx: Tx): string {

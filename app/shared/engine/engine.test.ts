@@ -212,3 +212,19 @@ describe("simulateBalance", () => {
     for (const x of xs) expect(x >= 0 && x < 1).toBe(true);
   });
 });
+
+describe("language", () => {
+  it("returns Finnish sentences and labels when asked, English by default", () => {
+    const en = engine.getSafeToSpend(aino);
+    const fi = engine.getSafeToSpend(aino, { lang: "fi" });
+    expect(en.upcoming.find((u) => u.kind === "housing")?.label).toBe("Rent / housing");
+    expect(fi.upcoming.find((u) => u.kind === "housing")?.label).toBe("Vuokra / asuminen");
+    expect(fi.steps[0].label).toBe("Saldo tänään");
+    expect(fi.nextPayday.lateNote).toMatch(/^Palkka (tulee yleensä|on tullut) 15\. päivä/);
+    expect(fi.safePerWeek).toBe(en.safePerWeek); // numbers do not depend on the language
+    expect(engine.resolvePeriod("2026-09-30", "last_3_months", { lang: "fi" }).label).toBe("heinä–syys 2026");
+    expect(engine.resolvePeriod("2026-09-30", "last_3_months").label).toBe("Jul–Sep 2026");
+    // the scoped language does not leak into the next call
+    expect(engine.getSafeToSpend(aino).steps[0].label).toBe("Balance today");
+  });
+});

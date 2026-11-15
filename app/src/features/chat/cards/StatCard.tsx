@@ -2,6 +2,7 @@ import { CalendarDays, Coins, Hash, Percent, type LucideIcon } from "lucide-reac
 import { CardFrame, ChartCaption, DeltaPill, StatValue } from "@/ui/chat";
 import { HBars } from "@/ui/charts";
 import { money, pctSigned } from "@/lib/format";
+import { t } from "@/lib/i18n";
 import { fmtUnit, type CardOf } from "./util";
 
 const ICON: Record<CardOf<"stat">["unit"], LucideIcon> = { eur: Coins, pct: Percent, count: Hash, days: CalendarDays };
@@ -26,7 +27,7 @@ export function StatCard({ card }: { card: CardOf<"stat"> }) {
   const other = comparisonValue(card);
   // a two-bar comparison only when both sides are real, non-negative amounts and at least one is non-zero
   const showBars = cmp != null && other != null && card.unit !== "pct" && card.value >= 0 && other >= 0 && (card.value > 0 || other > 0);
-  const cmpName = cmp ? cmp.label.replace(/^vs\.?\s*/i, "").replace(/\s*\([^)]*\)\s*$/, "") : "";
+  const cmpName = cmp ? cmp.label.replace(/^(vs\.?|verrattuna:?)\s*/i, "").replace(/\s*\([^)]*\)\s*$/, "") : "";
   return (
     <CardFrame icon={ICON[card.unit] ?? Coins} title={card.title ?? card.label} explain={card.explain}>
       {card.title && <p className="text-sm text-ink-muted">{card.label}</p>}
@@ -39,11 +40,11 @@ export function StatCard({ card }: { card: CardOf<"stat"> }) {
       )}
       {showBars && (
         <>
-          <ChartCaption>Side by side</ChartCaption>
+          <ChartCaption>{t("Side by side")}</ChartCaption>
           <HBars
             items={[
-              { key: "now", label: "This period", value: card.value },
-              { key: "cmp", label: cmpName || "Compared with", value: other! },
+              { key: "now", label: t("This period"), value: card.value },
+              { key: "cmp", label: cmpName || t("Compared with"), value: other! },
             ]}
             format={(v) => fmtUnit(v, card.unit, card.unit === "eur")}
             highlightKey="now"

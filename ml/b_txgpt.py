@@ -470,9 +470,14 @@ def gen(shard, nshards):
     bt = []
     budget = float(os.environ.get("TXGPT_GEN_MINUTES", "30")) * 60
     nw = 0
+    # TXGPT_GEN_SKIP=1 resumes an interrupted run: customers that already have a file are skipped and the
+    # backtest rows of this pass go to their own file, so the first pass's rows are kept (card() reads bt_*.parquet).
+    skip = os.environ.get("TXGPT_GEN_SKIP") == "1"
     for cid in mine:
         if time.time() - T0 > budget:
             break
+        if skip and os.path.exists(os.path.join(odir, f"{cid}.json")):
+            continue
         s = seqs[cid]
         rng = np.random.default_rng(int(cid[4:]))
         if cid in bt_ids:
@@ -503,7 +508,8 @@ def gen(shard, nshards):
                    truncatedShare=float(1 - done.mean()))
         write_json(os.path.join(odir, f"{cid}.json"), out)
         nw += 1
-    pd.DataFrame(bt).to_parquet(os.path.join(WDIR, f"bt_{shard}.parquet"))
+    if bt or not skip:
+        pd.DataFrame(bt).to_parquet(os.path.join(WDIR, f"bt_{shard}{'_r2' if skip else ''}.parquet"))
     log("shard", shard, "wrote", nw, "of", len(mine), "backtest", len(bt))
 
 

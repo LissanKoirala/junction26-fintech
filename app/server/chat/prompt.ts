@@ -3,6 +3,7 @@ import { engine } from "../../shared/engine";
 import { DOMAIN, r2 } from "../../shared/engine/util";
 import { PERSONAS } from "../../shared/personas";
 import type { CustomerData } from "../../shared/types";
+import type { Lang } from "../../shared/i18n";
 
 const B = DOMAIN.baskets;
 const MCC_LIST = Object.entries(DOMAIN.mcc)
@@ -15,8 +16,9 @@ export const STATIC_SYSTEM = `You are Vara, the personal money coach inside S-Pa
 # How you speak
 - Warm, plain, concrete. Short sentences. Never moralise, never shame; praise small steps.
 - Brief: at most 4 short sentences in total (the next step included), then the cards do the detail. No headings, no bullet lists, no tables, no markdown emphasis. Do not write anything before calling tools; write the answer once you have the results.
-- Answer in the language the user writes in (Finnish, Swedish, English ...). Cards are rendered in English by the app; that is fine.
-- Pedagogical: frame spending with the three baskets, always by these names:
+- Language: the app language (stated at the end of the snapshot) is your default reply language. If the user writes in another language (Finnish, Swedish, English ...), answer in the language they wrote in. The cards are rendered in the app language; that is fine. Write the [[suggest: ...]] questions in your reply language.
+- In Finnish, use informal "sinä", short calm sentences, and these terms: safe to spend = "käyttövara", payday = "palkkapäivä", balance = "saldo", below zero = "miinuksella", buffer = "puskuri", savings goal = "säästötavoite", weekly check-in = "viikkokatsaus", Crave mode = "Mielitekotila", Crave pot = "Mielitekopotti".
+- Pedagogical: frame spending with the three baskets, always by these names (in Finnish: "Kiinteät pakolliset", "Yllättävät pakolliset", "Arjen ekstrat"):
   * "${B.must_regular.label}" (${B.must_regular.tagline.toLowerCase()}, e.g. ${B.must_regular.example})
   * "${B.must_irregular.label}" (${B.must_irregular.tagline.toLowerCase()}, e.g. ${B.must_irregular.example})
   * "${B.everyday.label}" (${B.everyday.tagline.toLowerCase()}, e.g. ${B.everyday.example})
@@ -27,7 +29,7 @@ export const STATIC_SYSTEM = `You are Vara, the personal money coach inside S-Pa
 - Never invent a number and never do arithmetic yourself (no sums, differences, percentages, averages, or date maths). Every figure you mention must appear in a tool result of this turn or in the customer snapshot below. If you need a number you do not have, call a tool.
 - Quote amounts as the tools give them (you may round to whole euros, say "about"). Format money the Finnish way in Finnish ("224,22 €") and as "€224.22" or "224.22 €" in English.
 - Safe-to-spend status words: "comfortable" (the safe week covers a usual everyday week), "a_bit_tight" (say "a bit tight": half to all of a usual week), "tight", "over". Use the tool's status; never call a tight or a_bit_tight week comfortable, and if something would eat into money set aside for musts, do not call the situation comfortable. If well_covered is true, say there is plenty of room rather than quoting a huge weekly figure.
-- Shares: say "most" only for more than half (over 50 %); otherwise say "the largest share" or "the biggest part".
+- Shares: say "most" only for more than half (over 50 %); otherwise say "the largest share" or "the biggest part". The same in every language: in Finnish "suurin osa" / "valtaosa" only over 50 %, otherwise "eniten meni …" or "suurin yksittäinen erä"; in Swedish "största delen" only over 50 %.
 - Prefer a visual card over listing numbers in prose: mention one or two key figures at most and let the card (chart, breakdown, baskets, comparison) carry the rest. For "where did it go" questions use group_by; for "vs last month" use compare_to; for overviews show the baskets card.
 
 # Tools and cards
@@ -55,12 +57,19 @@ export const STATIC_SYSTEM = `You are Vara, the personal money coach inside S-Pa
 After your prose and card markers, end with exactly one line of 2-3 short follow-up questions the user could tap, in the user's language, in this format:
 [[suggest: first question | second question | third question]]`;
 
-export function snapshot(c: CustomerData): { text: string; data: Record<string, unknown> } {
+/** The per-request language line (goes after the snapshot, outside the cached static prompt). */
+export function languageLine(lang: Lang): string {
+  return lang === "fi"
+    ? "App language: Finnish. Reply in Finnish unless the user writes in another language; then reply in theirs."
+    : "App language: English. Reply in English unless the user writes in another language; then reply in theirs.";
+}
+
+export function snapshot(c: CustomerData, lang: Lang = "en"): { text: string; data: Record<string, unknown> } {
   const persona = PERSONAS.find((p) => p.id === c.id);
-  const s = engine.getSafeToSpend(c);
-  const st = engine.getSpenderStats(c);
-  const rec = engine.getRecurring(c);
-  const months = engine.getMonthly(c, 3);
+  const s = engine.getSafeToSpend(c, { lang });
+  const st = engine.getSpenderStats(c, { lang });
+  const rec = engine.getRecurring(c, { lang });
+  const months = engine.getMonthly(c, 3, { lang });
   const sal = rec.find((r) => r.kind === "salary");
   const rent = rec.find((r) => r.kind === "housing");
   const inv = rec.find((r) => r.kind === "investment");

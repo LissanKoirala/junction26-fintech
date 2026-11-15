@@ -42,6 +42,7 @@ for (const st of steps) {
     else if (k === "wait") await page.waitForTimeout(Number(val));
     else if (k === "scroll") await page.evaluate((y) => document.querySelectorAll(".overflow-y-auto").forEach((el) => el.scrollTo(0, Number(y))), val);
     else if (k === "eval") await page.evaluate(val);
+    else if (k === "print") console.log("PRINT", JSON.stringify(await page.evaluate(val)));
   } catch (e) {
     errors.push(`[step ${st}] ${e.message.split("\n")[0]}`);
   }

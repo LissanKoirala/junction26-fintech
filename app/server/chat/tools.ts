@@ -14,16 +14,24 @@ import type { CraveSummary } from "../../shared/crave";
 import type { Benchmarks, MlAnomalies, MlHabits, MlHome, MlProfile, MlTwins, ModelCard, MoneyMap, PeerStats, Tribe } from "../../shared/ml/typesA";
 import type { MlForecast, MlRisk, MlTxGpt } from "../../shared/ml/typesB";
 import { loadGlobal, loadMl } from "../data";
-import { eur, eur0, pct, dayName } from "./format";
+import { tr, type Lang, type Translator } from "../../shared/i18n";
+import { eur, eur0, pct, dayName as dayNameIn } from "./format";
 
+// Card texts are built in the request's language (ctx.lang / ctx.tr). Text written for the model only (notes,
+// rules, "not ready" messages) stays in English: it is instructions, not UI.
 export const SOURCE = "Your transactions in this account (synthetic Junction 2026 dataset, Oct 2024 – Sep 2026)";
 
 export interface ToolCtx {
   c: CustomerData;
-  opts: { overrides?: BasketOverrides; goal?: Goal | null };
+  opts: { overrides?: BasketOverrides; goal?: Goal | null; lang?: Lang };
   newCardId: () => string;
   crave?: CraveSummary | null; // Crave mode diary summary sent by the app (client state, simulated money)
+  lang?: Lang; // app language of the request (default "en")
+  tr?: Translator; // translator bound to `lang`
 }
+const T = (ctx: ToolCtx): Translator => ctx.tr ?? tr(ctx.lang ?? "en");
+const L = (ctx: ToolCtx): Lang => ctx.lang ?? "en";
+const src = (ctx: ToolCtx) => T(ctx).t(SOURCE);
 export interface ToolOutput {
   model: Record<string, unknown>;
   full: unknown;
@@ -33,7 +41,7 @@ interface ToolDef<S extends z.ZodObject> {
   name: string;
   description: string;
   schema: S;
-  status: (input: z.infer<S>) => string;
+  status: (input: z.infer<S>, t: Translator) => string;
   run: (ctx: ToolCtx, input: z.infer<S>) => Promise<ToolOutput> | ToolOutput;
 }
 const tool = <S extends z.ZodObject>(d: ToolDef<S>) => d;
@@ -57,18 +65,21 @@ const filterFields = {
   max_amount: z.number().min(0).optional().describe("Only purchases of at most this many euros."),
 };
 
-function resolve(c: CustomerData, i: { period?: PeriodName; month?: string; from?: string; to?: string }, def: PeriodName): Period {
+function resolve(ctx: ToolCtx, i: { period?: PeriodName; month?: string; from?: string; to?: string }, def: PeriodName): Period {
+  const c = ctx.c;
+  const lang = L(ctx);
   if (i.from && i.to) {
     const [from, to] = i.from <= i.to ? [i.from, i.to] : [i.to, i.from];
-    return { from, to: to > c.asOf ? c.asOf : to, label: rangeLabel(from, to > c.asOf ? c.asOf : to) };
+    return { from, to: to > c.asOf ? c.asOf : to, label: rangeLabel(from, to > c.asOf ? c.asOf : to, lang) };
   }
   if (i.month) {
     const from = monthStart(i.month);
     const end = monthEnd(i.month);
     const to = end > c.asOf ? c.asOf : end;
-    return { from, to, label: rangeLabel(from, end) + (to < end ? " (to date)" : "") };
+    const range = rangeLabel(from, end, lang);
+    return { from, to, label: to < end ? T(ctx).t("{range} (to date)", { range }) : range };
   }
-  return engine.resolvePeriod(c.asOf, i.period ?? def);
+  return engine.resolvePeriod(c.asOf, i.period ?? def, { lang });
 }
 const filterQuery = (i: z.infer<z.ZodObject<typeof filterFields>>): Omit<SpendingQuery, "period"> => ({
   categories: i.categories,
@@ -78,27 +89,29 @@ const filterQuery = (i: z.infer<z.ZodObject<typeof filterFields>>): Omit<Spendin
   minAmount: i.min_amount,
   maxAmount: i.max_amount,
 });
-function subject(q: Omit<SpendingQuery, "period">): string {
-  if (q.mccs?.length) return q.mccs.map((m) => mccLabel(m)).join(" + ");
-  if (q.categories?.length) return q.categories.map(categoryLabel).join(" + ");
-  if (q.baskets?.length) return q.baskets.map(basketLabel).join(" + ");
-  return "All spending";
+function subject(q: Omit<SpendingQuery, "period">, lang: Lang = "en"): string {
+  if (q.mccs?.length) return q.mccs.map((m) => mccLabel(m, lang)).join(" + ");
+  if (q.categories?.length) return q.categories.map((k) => categoryLabel(k, lang)).join(" + ");
+  if (q.baskets?.length) return q.baskets.map((b) => basketLabel(b, lang)).join(" + ");
+  return tr(lang).t("All spending");
 }
 /** The same query per month (6 months ending with the period's month) or per ISO week (8 weeks) for short periods. */
 function spendingSeries(ctx: ToolCtx, q: SpendingQuery): { series: { key: string; label: string; value: number }[]; seriesLabel: string; highlightKey: string } {
   const c = ctx.c;
   const days = (Date.parse(q.period.to) - Date.parse(q.period.from)) / 86_400_000 + 1;
   const base = { ...q, groupBy: undefined, compareTo: undefined, includeTransactions: false };
+  const lang = L(ctx);
   if (days <= 14) {
-    const ws = engine.resolvePeriod(q.period.to, "this_week").from;
+    const ws = engine.resolvePeriod(q.period.to, "this_week", { lang }).from;
     const series = [];
     for (let k = 7; k >= 0; k--) {
       const from = addDaysIso(ws, -7 * k);
       const end = addDaysIso(from, 6);
       const to = end > c.asOf ? c.asOf : end;
-      series.push({ key: from, label: `Week of ${dayName(from).slice(4)}`, value: engine.querySpending(c, { ...base, period: { from, to } }, ctx.opts).total });
+      // "Week of 7 Sep" / "Viikko alkaen 7.9."
+      series.push({ key: from, label: T(ctx).t("Week of {day}", { day: dayNameIn(from, lang).replace(/^\S+\s/, "") }), value: engine.querySpending(c, { ...base, period: { from, to } }, ctx.opts).total });
     }
-    return { series, seriesLabel: "Per week, last 8 weeks", highlightKey: ws };
+    return { series, seriesLabel: T(ctx).t("Per week, last 8 weeks"), highlightKey: ws };
   }
   const endMonth = q.period.to.slice(0, 7);
   const series = [];
@@ -107,11 +120,11 @@ function spendingSeries(ctx: ToolCtx, q: SpendingQuery): { series: { key: string
     const from = monthStart(m);
     if (monthEnd(m) < (c.tx[0]?.date ?? from)) continue;
     const to = monthEnd(m) > c.asOf ? c.asOf : monthEnd(m);
-    series.push({ key: m, label: rangeLabel(from, monthEnd(m)), value: engine.querySpending(c, { ...base, period: { from, to } }, ctx.opts).total });
+    series.push({ key: m, label: rangeLabel(from, monthEnd(m), lang), value: engine.querySpending(c, { ...base, period: { from, to } }, ctx.opts).total });
   }
-  return { series, seriesLabel: "Per month, last 6 months", highlightKey: endMonth };
+  return { series, seriesLabel: T(ctx).t("Per month, last 6 months"), highlightKey: endMonth };
 }
-const compactTx = (t: Tx) => ({ i: t.i, date: t.date, category: t.category, type: mccLabel(t.mcc) === "Unknown merchant type" ? t.type : mccLabel(t.mcc), amount: t.amount });
+const compactTx = (t: Tx) => ({ i: t.i, date: t.date, category: t.category, type: mccLabel(t.mcc, "en") === "Unknown merchant type" ? t.type : mccLabel(t.mcc, "en"), amount: t.amount });
 const cardRef = (cards: CardSpec[]) => cards.map((k) => ({ id: k.id, kind: k.kind, title: k.title }));
 const mlMissing = (what: string) => ({
   model: { available: false, message: `The ${what} model's results are not ready yet for this customer. Say so honestly; do not guess.` },
@@ -137,16 +150,18 @@ const querySpendingTool = tool({
     group_by: z.enum(["category", "mcc", "basket", "month", "week", "day", "weekday", "hour"]).optional(),
     compare_to: z.enum(["previous_period", "same_period_last_year"]).optional(),
   }),
-  status: (i) => {
-    const s = subject(filterQuery(i));
-    return s === "All spending" ? "Adding up your spending…" : `Adding up your ${s.toLowerCase()} spending…`;
+  status: (i, t) => {
+    const f = filterQuery(i);
+    if (!f.mccs?.length && !f.categories?.length && !f.baskets?.length) return t.t("Adding up your spending…");
+    return t.t("Adding up your spending: {what}…", { what: subject(f, t.lang) });
   },
   run: (ctx, i) => {
-    const period = resolve(ctx.c, i, "this_month");
+    const t = T(ctx);
+    const period = resolve(ctx, i, "this_month");
     const q: SpendingQuery = { period, ...filterQuery(i), groupBy: i.group_by, compareTo: i.compare_to };
     const r = engine.querySpending(ctx.c, q, ctx.opts);
-    const what = subject(q);
-    const explain: Explain = { tool: "engine.querySpending", filters: r.filters, period: r.period, txCount: r.count, formula: "Sum of matching outflows (positive euros)", source: SOURCE };
+    const what = subject(q, t.lang);
+    const explain: Explain = { tool: "engine.querySpending", filters: r.filters, period: r.period, txCount: r.count, formula: t.t("Sum of matching outflows (positive euros)"), source: src(ctx) };
     const cards: CardSpec[] = [];
     const cmp = r.comparison;
     const ser = spendingSeries(ctx, q);
@@ -157,8 +172,10 @@ const querySpendingTool = tool({
       label: what,
       value: r.total,
       unit: "eur",
-      caption: `${r.count} transaction${r.count === 1 ? "" : "s"}${r.count ? `, average ${eur(r.average)}` : ""}`,
-      comparison: cmp ? { label: `vs ${cmp.period.label}`, deltaAbs: cmp.deltaAbs, deltaPct: cmp.deltaPct, good: cmp.deltaAbs <= 0, value: cmp.total, period: cmp.period } : undefined,
+      caption: r.count
+        ? t.tn("{n} transaction, average {avg}", "{n} transactions, average {avg}", r.count, { avg: eur(r.average) })
+        : t.t("No transactions"),
+      comparison: cmp ? { label: t.t("vs {period}", { period: cmp.period.label ?? "" }), deltaAbs: cmp.deltaAbs, deltaPct: cmp.deltaPct, good: cmp.deltaAbs <= 0, value: cmp.total, period: cmp.period } : undefined,
       ...ser,
       explain,
     });
@@ -173,7 +190,7 @@ const querySpendingTool = tool({
       cards.push({
         id: ctx.newCardId(),
         kind: "breakdown",
-        title: `${what} by ${by} · ${r.period.label}`,
+        title: `${what} ${t.t(`by ${by}`)} · ${r.period.label}`, // "by category" / "luokittain"
         chart: ["month", "week", "day"].includes(by) ? "trend" : (by === "basket" || (by === "category" && r.groups.length <= 6)) ? "donut" : "bars",
         unit: "eur",
         items: r.groups.slice(0, 15).map((g) => ({ key: g.key, label: g.label, value: g.total, share: g.share })),
@@ -205,9 +222,10 @@ const listTransactionsTool = tool({
   name: "list_transactions",
   description: "List individual transactions matching filters (largest first by default, or latest first). There are no merchant names, only merchant types.",
   schema: z.object({ ...periodFields, ...filterFields, sort: z.enum(["largest", "latest"]).optional(), limit: z.number().int().min(1).max(30).optional() }),
-  status: () => "Looking through your transactions…",
+  status: (_i, t) => t.t("Looking through your transactions…"),
   run: (ctx, i) => {
-    const period = resolve(ctx.c, i, "last_30_days");
+    const tt = T(ctx);
+    const period = resolve(ctx, i, "last_30_days");
     const q: SpendingQuery = { period, ...filterQuery(i) };
     const m = matchTx(ctx.c, q, period, kindsOf(ctx.c, ctx.opts));
     const sorted = i.sort === "latest" ? [...m].reverse() : [...m].sort((a, b) => b.value - a.value);
@@ -216,12 +234,17 @@ const listTransactionsTool = tool({
     const card: CardSpec = {
       id: ctx.newCardId(),
       kind: "transactions",
-      title: `${subject(q)} · ${period.label}`,
+      title: `${subject(q, tt.lang)} · ${period.label}`,
       items,
       total,
       count: m.length,
-      note: m.length > items.length ? `Showing ${items.length} of ${m.length} (${i.sort === "latest" ? "latest" : "largest"} first)` : undefined,
-      explain: { tool: "engine.querySpending", filters: engine.querySpending(ctx.c, q, ctx.opts).filters, period, txCount: m.length, source: SOURCE },
+      note:
+        m.length > items.length
+          ? i.sort === "latest"
+            ? tt.t("Showing {shown} of {n} (latest first)", { shown: items.length, n: m.length })
+            : tt.t("Showing {shown} of {n} (largest first)", { shown: items.length, n: m.length })
+          : undefined,
+      explain: { tool: "engine.querySpending", filters: engine.querySpending(ctx.c, q, ctx.opts).filters, period, txCount: m.length, source: src(ctx) },
     };
     return { model: { period, total, count: m.length, shown: items.map(compactTx), cards: cardRef([card]) }, full: { items, total }, cards: [card] };
   },
@@ -231,16 +254,26 @@ const basketsTool = tool({
   name: "get_baskets",
   description: "The three baskets (Fixed musts, Surprise musts, Everyday extras) for a period, with income, saving and transfers.",
   schema: z.object({ ...periodFields }),
-  status: () => "Sorting your spending into the three baskets…",
+  status: (_i, t) => t.t("Sorting your spending into the three baskets…"),
   run: (ctx, i) => {
-    const period = resolve(ctx.c, i, "this_month");
+    const tt = T(ctx);
+    const period = resolve(ctx, i, "this_month");
     const b = engine.getBaskets(ctx.c, period, ctx.opts);
     const card: CardSpec = {
       id: ctx.newCardId(),
       kind: "baskets",
-      title: `Your three baskets · ${b.period.label}`,
+      title: tt.t("Your three baskets · {period}", { period: b.period.label ?? "" }),
       data: b,
-      explain: { tool: "engine.getBaskets", filters: ["Basket rules from domain.json (Vara's first guess)", b.overridesApplied ? `${b.overridesApplied} of your own corrections applied` : "No corrections applied"], period: b.period, txCount: b.baskets.reduce((t, x) => t + x.count, 0), source: SOURCE },
+      explain: {
+        tool: "engine.getBaskets",
+        filters: [
+          tt.t("Basket rules from domain.json (Vara's first guess)"),
+          b.overridesApplied ? tt.tn("{n} of your own corrections applied", "{n} of your own corrections applied", b.overridesApplied) : tt.t("No corrections applied"),
+        ],
+        period: b.period,
+        txCount: b.baskets.reduce((t, x) => t + x.count, 0),
+        source: src(ctx),
+      },
     };
     return {
       model: {
@@ -287,15 +320,28 @@ const safeTool = tool({
   name: "get_safe_to_spend",
   description: "How much is safe to spend per week until the next payday: balance minus the musts still coming (rent, bills, groceries, investing, goal, buffer). The heart of 'your balance is not your budget'.",
   schema: z.object({ include_investing: z.boolean().optional().describe("Treat the usual investment deposit as committed (default true).") }),
-  status: () => "Checking what is still coming before payday…",
+  status: (_i, t) => t.t("Checking what is still coming before payday…"),
   run: (ctx, i) => {
+    const t = T(ctx);
     const s = engine.getSafeToSpend(ctx.c, { ...ctx.opts, includeInvesting: i.include_investing });
     const card: CardSpec = {
       id: ctx.newCardId(),
       kind: "safe_to_spend",
-      title: "Safe to spend until payday",
+      title: t.t("Safe to spend until payday"),
       data: s,
-      explain: { tool: "engine.getSafeToSpend", filters: s.upcoming.map((u) => `${u.label}: ${u.basis}`), period: { from: s.asOf, to: s.nextPayday.date, label: s.nextPayday.estimated ? `The next ${s.nextPayday.daysAway} days (irregular income)` : `Today to payday (${dayName(s.nextPayday.date)})` }, formula: "(balance − musts still coming before payday) ÷ weeks until payday", source: SOURCE },
+      explain: {
+        tool: "engine.getSafeToSpend",
+        filters: s.upcoming.map((u) => `${u.label}: ${u.basis}`),
+        period: {
+          from: s.asOf,
+          to: s.nextPayday.date,
+          label: s.nextPayday.estimated
+            ? t.t("The next {n} days (irregular income)", { n: s.nextPayday.daysAway })
+            : t.t("Today to payday ({date})", { date: dayNameIn(s.nextPayday.date, t.lang) }),
+        },
+        formula: t.t("(balance − musts still coming before payday) ÷ weeks until payday"),
+        source: src(ctx),
+      },
     };
     return { model: { ...safeModel(s), cards: cardRef([card]) }, full: s, cards: [card] };
   },
@@ -305,21 +351,24 @@ const upcomingTool = tool({
   name: "get_upcoming",
   description: "Recurring items (salary, rent, utilities, investing, groceries) with typical amounts and when the next one is expected.",
   schema: z.object({}),
-  status: () => "Looking at your regular payments…",
+  status: (_i, t) => t.t("Looking at your regular payments…"),
   run: (ctx) => {
-    const rec = engine.getRecurring(ctx.c);
+    const t = T(ctx);
+    const rec = engine.getRecurring(ctx.c, ctx.opts);
     const s = engine.getSafeToSpend(ctx.c, ctx.opts);
     const items = s.upcoming.filter((u) => u.kind !== "buffer");
     const card: CardSpec = {
       id: ctx.newCardId(),
       kind: "breakdown",
-      title: s.nextPayday.estimated ? `Coming up in the next ${s.nextPayday.daysAway} days` : `Coming up before payday (${dayName(s.nextPayday.date)})`,
+      title: s.nextPayday.estimated
+        ? t.t("Coming up in the next {n} days", { n: s.nextPayday.daysAway })
+        : t.t("Coming up before payday ({date})", { date: dayNameIn(s.nextPayday.date, t.lang) }),
       chart: "bars",
       unit: "eur",
       items: items.map((u) => ({ key: u.kind, label: u.label, value: u.amount })),
       total: r2(items.reduce((t, u) => t + u.amount, 0)),
       period: { from: s.asOf, to: s.nextPayday.date },
-      explain: { tool: "engine.getRecurring + engine.getSafeToSpend", filters: items.map((u) => `${u.label}: ${u.basis}`), source: SOURCE },
+      explain: { tool: "engine.getRecurring + engine.getSafeToSpend", filters: items.map((u) => `${u.label}: ${u.basis}`), source: src(ctx) },
     };
     return {
       model: {
@@ -342,18 +391,19 @@ const monthlyTool = tool({
   name: "get_monthly_overview",
   description: "Month-by-month income, spending per basket, saving, net and balances.",
   schema: z.object({ months: z.number().int().min(2).max(24).optional().describe("How many months back including the current one (default 6).") }),
-  status: () => "Lining up your months…",
+  status: (_i, t) => t.t("Lining up your months…"),
   run: (ctx, i) => {
+    const t = T(ctx);
     const rows = engine.getMonthly(ctx.c, i.months ?? 6, ctx.opts);
     const card: CardSpec = {
       id: ctx.newCardId(),
       kind: "breakdown",
-      title: "Spending per month",
+      title: t.t("Spending per month"),
       chart: "trend",
       unit: "eur",
       items: rows.map((r) => ({ key: r.month, label: r.month, value: r2(r.mustRegular + r.mustIrregular + r.everyday) })),
       period: { from: `${rows[0].month}-01`, to: ctx.c.asOf },
-      explain: { tool: "engine.getMonthly", filters: ["Spending = Fixed musts + Surprise musts + Everyday extras"], source: SOURCE },
+      explain: { tool: "engine.getMonthly", filters: [t.t("Spending = Fixed musts + Surprise musts + Everyday extras")], source: src(ctx) },
     };
     return {
       model: {
@@ -370,30 +420,36 @@ const weekTool = tool({
   name: "get_week_summary",
   description: "Summary of this week so far or last full week: spending, baskets, top categories, small purchases, versus a typical week.",
   schema: z.object({ week: z.enum(["this_week", "last_week"]).optional() }),
-  status: () => "Summing up the week…",
+  status: (_i, t) => t.t("Summing up the week…"),
   run: (ctx, i) => {
+    const t = T(ctx);
     const w = engine.getWeekSummary(ctx.c, i.week === "last_week" ? -1 : 0, ctx.opts);
-    const period = { from: w.from, to: w.to, label: `${dayName(w.from)} – ${dayName(w.to)}` };
-    const explain: Explain = { tool: "engine.getWeekSummary", filters: [`Typical week = median of the previous 12 weeks over the same ${w.days} day(s)`], period, source: SOURCE };
+    const period = { from: w.from, to: w.to, label: `${dayNameIn(w.from, t.lang)} – ${dayNameIn(w.to, t.lang)}` };
+    const explain: Explain = {
+      tool: "engine.getWeekSummary",
+      filters: [t.tn("Typical week = median of the previous 12 weeks over the same {n} day", "Typical week = median of the previous 12 weeks over the same {n} days", w.days ?? 7)],
+      period,
+      source: src(ctx),
+    };
     const cards: CardSpec[] = [
       {
         id: ctx.newCardId(),
         kind: "stat",
-        title: `Your week · ${period.label}`,
-        label: "Spent this week",
+        title: t.t("Your week · {period}", { period: period.label }),
+        label: t.t("Spent this week"),
         value: w.spending,
         unit: "eur",
-        comparison: w.vsTypicalWeekPct == null ? undefined : { label: "vs a typical week", deltaAbs: r2(w.spending - (w.typicalSpending ?? 0)), deltaPct: w.vsTypicalWeekPct, good: w.vsTypicalWeekPct <= 0, value: w.typicalSpending },
+        comparison: w.vsTypicalWeekPct == null ? undefined : { label: t.t("vs a typical week"), deltaAbs: r2(w.spending - (w.typicalSpending ?? 0)), deltaPct: w.vsTypicalWeekPct, good: w.vsTypicalWeekPct <= 0, value: w.typicalSpending },
         ...spendingSeries(ctx, { period }),
         explain,
       },
       {
         id: ctx.newCardId(),
         kind: "breakdown",
-        title: `The week in three baskets`,
+        title: t.t("The week in three baskets"),
         chart: "donut",
         unit: "eur",
-        items: (["must_regular", "must_irregular", "everyday"] as const).map((b) => ({ key: b, label: basketLabel(b), value: w.byBasket[b] })),
+        items: (["must_regular", "must_irregular", "everyday"] as const).map((b) => ({ key: b, label: basketLabel(b, t.lang), value: w.byBasket[b] })),
         total: w.spending,
         period,
         explain,
@@ -415,7 +471,7 @@ const whatIfTool = tool({
     extra_monthly_saving: z.number().min(0).max(100000).optional(),
     housing_change: z.number().min(-100000).max(100000).optional().describe("New monthly rent minus current (negative = cheaper)."),
   }),
-  status: () => "Running the what-if…",
+  status: (_i, t) => t.t("Running the what-if…"),
   run: (ctx, i) => {
     const scenario: Scenario = {
       adjustments: i.adjustments.map((a) => ({ target: { category: a.category, mcc: a.mcc, basket: a.basket }, changePct: a.change_pct })),
@@ -426,10 +482,15 @@ const whatIfTool = tool({
     const card: CardSpec = {
       id: ctx.newCardId(),
       kind: "whatif",
-      title: "What if…",
+      title: T(ctx).t("What if…"),
       scenario,
       result,
-      explain: { tool: "engine.simulateWhatIf", filters: [result.basis, "Projection with 4% yearly return for the 'if invested' line"], formula: "saved per month = baseline monthly − new monthly", source: SOURCE },
+      explain: {
+        tool: "engine.simulateWhatIf",
+        filters: [result.basis, T(ctx).t("Projection with 4% yearly return for the 'if invested' line")],
+        formula: T(ctx).t("saved per month = baseline monthly − new monthly"),
+        source: src(ctx),
+      },
     };
     return { model: { ...result, cards: cardRef([card]) }, full: result, cards: [card] };
   },
@@ -446,23 +507,31 @@ const profileTool = tool({
   name: "get_spender_profile",
   description: "What kind of spender the customer is: behaviour statistics from the engine plus the machine-learning spender tribe (Money Map) when available.",
   schema: z.object({}),
-  status: () => "Looking at your spending style…",
+  status: (_i, t) => t.t("Looking at your spending style…"),
   run: async (ctx) => {
+    const t = T(ctx);
     const s = engine.getSpenderStats(ctx.c, ctx.opts);
     const profile = await loadMl<MlProfile>("profile", ctx.c.id);
     const tribe = await tribeFor(profile);
     const cards: CardSpec[] = [];
     if (profile && tribe) {
-      cards.push({ id: ctx.newCardId(), kind: "tribe", title: `Your spender tribe: ${tribe.name}`, data: profile, tribe, explain: { tool: "ML: Money Map (UMAP + KMeans)", filters: ["Last 12 months of behaviour, compared with customers of the same age band"], source: SOURCE, model: await modelInfo("tribes") } });
+      cards.push({
+        id: ctx.newCardId(),
+        kind: "tribe",
+        title: t.t("Your spender tribe: {name}", { name: t.tData(tribe.name) }),
+        data: profile,
+        tribe,
+        explain: { tool: "ML: Money Map (UMAP + KMeans)", filters: [t.t("Last 12 months of behaviour, compared with customers of the same age band")], source: src(ctx), model: await modelInfo("tribes") },
+      });
     }
     cards.push({
       id: ctx.newCardId(),
       kind: "breakdown",
-      title: "Where your money goes (last 12 months)",
+      title: t.t("Where your money goes (last 12 months)"),
       chart: "donut",
       unit: "pct",
-      items: (["must_regular", "must_irregular", "everyday"] as const).map((b) => ({ key: b, label: basketLabel(b), value: r2(s.basketShares[b] * 100), share: s.basketShares[b] })),
-      explain: { tool: "engine.getSpenderStats", filters: [`${s.months} full months`, "Share of spending per basket"], source: SOURCE },
+      items: (["must_regular", "must_irregular", "everyday"] as const).map((b) => ({ key: b, label: basketLabel(b, t.lang), value: r2(s.basketShares[b] * 100), share: s.basketShares[b] })),
+      explain: { tool: "engine.getSpenderStats", filters: [t.tn("{n} full month", "{n} full months", s.months), t.t("Share of spending per basket")], source: src(ctx) },
     });
     return {
       model: {
@@ -506,9 +575,10 @@ const peersTool = tool({
   name: "compare_with_peers",
   description: "Compare one monthly metric with other customers of the same age band in the bank dataset and with Statistics Finland household averages (when those files exist).",
   schema: z.object({ metric: z.enum(Object.keys(PEER_METRICS) as [string, ...string[]]) }),
-  status: () => "Comparing with people your age…",
+  status: (_i, t) => t.t("Comparing with people your age…"),
   run: async (ctx, i) => {
-    const meta = PEER_METRICS[i.metric];
+    const t = T(ctx);
+    const meta = { ...PEER_METRICS[i.metric], label: t.t(PEER_METRICS[i.metric].label) };
     const band = DOMAIN.ageBands.find((b) => ctx.c.age >= b.min && ctx.c.age <= b.max) ?? DOMAIN.ageBands[DOMAIN.ageBands.length - 1];
     const [peers, bench, profile] = await Promise.all([loadGlobal<PeerStats>("peers"), loadGlobal<Benchmarks>("benchmarks"), loadMl<MlProfile>("profile", ctx.c.id)]);
     // the customer's own value: the ML profile feature (same definition as peers.json) or the engine over 12 full months
@@ -522,11 +592,16 @@ const peersTool = tool({
     }
     const peerRows: { label: string; value: number; source: string }[] = [];
     const q = peers?.byAgeBand?.[band.key]?.[i.metric];
-    if (q) peerRows.push({ label: `Bank customers aged ${band.key} (median)`, value: q.p50, source: `Junction dataset, ${q.n} customers` });
+    if (q) peerRows.push({ label: t.t("Bank customers aged {band} (median)", { band: band.key }), value: q.p50, source: t.t("Junction dataset, {n} customers", { n: q.n }) });
     const coicop = meta.category ? (DOMAIN.categories as Record<string, { coicop?: string }>)[meta.category]?.coicop : undefined;
     const grp = bench?.groups?.[`age:${band.statFi}`];
     const bval = coicop && grp ? (grp.adjusted[coicop] ?? grp.adjusted[coicop.replace(".", "")]) : undefined;
-    if (bval != null) peerRows.push({ label: `Finnish households, reference person ${band.statFi}`, value: r2(bval), source: "Statistics Finland, Household Budget Survey 2022, price-adjusted (per household)" });
+    if (bval != null)
+      peerRows.push({
+        label: t.t("Finnish households, reference person {age}", { age: band.statFi }),
+        value: r2(bval),
+        source: t.t("Statistics Finland, Household Budget Survey 2022, price-adjusted (per household)"),
+      });
     if (!peerRows.length) {
       return { model: { available: false, metric: meta.label, you, message: "Peer and Statistics Finland comparison data are not ready yet. Say so honestly and offer the customer's own trend instead." }, full: { you }, cards: [] };
     }
@@ -541,11 +616,15 @@ const peersTool = tool({
       peers: peerRows,
       percentile: percentile == null ? undefined : Math.round(percentile),
       note: [
-        "Your value: average of the last 12 months.",
-        bval != null ? "Statistics Finland figures are per household, not per person: Source: Statistics Finland, Household Budget Survey 2022, price-adjusted (CC BY 4.0)." : "",
-        "Synthetic bank dataset.",
+        t.t("Your value: average of the last 12 months."),
+        bval != null ? t.t("Statistics Finland figures are per household, not per person: Source: Statistics Finland, Household Budget Survey 2022, price-adjusted (CC BY 4.0).") : "",
+        t.t("Synthetic bank dataset."),
       ].filter(Boolean).join(" "),
-      explain: { tool: "compare_with_peers", filters: [`Age band ${band.key}`, "Main-cohort customers, last 12 months"], source: bval != null ? "Statistics Finland, Household Budget Survey 2022 (CC BY 4.0)" : SOURCE },
+      explain: {
+        tool: "compare_with_peers",
+        filters: [t.t("Age band {band}", { band: band.key }), t.t("Main-cohort customers, last 12 months")],
+        source: bval != null ? t.t("Statistics Finland, Household Budget Survey 2022 (CC BY 4.0)") : src(ctx),
+      },
     };
     return { model: { metric: meta.label, you: r2(you), peers: peerRows, percentile: card.percentile, cards: cardRef([card]) }, full: { you, peerRows, q, bval }, cards: [card] };
   },
@@ -557,66 +636,87 @@ const conceptTool = tool({
   name: "explain_concept",
   description: "Show a short concept card that explains one money idea with the customer's own numbers (built by the server).",
   schema: z.object({ concept: z.enum(CONCEPTS) }),
-  status: () => "Finding a good example from your own numbers…",
+  status: (_i, t) => t.t("Finding a good example from your own numbers…"),
   run: (ctx, i) => {
     const c = ctx.c;
+    const t = T(ctx);
     const s = engine.getSafeToSpend(c, ctx.opts);
     const st = engine.getSpenderStats(c, ctx.opts);
     const B = DOMAIN.baskets;
+    const bl = (b: keyof typeof B) => basketLabel(b, t.lang);
+    const tag = (b: keyof typeof B) => t.t(B[b].tagline).toLowerCase();
+    const ex = (b: keyof typeof B) => t.t(B[b].example);
+    const n1 = (x: number) => new Intl.NumberFormat("fi-FI", { maximumFractionDigits: 1 }).format(x);
     const housing = s.upcoming.find((u) => u.kind === "housing");
     let term = "";
     let definition = "";
     let example = "";
     switch (i.concept) {
       case "three_baskets":
-        term = "The three baskets";
-        definition = `${B.must_regular.label}: ${B.must_regular.tagline.toLowerCase()} (like ${B.must_regular.example}). ${B.must_irregular.label}: ${B.must_irregular.tagline.toLowerCase()} (like ${B.must_irregular.example}). ${B.everyday.label}: ${B.everyday.tagline.toLowerCase()} (like ${B.everyday.example}).`;
-        example = `Over the last 12 months ${pct(st.basketShares.must_regular * 100)} of your spending went to ${B.must_regular.label}, ${pct(st.basketShares.must_irregular * 100)} to ${B.must_irregular.label} and ${pct(st.basketShares.everyday * 100)} to ${B.everyday.label}.`;
+        term = t.t("The three baskets");
+        definition = (["must_regular", "must_irregular", "everyday"] as const).map((b) => t.t("{label}: {tagline} (like {example}).", { label: bl(b), tagline: tag(b), example: ex(b) })).join(" ");
+        example = t.t("Over the last 12 months {a} of your spending went to {A}, {b} to {B} and {c} to {C}.", {
+          a: pct(st.basketShares.must_regular * 100), A: bl("must_regular"),
+          b: pct(st.basketShares.must_irregular * 100), B: bl("must_irregular"),
+          c: pct(st.basketShares.everyday * 100), C: bl("everyday"),
+        });
         break;
       case "safe_to_spend":
-        term = "Your balance is not your budget";
-        definition = "Money already promised to bills before your next payday is not free to spend. Safe to spend is what is left after those musts, spread over the weeks until payday.";
-        example = `You have ${eur(s.balance)} today, but ${eur(s.reservedTotal)} is already promised before ${dayName(s.nextPayday.date)}${housing ? `, including about ${eur(housing.amount)} for rent` : ""}. That leaves ${eur(s.freeUntilPayday)}, about ${eur(s.safePerWeek)} a week.`;
+        term = t.t("Your balance is not your budget");
+        definition = t.t("Money already promised to bills before your next payday is not free to spend. Safe to spend is what is left after those musts, spread over the weeks until payday.");
+        example = housing
+          ? t.t("You have {balance} today, but {reserved} is already promised before {date}, including about {rent} for rent. That leaves {free}, about {week} a week.", {
+              balance: eur(s.balance), reserved: eur(s.reservedTotal), date: dayNameIn(s.nextPayday.date, t.lang), rent: eur(housing.amount), free: eur(s.freeUntilPayday), week: eur(s.safePerWeek),
+            })
+          : t.t("You have {balance} today, but {reserved} is already promised before {date}. That leaves {free}, about {week} a week.", {
+              balance: eur(s.balance), reserved: eur(s.reservedTotal), date: dayNameIn(s.nextPayday.date, t.lang), free: eur(s.freeUntilPayday), week: eur(s.safePerWeek),
+            });
         break;
       case "buffer": {
-        term = "A buffer (emergency fund)";
-        definition = `Money kept aside for ${B.must_irregular.label.toLowerCase()}: things you cannot skip but cannot schedule. A common first target is one month of your musts.`;
-        example = `Your balance covers about ${new Intl.NumberFormat("fi-FI", { maximumFractionDigits: 1 }).format(st.bufferMonths)} months of your musts.${st.overdraftDaysLast12m ? ` Your account was below zero on ${st.overdraftDaysLast12m} days in the last 12 months; a buffer stops that.` : ""}`;
+        term = t.t("A buffer (emergency fund)");
+        definition = t.t("Money kept aside for {basket}: things you cannot skip but cannot schedule. A common first target is one month of your musts.", { basket: bl("must_irregular").toLowerCase() });
+        example =
+          t.t("Your balance covers about {n} months of your musts.", { n: n1(st.bufferMonths) }) +
+          (st.overdraftDaysLast12m ? " " + t.t("Your account was below zero on {n} days in the last 12 months; a buffer stops that.", { n: st.overdraftDaysLast12m }) : "");
         break;
       }
       case "pay_yourself_first":
-        term = "Pay yourself first";
-        definition = "Move a small fixed amount to savings on payday, before everyday spending starts. What you do not see, you do not spend.";
+        term = t.t("Pay yourself first");
+        definition = t.t("Move a small fixed amount to savings on payday, before everyday spending starts. What you do not see, you do not spend.");
         example = s.nextPayday.estimated
-          ? "Your income comes at irregular times, so a percentage works better than a date: move 5% of each payment to savings the day it arrives."
-          : `Your salary is about ${eur(s.nextPayday.amount)}. Moving 5% on payday would be ${eur(r2(s.nextPayday.amount * 0.05))} a month, ${eur(r2(s.nextPayday.amount * 0.05 * 12))} a year.`;
+          ? t.t("Your income comes at irregular times, so a percentage works better than a date: move 5% of each payment to savings the day it arrives.")
+          : t.t("Your salary is about {salary}. Moving 5% on payday would be {month} a month, {year} a year.", {
+              salary: eur(s.nextPayday.amount), month: eur(r2(s.nextPayday.amount * 0.05)), year: eur(r2(s.nextPayday.amount * 0.05 * 12)),
+            });
         break;
       case "compound_interest": {
-        term = "Compound interest";
-        definition = "When savings earn a return, the return itself starts earning too. Small monthly amounts grow faster than you would expect over years.";
-        const w = engine.simulateWhatIf(c, { adjustments: [], extraMonthlySaving: 50, horizonsMonths: [120] });
-        example = `Saving 50 € a month for 10 years is ${eur(w.projections[0].saved)}. With a 4% yearly return it could grow to about ${eur(w.projections[0].invested)}.`;
+        term = t.t("Compound interest");
+        definition = t.t("When savings earn a return, the return itself starts earning too. Small monthly amounts grow faster than you would expect over years.");
+        const w = engine.simulateWhatIf(c, { adjustments: [], extraMonthlySaving: 50, horizonsMonths: [120] }, { lang: t.lang });
+        example = t.t("Saving 50 € a month for 10 years is {saved}. With a 4% yearly return it could grow to about {invested}.", { saved: eur(w.projections[0].saved), invested: eur(w.projections[0].invested) });
         break;
       }
       case "small_purchases_add_up":
-        term = "Small purchases add up";
-        definition = `Purchases under ${DOMAIN.smallPurchaseThreshold} € feel like nothing, but they repeat. Seeing the monthly total is often a surprise.`;
-        example = `You make about ${new Intl.NumberFormat("fi-FI", { maximumFractionDigits: 1 }).format(st.smallPurchasesPerMonth)} small purchases a month, about ${eur(st.smallPurchasesMonthlyTotal)} in total: ${eur(r2(st.smallPurchasesMonthlyTotal * 12))} a year.`;
+        term = t.t("Small purchases add up");
+        definition = t.t("Purchases under {n} € feel like nothing, but they repeat. Seeing the monthly total is often a surprise.", { n: DOMAIN.smallPurchaseThreshold });
+        example = t.t("You make about {n} small purchases a month, about {month} in total: {year} a year.", {
+          n: n1(st.smallPurchasesPerMonth), month: eur(st.smallPurchasesMonthlyTotal), year: eur(r2(st.smallPurchasesMonthlyTotal * 12)),
+        });
         break;
       case "payday_burn":
-        term = "Payday burn";
-        definition = "Spending a big share of your everyday money right after payday, so the last weeks before the next one get tight.";
-        example = `${pct(st.paydayBurnPct, 1)} of your everyday extras happen on payday and the 4 days after. Spread evenly it would be about 16 %.`;
+        term = t.t("Payday burn");
+        definition = t.t("Spending a big share of your everyday money right after payday, so the last weeks before the next one get tight.");
+        example = t.t("{pct} of your everyday extras happen on payday and the 4 days after. Spread evenly it would be about 16 %.", { pct: pct(st.paydayBurnPct, 1) });
         break;
       case "overdraft":
-        term = "Going below zero";
-        definition = "When bills or purchases take the account below zero. It can cost fees and stress; it usually happens just before payday.";
+        term = t.t("Going below zero");
+        definition = t.t("When bills or purchases take the account below zero. It can cost fees and stress; it usually happens just before payday.");
         example = st.overdraftDaysLast12m
-          ? `Your account was below zero on ${st.overdraftDaysLast12m} days in the last 12 months.`
-          : "Your account did not go below zero in the last 12 months. Nice work.";
+          ? t.t("Your account was below zero on {n} days in the last 12 months.", { n: st.overdraftDaysLast12m })
+          : t.t("Your account did not go below zero in the last 12 months. Nice work.");
         break;
     }
-    const card: CardSpec = { id: ctx.newCardId(), kind: "concept", title: term, term, definition, example, explain: { tool: "explain_concept", filters: ["Example built from your own numbers by the engine"], source: SOURCE } };
+    const card: CardSpec = { id: ctx.newCardId(), kind: "concept", title: term, term, definition, example, explain: { tool: "explain_concept", filters: [t.t("Example built from your own numbers by the engine")], source: src(ctx) } };
     return { model: { term, definition, example, cards: cardRef([card]) }, full: { term, definition, example, s, st }, cards: [card] };
   },
 });
@@ -627,8 +727,9 @@ const actionTool = tool({
   description:
     "Show an action button: open_saastaja (S-Pankki's Säästäjä automatic saving), set_goal (savings goal flow), start_challenge (a one-week everyday-extras challenge with a target from the engine), connect_bank (connect another bank, PSD2), open_screen (a Vara screen). The label must not contain numbers.",
   schema: z.object({ action: z.enum(["open_saastaja", "set_goal", "start_challenge", "connect_bank", "open_screen"]), screen: z.enum(SCREENS).optional(), label: z.string().max(80).optional(), description: z.string().max(160).optional() }),
-  status: () => "Preparing a next step…",
+  status: (_i, t) => t.t("Preparing a next step…"),
   run: (ctx, i) => {
+    const t = T(ctx);
     const defaults: Record<string, string> = { open_saastaja: "Start saving with Säästäjä", set_goal: "Set a savings goal", start_challenge: "Start this week's challenge", connect_bank: "Connect your other bank", open_screen: "Open" };
     let payload: Record<string, unknown> | undefined = i.screen ? { screen: i.screen } : undefined;
     let description = noDigits(i.description, "");
@@ -636,9 +737,10 @@ const actionTool = tool({
       const typical = engine.getSafeToSpend(ctx.c, ctx.opts).week.typicalSpend ?? 0;
       const target = Math.max(10, Math.round((typical * 0.85) / 5) * 5);
       payload = { metric: "everyday_spend", target, baseline: r2(typical) };
-      description = `Keep everyday extras under ${eur0(target)} this week (a typical week is ${eur0(typical)}).`;
+      description = t.t("Keep everyday extras under {target} this week (a typical week is {typical}).", { target: eur0(target), typical: eur0(typical) });
     }
-    const card: CardSpec = { id: ctx.newCardId(), kind: "action", action: i.action, label: noDigits(i.label, defaults[i.action]), description: description || undefined, payload, explain: { tool: "suggest_action", filters: [], source: SOURCE } };
+    // label and description from the model are already in the reply language; the defaults are translated here
+    const card: CardSpec = { id: ctx.newCardId(), kind: "action", action: i.action, label: noDigits(i.label, t.t(defaults[i.action])), description: description || undefined, payload, explain: { tool: "suggest_action", filters: [], source: src(ctx) } };
     return { model: { action: i.action, label: (card as { label: string }).label, description, cards: cardRef([card]) }, full: payload ?? {}, cards: [card] };
   },
 });
@@ -649,43 +751,52 @@ const craveTool = tool({
   description:
     "Offer Crave mode when the user wants, is tempted by or asks whether to buy something specific (\"I want new headphones\", \"I'm craving sushi\", \"should I buy those sneakers?\"). Crave mode opens a generated shop for the craving with a full checkout; nothing ships and the basket total goes (simulated) into the user's Crave pot in savings, releasable after a 48-hour cooling-off. Pass the craving as a short shopping phrase (e.g. \"sushi\", \"wireless headphones\").",
   schema: z.object({ craving: z.string().min(1).max(60).describe("Short phrase for what they crave, in English, e.g. 'new sneakers'") }),
-  status: () => "Opening Crave mode…",
+  status: (_i, t) => t.t("Opening Crave mode…"),
   run: (ctx, i) => {
+    const t = T(ctx);
     const craving = i.craving.replace(/[\[\]<>]/g, "").trim().slice(0, 60);
     const card: CardSpec = {
       id: ctx.newCardId(),
       kind: "action",
       action: "open_crave",
-      title: "Shop it in Crave mode",
-      label: "Shop it in Crave mode",
-      description: `Get the full hunt and checkout for “${craving}”. Nothing ships: the money goes to your Crave pot, and you can release it after 48 hours if you still want it.`,
+      title: t.t("Shop it in Crave mode"),
+      label: t.t("Shop it in Crave mode"),
+      description: t.t("Get the full hunt and checkout for “{craving}”. Nothing ships: the money goes to your Crave pot, and you can release it after 48 hours if you still want it.", { craving }),
       payload: { craving },
-      explain: { tool: "offer_crave_mode", filters: ["Opt-in: the shop is generated for this craving only", "Simulation: no money is moved"], source: "Crave mode (Junction 2026 concept)" },
+      explain: { tool: "offer_crave_mode", filters: [t.t("Opt-in: the shop is generated for this craving only"), t.t("Simulation: no money is moved")], source: t.t("Crave mode (Junction 2026 concept)") },
     };
     return { model: { offered: true, craving, cards: cardRef([card]) }, full: { craving }, cards: [card] };
   },
 });
 
+const WEEKDAY_NUM: Record<string, number> = { monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 7 };
+const FI_WEEKDAY_ADESSIVE = ["", "maanantaisin", "tiistaisin", "keskiviikkoisin", "torstaisin", "perjantaisin", "lauantaisin", "sunnuntaisin"];
 const cravePotTool = tool({
   name: "get_crave_pot",
   description: "The user's Crave mode diary: how much their redirected cravings have saved (simulated Crave pot), how many, which kinds, when cravings strike, and how many they released after the cooling-off.",
   schema: z.object({}),
-  status: () => "Opening your Crave pot…",
+  status: (_i, t) => t.t("Opening your Crave pot…"),
   run: (ctx) => {
+    const t = T(ctx);
     const s = ctx.crave;
     if (!s || (!s.count && !s.releasedCount && !s.windowShops))
       return { model: { empty: true, note: "No cravings shopped in Crave mode yet. Suggest trying it (offer_crave_mode) next time they want to buy something." }, full: {}, cards: [] };
+    const wd = s.topWeekday ? WEEKDAY_NUM[s.topWeekday.toLowerCase()] : undefined;
+    const caption = [
+      t.tn("{n} craving redirected", "{n} cravings redirected", s.count),
+      s.releasedCount ? t.tn("{n} released", "{n} released", s.releasedCount) : "",
+    ].filter(Boolean).join(", ") + (s.topWeekday ? ". " + t.t("Most often on {day}", { day: wd ? (t.lang === "fi" ? FI_WEEKDAY_ADESSIVE[wd] : `${s.topWeekday}s`) : s.topWeekday }) : "");
     const card: CardSpec = {
       id: ctx.newCardId(),
       kind: "stat",
-      title: "Your Crave pot",
-      label: "Saved by redirecting cravings (simulated)",
+      title: t.t("Your Crave pot"),
+      label: t.t("Saved by redirecting cravings (simulated)"),
       value: s.savedTotal,
       unit: "eur",
-      caption: `${s.count} craving${s.count === 1 ? "" : "s"} redirected${s.releasedCount ? `, ${s.releasedCount} released` : ""}${s.topWeekday ? `. Most often on ${s.topWeekday}s` : ""}`,
-      series: s.byCategory.length > 1 ? s.byCategory.map((c) => ({ key: c.category, label: c.category, value: c.amount })) : undefined,
-      seriesLabel: s.byCategory.length > 1 ? "By kind of craving" : undefined,
-      explain: { tool: "Crave mode diary (this device)", filters: ["Simulation: no money was moved"], source: "Crave mode (Junction 2026 concept)" },
+      caption,
+      series: s.byCategory.length > 1 ? s.byCategory.map((c) => ({ key: c.category, label: t.tData(c.category), value: c.amount })) : undefined,
+      seriesLabel: s.byCategory.length > 1 ? t.t("By kind of craving") : undefined,
+      explain: { tool: "Crave mode diary (this device)", filters: [t.t("Simulation: no money was moved")], source: t.t("Crave mode (Junction 2026 concept)") },
     };
     return { model: { ...s, cards: cardRef([card]) }, full: s, cards: [card] };
   },
@@ -696,14 +807,14 @@ const forecastTool = tool({
   name: "get_balance_forecast",
   description: "Balance forecast until and beyond the next payday (fan of likely balances, chance of going below zero). Uses the ML forecast when ready, else the engine's bootstrap simulation.",
   schema: z.object({}),
-  status: () => "Simulating the weeks ahead…",
+  status: (_i, t) => t.t("Simulating the weeks ahead…"),
   run: async (ctx) => {
     let f = await loadMl<MlForecast>("forecast", ctx.c.id);
     let fromMl = true;
     if (!f) {
       fromMl = false;
       const s = engine.getSafeToSpend(ctx.c, ctx.opts);
-      const fe = engine.getFixedEvents(ctx.c, 35, { goal: ctx.opts.goal });
+      const fe = engine.getFixedEvents(ctx.c, 35, { goal: ctx.opts.goal, lang: L(ctx) });
       const sim = engine.simulateBalance(ctx.c, { days: 35, fixedEvents: fe, paydayDate: s.nextPayday.date });
       const start = currentBalance(ctx.c);
       const spendAt = (d: number) => {
@@ -733,9 +844,14 @@ const forecastTool = tool({
     const card: CardSpec = {
       id: ctx.newCardId(),
       kind: "forecast",
-      title: "Your balance in the weeks ahead",
+      title: T(ctx).t("Your balance in the weeks ahead"),
       data: f,
-      explain: { tool: fromMl ? "ML: balance forecast (ml/b_forecast.py)" : "engine.simulateBalance (bootstrap, 1,000 paths)", filters: ["Your own past days, same weekday, last 182 days", "Salary, rent and investing placed on their expected dates"], source: SOURCE, model: fromMl ? await modelInfo("forecast") : { name: "Bootstrap simulation", metric: "ML forecast not ready yet: engine simulation shown" } },
+      explain: {
+        tool: fromMl ? "ML: balance forecast (ml/b_forecast.py)" : "engine.simulateBalance (bootstrap, 1,000 paths)",
+        filters: [T(ctx).t("Your own past days, same weekday, last 182 days"), T(ctx).t("Salary, rent and investing placed on their expected dates")],
+        source: src(ctx),
+        model: fromMl ? await modelInfo("forecast") : { name: T(ctx).t("Bootstrap simulation"), metric: T(ctx).t("ML forecast not ready yet: engine simulation shown") },
+      },
     };
     const end = f.fan[f.fan.length - 1];
     return {
@@ -750,11 +866,12 @@ const riskTool = tool({
   name: "get_overdraft_risk",
   description: "Early-warning model: chance the balance goes below zero in the next 14 days, with the main drivers.",
   schema: z.object({}),
-  status: () => "Checking the early-warning model…",
+  status: (_i, t) => t.t("Checking the early-warning model…"),
   run: async (ctx) => {
+    const t = T(ctx);
     const r = await loadMl<MlRisk>("risk", ctx.c.id);
     if (!r) return mlMissing("early-warning");
-    const card: CardSpec = { id: ctx.newCardId(), kind: "risk", title: "Early warning", data: r, explain: { tool: "ML: early-warning model", filters: [`Horizon ${r.horizonDays} days`], source: SOURCE, model: await modelInfo("risk") } };
+    const card: CardSpec = { id: ctx.newCardId(), kind: "risk", title: t.t("Early warning"), data: r, explain: { tool: "ML: early-warning model", filters: [t.t("Horizon {n} days", { n: r.horizonDays })], source: src(ctx), model: await modelInfo("risk") } };
     return { model: { probability_pct: r2(r.probability * 100), level: r.level, base_rate_pct: r2(r.baseRate * 100), percentile: r.percentile, drivers: r.drivers.slice(0, 4).map((d) => ({ label: d.label, display: d.display, direction: d.direction })), cards: cardRef([card]) }, full: r, cards: [card] };
   },
 });
@@ -763,11 +880,18 @@ const twinsTool = tool({
   name: "get_two_futures",
   description: "Two Futures: what happened over the following year to customers who looked like this customer a year earlier (built a buffer vs slipped), and which behaviours separated them.",
   schema: z.object({}),
-  status: () => "Finding people who were where you are…",
+  status: (_i, t) => t.t("Finding people who were where you are…"),
   run: async (ctx) => {
+    const tt = T(ctx);
     const t = await loadMl<MlTwins>("twins", ctx.c.id);
     if (!t) return mlMissing("Two Futures (financial twins)");
-    const card: CardSpec = { id: ctx.newCardId(), kind: "twins", title: "Two futures", data: t, explain: { tool: "ML: financial twins (nearest neighbours)", filters: [`${t.nTwins} similar customers`, t.caveat], source: SOURCE, model: await modelInfo("twins") } };
+    const card: CardSpec = {
+      id: ctx.newCardId(),
+      kind: "twins",
+      title: tt.t("Two futures"),
+      data: t,
+      explain: { tool: "ML: financial twins (nearest neighbours)", filters: [tt.t("{n} similar customers", { n: t.nTwins }), tt.tData(t.caveat)], source: src(ctx), model: await modelInfo("twins") },
+    };
     return { model: { n_twins: t.nTwins, groups: t.groups.map((g) => ({ key: g.key, label: g.label, n: g.n, buffer_change: g.bufferChange })), differences: t.differences.slice(0, 3), caveat: t.caveat, cards: cardRef([card]) }, full: t, cards: [card] };
   },
 });
@@ -776,11 +900,12 @@ const anomaliesTool = tool({
   name: "get_unusual_transactions",
   description: "Transactions and weeks that were unusual for this customer (anomaly model).",
   schema: z.object({}),
-  status: () => "Looking for anything unusual…",
+  status: (_i, t) => t.t("Looking for anything unusual…"),
   run: async (ctx) => {
+    const t = T(ctx);
     const a = await loadMl<MlAnomalies>("anomalies", ctx.c.id);
     if (!a) return mlMissing("unusual-transactions");
-    const card: CardSpec = { id: ctx.newCardId(), kind: "anomalies", title: "Unusual for you", data: a, explain: { tool: "ML: anomaly detection", filters: ["Last 12 months, compared with your own history"], source: SOURCE, model: await modelInfo("anomalies") } };
+    const card: CardSpec = { id: ctx.newCardId(), kind: "anomalies", title: t.t("Unusual for you"), data: a, explain: { tool: "ML: anomaly detection", filters: [t.t("Last 12 months, compared with your own history")], source: src(ctx), model: await modelInfo("anomalies") } };
     return { model: { top: a.transactions.slice(0, 5).map((x) => ({ date: x.date, category: x.category, amount: x.amount, reasons: x.reasons })), last_30_days: a.last30Days, cards: cardRef([card]) }, full: a, cards: [card] };
   },
 });
@@ -789,11 +914,12 @@ const habitsTool = tool({
   name: "get_habits",
   description: "Habit detector: lasting changes in weekly spending (new good habits, forming, slipping).",
   schema: z.object({}),
-  status: () => "Checking your habits…",
+  status: (_i, t) => t.t("Checking your habits…"),
   run: async (ctx) => {
+    const t = T(ctx);
     const h = await loadMl<MlHabits>("habits", ctx.c.id);
     if (!h) return mlMissing("habit-detector");
-    const card: CardSpec = { id: ctx.newCardId(), kind: "habits", title: "Your habits", data: h, explain: { tool: "ML: change-point habit detector", filters: ["Weekly spending series, last 40 weeks"], source: SOURCE, model: await modelInfo("habits") } };
+    const card: CardSpec = { id: ctx.newCardId(), kind: "habits", title: t.t("Your habits"), data: h, explain: { tool: "ML: change-point habit detector", filters: [t.t("Weekly spending series, last 40 weeks")], source: src(ctx), model: await modelInfo("habits") } };
     return { model: { habits: h.habits.slice(0, 4).map((x) => ({ category: x.category, direction: x.direction, status: x.status, since: x.since, before: x.before, after: x.after, change_pct: x.changePct, monthly_impact: x.monthlyImpact })), cards: cardRef([card]) }, full: h, cards: [card] };
   },
 });
@@ -802,11 +928,18 @@ const homeTool = tool({
   name: "get_home_readiness",
   description: "First-home readiness (illustrative, from 200 mortgage applications in the dataset): reachable price, equity gap, years to ready.",
   schema: z.object({}),
-  status: () => "Checking first-home readiness…",
+  status: (_i, t) => t.t("Checking first-home readiness…"),
   run: async (ctx) => {
+    const t = T(ctx);
     const h = await loadMl<MlHome>("home", ctx.c.id);
     if (!h) return mlMissing("first-home readiness");
-    const card: CardSpec = { id: ctx.newCardId(), kind: "home", title: "First-home readiness", data: h, explain: { tool: "ML: first-home readiness (illustrative)", filters: [`${h.reachable.nSimilar} similar applicants`, h.caveat], source: SOURCE, model: await modelInfo("home") } };
+    const card: CardSpec = {
+      id: ctx.newCardId(),
+      kind: "home",
+      title: t.t("First-home readiness"),
+      data: h,
+      explain: { tool: "ML: first-home readiness (illustrative)", filters: [t.t("{n} similar applicants", { n: h.reachable.nSimilar }), t.tData(h.caveat)], source: src(ctx), model: await modelInfo("home") },
+    };
     return { model: { reachable: h.reachable, equity: h.equity, monthly_saving_now: h.monthlySavingNow, years_to_ready: h.yearsToReady, blockers: h.blockers, caveat: h.caveat, cards: cardRef([card]) }, full: h, cards: [card] };
   },
 });
@@ -815,11 +948,18 @@ const futuresTool = tool({
   name: "get_txgpt_futures",
   description: "TransactionGPT (experimental): sampled next-14-day futures (thrifty, typical, spendy) from a sequence model trained on transactions.",
   schema: z.object({}),
-  status: () => "Sampling possible next two weeks…",
+  status: (_i, t) => t.t("Sampling possible next two weeks…"),
   run: async (ctx) => {
+    const tt = T(ctx);
     const t = await loadMl<MlTxGpt>("txgpt", ctx.c.id);
     if (!t) return mlMissing("TransactionGPT");
-    const card: CardSpec = { id: ctx.newCardId(), kind: "futures", title: "Three possible next two weeks", data: t, explain: { tool: "ML: TransactionGPT (experimental)", filters: [`${t.next14.nSamples} sampled futures`], source: SOURCE, model: await modelInfo("txgpt") } };
+    const card: CardSpec = {
+      id: ctx.newCardId(),
+      kind: "futures",
+      title: tt.t("Three possible next two weeks"),
+      data: t,
+      explain: { tool: "ML: TransactionGPT (experimental)", filters: [tt.t("{n} sampled futures", { n: t.next14.nSamples })], source: src(ctx), model: await modelInfo("txgpt") },
+    };
     return { model: { next14: t.next14, futures: t.futures.map((f) => ({ label: f.label, total: f.total })), next_category_top3: t.nextCategoryTop3, cards: cardRef([card]) }, full: t, cards: [card] };
   },
 });
@@ -857,14 +997,15 @@ export const TOOL_PARAMS: Anthropic.Tool[] = TOOLS.map((t) => {
   return { name: t.name, description: t.description, input_schema: schema as Anthropic.Tool.InputSchema };
 });
 
-export function toolStatus(name: string, input: unknown): string {
+export function toolStatus(name: string, input: unknown, lang: Lang = "en"): string {
+  const tl = tr(lang);
   const t = byName.get(name);
-  if (!t) return "Working on it…";
+  if (!t) return tl.t("Working on it…");
   const p = t.schema.safeParse(input);
   try {
-    return p.success ? t.status(p.data) : "Working on it…";
+    return p.success ? t.status(p.data, tl) : tl.t("Working on it…");
   } catch {
-    return "Working on it…";
+    return tl.t("Working on it…");
   }
 }
 

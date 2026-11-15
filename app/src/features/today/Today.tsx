@@ -15,7 +15,7 @@ import { SafeHero } from "./SafeHero";
 import { ChallengeCard } from "./ChallengeCard";
 import { GoalCard } from "./GoalCard";
 import { CraveEntryCard, CravePotCard } from "@/features/crave/TodayCards";
-import { t, tData } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 
 export function ask(q: string, screen = "today") {
   actions.ask(q, screen);
@@ -31,7 +31,7 @@ function unavailableReason(r: { ok: false; notImplemented: boolean; error: strin
 }
 
 export function BasketsSummary({ data, onOpen }: { data: BasketsResult; onOpen: () => void }) {
-  const parts = data.baskets.map((b) => ({ key: b.basket, label: tData(basketMeta(b.basket).label), value: b.total, color: basketColor(b.basket) }));
+  const parts = data.baskets.map((b) => ({ key: b.basket, label: basketMeta(b.basket).label, value: b.total, color: basketColor(b.basket) }));
   return (
     <Card>
       <CardTitle icon={ChartPie} right={<TextLink onClick={onOpen}>{t("Explore")}</TextLink>}>{t("Where this month went")}</CardTitle>
@@ -51,8 +51,8 @@ export function BasketsSummary({ data, onOpen }: { data: BasketsResult; onOpen: 
               <button type="button" onClick={onOpen} className="flex w-full items-start gap-3 rounded-md py-2.5 text-left hover:bg-green-50">
                 <IconCircle icon={basketIcon(b.basket)} color={m.color} />
                 <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-ink">{tData(m.label)}</span>
-                  <span className="mt-0.5 block text-sm text-ink-muted">{tData(m.description)}</span>
+                  <span className="block font-semibold text-ink">{m.label}</span>
+                  <span className="mt-0.5 block text-sm text-ink-muted">{m.description}</span>
                 </span>
                 <span className="shrink-0 text-right">
                   <span className="tnum block font-semibold">{money(b.total, { whole: true })}</span>

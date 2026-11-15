@@ -1,5 +1,6 @@
 import type { CardSpec } from "@shared/chat";
 import { money, num, pct } from "@/lib/format";
+import { tn } from "@/lib/i18n";
 
 export type CardOf<K extends CardSpec["kind"]> = Extract<CardSpec, { kind: K }>;
 
@@ -7,6 +8,6 @@ export type CardOf<K extends CardSpec["kind"]> = Extract<CardSpec, { kind: K }>;
 export function fmtUnit(v: number, unit: "eur" | "pct" | "count" | "days", whole = false): string {
   if (unit === "eur") return money(v, { whole });
   if (unit === "pct") return Math.abs(v) <= 1 ? pct(v) : `${num(v)} %`;
-  if (unit === "days") return `${num(v)} ${Math.round(v) === 1 ? "day" : "days"}`;
+  if (unit === "days") return tn("{n} day", "{n} days", Math.round(v), { n: num(v) });
   return num(v);
 }

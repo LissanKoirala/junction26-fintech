@@ -65,7 +65,7 @@ export function BasketTag({ color, label, variant = theme.basketChips }: { color
 /** Header of a full-screen flow or sub-space: back arrow, centred title, optional right slot. */
 export function ScreenHeader({ title, onBack, right, leading }: { title: ReactNode; onBack?: () => void; right?: ReactNode; leading?: ReactNode }) {
   return (
-    <header className="sticky top-0 z-20 grid grid-cols-[48px_1fr_48px] items-center bg-screen px-1 pt-[env(safe-area-inset-top)]">
+    <header className={cx("sticky top-0 z-20 grid items-center bg-screen px-1 pt-[env(safe-area-inset-top)]", right ? "grid-cols-[76px_1fr_76px]" : "grid-cols-[48px_1fr_48px]")}>
       <div>{onBack && <IconButton icon={ArrowLeft} label={t("Back")} onClick={onBack} />}</div>
       <h1 className="flex min-h-14 items-center justify-center gap-2 truncate text-center text-lg font-bold text-green-900">
         {leading}

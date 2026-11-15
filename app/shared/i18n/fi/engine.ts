@@ -82,6 +82,7 @@ const fi: Record<string, string> = {
     "Viimeisen 6 kuukauden aikana ei ole tullut säännöllistä kuukausipalkkaa, joten Vara suunnittelee seuraavat 30 päivää.",
   "You were paid on the 15th in {n} of the last {m} months; the other months it came at the end of the month.":
     "Palkka tuli 15. päivä {n} kertaa viimeisen {m} kuukauden aikana; muina kuukausina se tuli kuun lopussa.",
+  "You were paid on the 15th in each of the last {m} months.": "Palkka on tullut 15. päivä jokaisena viimeisestä {m} kuukaudesta.",
   "Your salary usually arrives around day {day} of the month.": "Palkkasi tulee yleensä kuun {day}. päivän tienoilla.",
   "Income is irregular, so Vara plans for the next 30 days instead of predicting a payday.":
     "Tulot ovat epäsäännöllisiä, joten Vara suunnittelee seuraavat 30 päivää eikä arvaa palkkapäivää.",

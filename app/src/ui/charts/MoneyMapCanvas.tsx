@@ -62,8 +62,9 @@ export function MoneyMapCanvas({
   const labelLeft = yx > w - 110;
   const labelBelow = yy < 40;
   return (
-    <div ref={ref} className="relative w-full overflow-hidden rounded-md bg-green-50" style={{ height }} onClick={onTap}>
-      <canvas ref={cv} role="img" aria-label={ariaLabel} style={{ width: w, height, display: "block" }} />
+    // no overflow-hidden on the wrapper: the pulsing "You are here" marker must not be clipped when the customer sits at the map edge
+    <div ref={ref} className="relative w-full" style={{ height }} onClick={onTap}>
+      <canvas ref={cv} role="img" aria-label={ariaLabel} className="rounded-md bg-green-50" style={{ width: w, height, display: "block" }} />
       {you && (
         <>
           <span className="pointer-events-none absolute" style={{ left: yx - 14, top: yy - 14, width: 28, height: 28 }} aria-hidden>

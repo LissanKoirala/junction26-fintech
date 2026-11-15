@@ -6,6 +6,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { llm } from "../llm";
 import { CRAVE_ACCENTS, CRAVE_BADGES, CRAVE_CATEGORIES, CRAVE_ICONS, type CraveAddOn, type CraveProduct, type CraveReview, type CraveShopHeader, type CraveVariant } from "../../shared/crave";
 import { DetailsSchema, ShopSchema } from "./schema";
+import { tr, type Lang } from "../../shared/i18n";
 
 export const CRAVE_MODEL = process.env.CRAVE_MODEL ?? "anthropic:claude@haiku-5.5";
 
@@ -17,7 +18,7 @@ Rules:
 - Prices in euros at realistic Finnish market level (e.g. sushi set 14-24 €, wireless headphones 39-349 €, sneakers 69-189 €). Use prices like 12.90, 79.00, 149.95. Make a spread from affordable to premium.
 - 10 products, varied, each with a one-line pitch and 1-2 tags drawn from the shop's 4-6 facets so filters are useful. 2-3 products on sale with compareAtPrice 15-30% higher, 1-2 with stockLeft, a few badges, most badges empty.
 - imagePrompt: a concrete visual description for a product photo (object, colour, material, styling). No brand names, no text, no logos, no people.
-- Write in English. Keep strings short.
+- {LANGUAGE} Keep strings short.
 - Refuse (refused=true, products empty, a kind one-sentence refusalMessage) for cravings a bank app should not simulate: weapons, drugs or other controlled substances, adult or sexual content, gambling or betting, tobacco or vaping, anything illegal or harmful, or anything about hurting people. Alcohol: keep it to food pairings, do not build a liquor shop. For non-shoppable or unclear cravings (e.g. "love", "a holiday"), still make a sensible shop if you can (e.g. a travel gear store) without refusing.`;
 
 export interface GenCallbacks {
@@ -153,14 +154,20 @@ export interface GenResult {
   ttftMs: number;
 }
 
-export async function generateShop(craving: string, cb: GenCallbacks, signal: AbortSignal, model = CRAVE_MODEL): Promise<GenResult> {
+const LANGUAGE: Record<Lang, string> = {
+  en: "Write in English.",
+  fi: "Write all customer-facing text (tagline, deliveryPromise, product names, pitches, sections, tags, refusalMessage) in natural, everyday Finnish, the way a Finnish online shop or delivery app would (e.g. deliveryPromise \"Ilmainen toimitus huomenna\" or \"25–35 min\"). Shop and brand names stay invented and may be language-neutral. imagePrompt stays in English.",
+};
+const systemFor = (lang: Lang) => SYSTEM.replace("{LANGUAGE}", LANGUAGE[lang]);
+
+export async function generateShop(craving: string, cb: GenCallbacks, signal: AbortSignal, model = CRAVE_MODEL, lang: Lang = "en"): Promise<GenResult> {
   const t0 = Date.now();
   let ttft = 0;
   const isHaiku = /haiku/.test(model);
   const params: Anthropic.MessageCreateParamsNonStreaming = {
     model,
     max_tokens: 8000,
-    system: SYSTEM,
+    system: systemFor(lang),
     messages: [{ role: "user", content: `The customer's craving: "${craving}"\nGenerate the shop.` }],
     output_config: { effort: "low", format: zodOutputFormat(ShopSchema) },
   };
@@ -189,7 +196,7 @@ export async function generateShop(craving: string, cb: GenCallbacks, signal: Ab
   const msg = await ms.finalMessage();
   const usage = { in: msg.usage.input_tokens, out: msg.usage.output_tokens };
   if (msg.stop_reason === "refusal")
-    return { refused: true, refusalMessage: "This one is not something Crave mode can open a shop for.", header: null, products: [], alsoBought: [], usage, ttftMs: ttft };
+    return { refused: true, refusalMessage: tr(lang).t("This one is not something Crave mode can open a shop for."), header: null, products: [], alsoBought: [], usage, ttftMs: ttft };
   let full: Record<string, unknown> | null = null;
   try {
     full = JSON.parse(text);
@@ -208,7 +215,8 @@ export async function generateShop(craving: string, cb: GenCallbacks, signal: Ab
   return { refused: !!header?.refused, refusalMessage: header?.refusalMessage ?? "", header, products, alsoBought, usage, ttftMs: ttft };
 }
 
-const DETAILS_SYSTEM = `You write product details for an invented online shop in a Finnish bank's "Crave mode" (a Junction 2026 concept; nothing ships). For each product id you get, write variants, add-ons and 2-3 short believable reviews. Variants must fit the product (sizes for clothes and shoes, colours for gadgets, spice level or size for dishes). Add-on prices in euros at Finnish level. Reviewer names are invented first names with an initial. Never mention real brands, retailers or people. English, short strings.`;
+const DETAILS_SYSTEM = `You write product details for an invented online shop in a Finnish bank's "Crave mode" (a Junction 2026 concept; nothing ships). For each product id you get, write variants, add-ons and 2-3 short believable reviews. Variants must fit the product (sizes for clothes and shoes, colours for gadgets, spice level or size for dishes). Add-on prices in euros at Finnish level. Reviewer names are invented first names with an initial. Never mention real brands, retailers or people. Short strings.`;
+const DETAILS_LANGUAGE: Record<Lang, string> = { en: " Write in English.", fi: " Write variant names, options, add-ons and reviews in natural everyday Finnish (reviewer names Finnish first names with an initial)." };
 
 /** Second pass: variants, add-ons and reviews for some products, streamed item by item. */
 export async function generateDetails(
@@ -217,12 +225,13 @@ export async function generateDetails(
   onItem: (id: string, d: ReturnType<typeof cleanDetails>) => void,
   signal: AbortSignal,
   model = CRAVE_MODEL,
+  lang: Lang = "en",
 ): Promise<{ in: number; out: number }> {
   const input = { shop: { name: header.shopName, kind: header.kind, tagline: header.tagline }, products: products.map((p) => ({ id: p.id, brand: p.brand, name: p.name, pitch: p.pitch, price: p.price, section: p.section })) };
   const params: Anthropic.MessageCreateParamsNonStreaming = {
     model,
     max_tokens: 6000,
-    system: DETAILS_SYSTEM,
+    system: DETAILS_SYSTEM + DETAILS_LANGUAGE[lang],
     messages: [{ role: "user", content: JSON.stringify(input) }],
     output_config: { effort: "low", format: zodOutputFormat(DetailsSchema) },
   };

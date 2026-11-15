@@ -3,10 +3,11 @@ import { actions } from "@/state/store";
 import { navigate } from "@/lib/router";
 import { categoryLabel } from "@/lib/domain";
 import { money, num } from "@/lib/format";
+import { t, tData } from "@/lib/i18n";
 import type { MlHabits } from "@shared/ml/typesA";
 import type { MlRisk } from "@shared/ml/typesB";
 
-/** Open the chat with a question. */
+/** Open the chat with a question (pass it already translated). */
 export function askVara(q: string, screen = "you") {
   actions.ask(q, screen);
   navigate("/vara/chat", { replace: true });
@@ -23,25 +24,26 @@ export type YouSection = "personality" | "map" | "twins" | "forecast" | "risk" |
 /** 0.367 -> "about 1 in 3"; 0.62 -> "about 6 in 10". */
 export function chanceWords(p: number | null | undefined): string {
   if (p == null || !Number.isFinite(p)) return "–";
-  if (p <= 0.005) return "almost none";
-  if (p < 0.05) return "less than 1 in 20";
-  if (p < 0.3) return `about 1 in ${Math.round(1 / p)}`;
-  if (p >= 0.95) return "very likely";
-  return `about ${Math.round(p * 10)} in 10`;
+  if (p <= 0.005) return t("almost none");
+  if (p < 0.05) return t("less than 1 in 20");
+  if (p < 0.3) return t("about 1 in {n}", { n: Math.round(1 / p) });
+  if (p >= 0.95) return t("very likely");
+  return t("about {n} in 10", { n: Math.round(p * 10) });
 }
 
 /** Feature value with its unit as written in the model files ("%" features are already 0-100). */
 export function fmtFeature(v: number, unit: string): string {
   const u = unit.trim();
   if (u === "%") return `${num(v, Math.abs(v) < 10 ? 1 : 0)} %`;
-  if (u === "€/month" || u === "€ per month" || u === "EUR/month") return `${money(v, { whole: true })} a month`;
+  if (u === "€/month" || u === "€ per month" || u === "EUR/month") return t("{v} a month", { v: money(v, { whole: true }) });
   if (u === "€" || u === "EUR") return money(v, { whole: true });
-  if (u === "per month") return `${num(v, v < 10 ? 1 : 0)} a month`;
-  if (u === "days") return `${num(v)} days`;
-  if (u === "months") return `${num(v, 1)} months`;
-  return `${num(v, Math.abs(v) < 10 ? 1 : 0)}${u ? " " + u : ""}`;
+  if (u === "per month") return t("{v} a month", { v: num(v, v < 10 ? 1 : 0) });
+  if (u === "days") return t("{v} days", { v: num(v) });
+  if (u === "months") return t("{v} months", { v: num(v, 1) });
+  return `${num(v, Math.abs(v) < 10 ? 1 : 0)}${u ? " " + tData(u) : ""}`;
 }
 
+/** Module constants below keep the English; translate with t() where they are shown. */
 export const RISK_WORDS: Record<MlRisk["level"], { label: string; line: string; tone: "accent" | "warning" | "error" }> = {
   low: { label: "Calm", line: "Your balance looks steady for the next two weeks.", tone: "accent" },
   elevated: { label: "Worth a look", line: "There is a real chance of dipping below zero in the next two weeks.", tone: "warning" },
@@ -53,19 +55,20 @@ export const habitGood = (h: Habit) => h.monthlyImpact > 0;
 export const HABIT_STATUS: Record<Habit["status"], string> = { new_habit: "New habit", forming: "Forming", slipping: "Slipping" };
 
 export function habitLevel(h: Habit, v: number): string {
-  return h.metric === "weekly_count" ? `${num(v, v < 10 ? 1 : 0)} a week` : `${money(v, { whole: v >= 100 })} a week`;
+  return t("{v} a week", { v: h.metric === "weekly_count" ? num(v, v < 10 ? 1 : 0) : money(v, { whole: v >= 100 }) });
 }
 export function habitName(h: Habit): string {
-  const c = categoryLabel(h.category);
-  return h.metric === "weekly_count" && !/purchase/i.test(c) ? `${c} purchases` : c;
+  const en = categoryLabel(h.category);
+  const c = tData(en);
+  return h.metric === "weekly_count" && !/purchase/i.test(en) ? t("{c} purchases", { c }) : c;
 }
 /** One-line headline. Good habits celebrate; slipping ones are a gentle question. */
 export function habitHeadline(h: Habit): string {
   const name = habitName(h);
-  const pctTxt = `${Math.abs(Math.round(h.changePct))} %`;
-  const dir = h.direction === "down" ? "down" : "up";
-  if (habitGood(h)) return `${name} ${dir} ${pctTxt}. Nice work!`;
-  return `${name} ${dir} ${pctTxt}. Is that on purpose?`;
+  const pct = `${Math.abs(Math.round(h.changePct))} %`;
+  const down = h.direction === "down";
+  if (habitGood(h)) return down ? t("{name} down {pct}. Nice work!", { name, pct }) : t("{name} up {pct}. Nice work!", { name, pct });
+  return down ? t("{name} down {pct}. Is that on purpose?", { name, pct }) : t("{name} up {pct}. Is that on purpose?", { name, pct });
 }
 /** Most notable habit: biggest monthly euro impact, weighted by confidence. */
 export function topHabit(habits: Habit[]): Habit | null {

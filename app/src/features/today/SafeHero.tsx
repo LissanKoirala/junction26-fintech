@@ -25,7 +25,7 @@ export function SafeHero({ s }: { s: SafeToSpend }) {
             <VaraAvatar size={24} inverse={inv} />
             {v.title}
           </p>
-          <Badge tone={w.tone}>{w.label}</Badge>
+          <span className="shrink-0 whitespace-nowrap"><Badge tone={w.tone}>{w.label}</Badge></span>
         </div>
         {v.figure != null ? (
           <div className="mt-1">

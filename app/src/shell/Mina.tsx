@@ -41,7 +41,7 @@ export function Mina() {
       await fetchCustomer(id);
       pick(id);
     } catch (e) {
-      setErr(tData((e as Error).message));
+      setErr((e as Error).message); // already in the app language (lib/api)
     } finally {
       setBusy(false);
     }

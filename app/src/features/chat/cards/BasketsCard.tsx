@@ -6,17 +6,19 @@ import { TextLink } from "@/ui/kit";
 import { basketMeta, basketColor } from "@/lib/domain";
 import { money, pct, periodLabel } from "@/lib/format";
 import { navigate } from "@/lib/router";
+import { t } from "@/lib/i18n";
 import type { CardOf } from "./util";
 
 export function BasketsCard({ card }: { card: CardOf<"baskets"> }) {
   const d = card.data;
   const parts = d.baskets.map((b) => ({ key: b.basket, label: basketMeta(b.basket).label, value: b.total, color: basketColor(b.basket) }));
   return (
-    <CardFrame icon={Layers} title={card.title ?? "Your three baskets"} explain={card.explain}>
+    <CardFrame icon={Layers} title={card.title ?? t("Your three baskets")} explain={card.explain}>
       <p className="-mt-1 mb-3 text-sm text-ink-muted">
-        {periodLabel(d.period)} · {money(d.spending, { whole: true })} spent{d.income > 0 ? ` · income ${money(d.income, { whole: true })}` : ""}
+        {periodLabel(d.period)} · {t("{v} spent", { v: money(d.spending, { whole: true }) })}
+        {d.income > 0 ? ` · ${t("income {v}", { v: money(d.income, { whole: true }) })}` : ""}
       </p>
-      <StackedBar parts={parts} size="tall" label="Spending by basket" format={(v) => money(v, { whole: true })} />
+      <StackedBar parts={parts} size="tall" label={t("Spending by basket")} format={(v) => money(v, { whole: true })} />
       <ul className="mt-3 flex flex-col gap-2.5">
         {d.baskets.map((b) => (
           <li key={b.basket} className="flex items-start justify-between gap-3">
@@ -33,7 +35,7 @@ export function BasketsCard({ card }: { card: CardOf<"baskets"> }) {
           </li>
         ))}
       </ul>
-      <TextLink onClick={() => navigate("/flow/baskets")}>Open baskets</TextLink>
+      <TextLink onClick={() => navigate("/flow/baskets")}>{t("Open baskets")}</TextLink>
     </CardFrame>
   );
 }

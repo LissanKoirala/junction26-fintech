@@ -6,7 +6,8 @@ import { PERSONAS } from "@shared/personas";
 import { actions, useStore } from "@/state/store";
 import { useCustomer } from "@/state/customer";
 import { Banner, Chip, STROKE } from "@/ui/kit";
-import { ActivityLine, CheckLine, Composer, composerInputClass, RoundAction, TinyToggle, UserBubble, VaraText, VaraTurn } from "@/ui/chat";
+import { ActivityLine, CheckLine, Composer, composerInputClass, RoundAction, UserBubble, VaraText, VaraTurn } from "@/ui/chat";
+import { t, useLang } from "@/lib/i18n";
 import { VaraAvatar } from "@/ui/hero";
 import { CardRenderer } from "./cards/registry";
 import { useChat } from "./useChat";
@@ -16,14 +17,14 @@ import type { UiMessage } from "./store";
 
 function starters(hasHousing: boolean, sweep: boolean): string[] {
   const q = [
-    "Can I afford a 60 € dinner this weekend?",
-    "How much did I spend on taxis in September?",
-    "Where did my money go last month?",
-    "What kind of spender am I?",
+    t("Can I afford a 60 € dinner this weekend?"),
+    t("How much did I spend on taxis in September?"),
+    t("Where did my money go last month?"),
+    t("What kind of spender am I?"),
   ];
-  if (hasHousing) q.push("Is my rent too high for my income?");
-  q.push("How much could I save if I ate out less?");
-  if (sweep) q.unshift("Why does my balance drop right after payday?");
+  if (hasHousing) q.push(t("Is my rent too high for my income?"));
+  q.push(t("How much could I save if I ate out less?"));
+  if (sweep) q.unshift(t("Why does my balance drop right after payday?"));
   return q;
 }
 
@@ -37,9 +38,9 @@ function AssistantMessage({ m, last, onAsk }: { m: UiMessage; last: boolean; onA
         <CardRenderer key={c.id} card={c} />
       ))}
       {showStatus && <ActivityLine label={m.status!} />}
-      {waiting && <ActivityLine label="Thinking…" />}
-      {m.error && <Banner tone="warning" title="Something went wrong">{m.error}</Banner>}
-      {!m.streaming && m.check && <CheckLine verified={m.check.verified} unverified={m.check.unverified} note={m.mocked ? "offline demo" : undefined} />}
+      {waiting && <ActivityLine label={t("Thinking…")} />}
+      {m.error && <Banner tone="warning" title={t("Something went wrong")}>{m.error}</Banner>}
+      {!m.streaming && m.check && <CheckLine verified={m.check.verified} unverified={m.check.unverified} note={m.mocked ? t("offline demo") : undefined} />}
       {last && !m.streaming && m.suggestions && m.suggestions.length > 0 && (
         <div className="flex flex-wrap gap-2 pt-1">
           {m.suggestions.map((s) => (
@@ -54,7 +55,8 @@ function AssistantMessage({ m, last, onAsk }: { m: UiMessage; last: boolean; onA
 export default function Chat() {
   const customerId = useStore((s) => s.customerId);
   const pending = useStore((s) => s.pendingQuestion);
-  const voiceLang = useStore((s) => s.voiceLang);
+  // the microphone listens in the app language (EN | FI switch in the header)
+  const voiceLang = useLang() === "fi" ? "fi-FI" : "en-US";
   const customer = useCustomer();
   const { messages, busy, send, stop, clear } = useChat(customerId);
   const [text, setText] = useState("");
@@ -117,9 +119,9 @@ export default function Chat() {
           <div className="flex flex-col gap-4 pt-4">
             <div className="flex flex-col items-center gap-2 text-center">
               <VaraAvatar size={56} />
-              <p className="text-xl font-bold text-title">Hi{persona ? ` ${persona.alias}` : ""}, I'm Vara</p>
+              <p className="text-xl font-bold text-title">{persona ? t("Hi {name}, I'm Vara", { name: persona.alias }) : t("Hi, I'm Vara")}</p>
               <p className="max-w-[300px] text-base text-ink-strong">
-                Ask me anything about your money. I'll answer with your own numbers and show you how I got them.
+                {t("Ask me anything about your money. I'll answer with your own numbers and show you how I got them.")}
               </p>
             </div>
             <div className="flex flex-col items-stretch gap-2">
@@ -127,7 +129,7 @@ export default function Chat() {
                 <Chip key={q} icon={questionIcon(q)} onClick={() => ask(q)} className="justify-start">{q}</Chip>
               ))}
             </div>
-            <p className="text-center text-xs text-ink-muted">You can write in Finnish, Swedish or English.</p>
+            <p className="text-center text-xs text-ink-muted">{t("You can write in Finnish, Swedish or English.")}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4 pt-2">
@@ -143,7 +145,7 @@ export default function Chat() {
             {!busy && (
               <div className="flex justify-center">
                 <button type="button" onClick={clear} className="inline-flex min-h-11 items-center gap-1.5 text-sm text-ink-muted hover:text-green-700">
-                  <RotateCcw size={14} strokeWidth={STROKE} aria-hidden /> New conversation
+                  <RotateCcw size={14} strokeWidth={STROKE} aria-hidden /> {t("New conversation")}
                 </button>
               </div>
             )}
@@ -159,7 +161,7 @@ export default function Chat() {
             submit();
           }}
         >
-          <label htmlFor="vara-input" className="sr-only">Message Vara</label>
+          <label htmlFor="vara-input" className="sr-only">{t("Message Vara")}</label>
           <textarea
             id="vara-input"
             ref={inputRef}
@@ -172,21 +174,13 @@ export default function Chat() {
                 submit();
               }
             }}
-            placeholder={speech.listening ? (voiceLang === "fi-FI" ? "Kuuntelen…" : "Listening…") : "Ask Vara…"}
+            placeholder={speech.listening ? t("Listening…") : t("Ask Vara…")}
             className={composerInputClass}
           />
           {speech.supported && (
             <>
-              <div className="flex h-11 items-center">
-              <TinyToggle
-                label="Voice language"
-                value={voiceLang}
-                options={[{ value: "en-US", label: "EN" }, { value: "fi-FI", label: "FI" }]}
-                onChange={actions.setVoiceLang}
-              />
-              </div>
               <RoundAction
-                label={speech.listening ? "Stop listening" : "Hold to talk"}
+                label={speech.listening ? t("Stop listening") : t("Hold to talk")}
                 variant="plain"
                 active={speech.listening}
                 disabled={busy}
@@ -199,11 +193,11 @@ export default function Chat() {
             </>
           )}
           {busy ? (
-            <RoundAction label="Stop" onClick={stop}>
+            <RoundAction label={t("Stop")} onClick={stop}>
               <Square size={16} strokeWidth={2} aria-hidden fill="currentColor" />
             </RoundAction>
           ) : (
-            <RoundAction label="Send" onClick={submit} disabled={!text.trim()}>
+            <RoundAction label={t("Send")} onClick={submit} disabled={!text.trim()}>
               <ArrowUp size={22} strokeWidth={2} aria-hidden />
             </RoundAction>
           )}

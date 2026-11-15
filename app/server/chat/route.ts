@@ -9,7 +9,8 @@ import type { CardSpec, ChatEvent } from "../../shared/chat";
 import type { CustomerData } from "../../shared/types";
 import { isCustomerId, loadCustomer } from "../data";
 import { EFFORT, MODEL, clientIp, llm, rateLimit, takeDailyBudget } from "../llm";
-import { STATIC_SYSTEM, snapshot } from "./prompt";
+import { STATIC_SYSTEM, languageLine, snapshot } from "./prompt";
+import { tr, type Lang } from "../../shared/i18n";
 import { TOOL_PARAMS, runTool, toolStatus, type ToolCtx } from "./tools";
 import { checkProse, userNumbers } from "./guard";
 
@@ -26,6 +27,7 @@ const ChatRequestSchema = z.object({
     .min(1)
     .max(40),
   locale: z.string().max(20).optional(),
+  lang: z.enum(["en", "fi"]).optional(),
   overrides: z.object({ byTx: z.record(z.string(), BasketEnum).optional(), byRule: z.record(z.string(), BasketEnum).optional() }).optional(),
   goal: z.object({ name: z.string().max(80), targetAmount: z.number(), targetDate: z.string().max(10), monthlyContribution: z.number().min(0), createdAt: z.string().max(30) }).nullable().optional(),
   screen: z.string().max(40).optional(),
@@ -110,18 +112,27 @@ export function registerChatRoutes(app: Hono) {
       };
       const t0 = Date.now();
       let ttft = 0;
-      const log: Record<string, unknown> = { customer: req.customerId, model: MODEL, effort: EFFORT };
+      const lang: Lang = req.lang ?? "en";
+      const T = tr(lang);
+      const log: Record<string, unknown> = { customer: req.customerId, model: MODEL, effort: EFFORT, lang };
       try {
-        if (!customer) throw new UserError("I could not find that customer.");
+        if (!customer) throw new UserError(T.t("I could not find that customer."));
         const limited = rateLimit(ip);
-        if (limited) throw new UserError(limited);
+        if (limited) throw new UserError(T.t(limited));
         const last = req.messages[req.messages.length - 1];
-        if (last.role !== "user" || !last.content.trim()) throw new UserError("Please type a question.");
+        if (last.role !== "user" || !last.content.trim()) throw new UserError(T.t("Please type a question."));
 
-        await send({ type: "status", label: "Thinking…" });
-        const snap = snapshot(customer);
+        await send({ type: "status", label: T.t("Thinking…") });
+        const snap = snapshot(customer, lang);
         let cardSeq = 0;
-        const ctx: ToolCtx = { c: customer, opts: { overrides: req.overrides as never, goal: req.goal ?? null }, newCardId: () => `c${++cardSeq}`, crave: req.crave ?? null };
+        const ctx: ToolCtx = {
+          c: customer,
+          opts: { overrides: req.overrides as never, goal: req.goal ?? null, lang },
+          newCardId: () => `c${++cardSeq}`,
+          crave: req.crave ?? null,
+          lang,
+          tr: T,
+        };
         const cards = new Map<string, CardSpec>();
         const shown = new Set<string>();
         const primary: string[] = []; // first card of each tool call, for the fallback
@@ -172,14 +183,14 @@ export function registerChatRoutes(app: Hono) {
         for (const m of hist) if (m.cards) fullResults.push(m.cards);
         const system: Anthropic.TextBlockParam[] = [
           { type: "text", text: STATIC_SYSTEM, cache_control: { type: "ephemeral" } },
-          { type: "text", text: `${snap.text}${req.screen ? `\nThe user opened the chat from the "${req.screen}" screen.` : ""}` },
+          { type: "text", text: `${snap.text}${req.screen ? `\nThe user opened the chat from the "${req.screen}" screen.` : ""}\n${languageLine(lang)}` },
         ];
 
         const toolsUsed: string[] = [];
         let rounds = 0;
         let nudged = false;
         for (; rounds < MAX_ROUNDS; rounds++) {
-          if (!takeDailyBudget()) throw new UserError("Vara has answered a lot of questions today and is resting. Please try again tomorrow.");
+          if (!takeDailyBudget()) throw new UserError(T.t("Vara has answered a lot of questions today and is resting. Please try again tomorrow."));
           const lastRound = rounds === MAX_ROUNDS - 1;
           if (prose && !/\s$/.test(prose)) parser.push("\n\n"); // text from an earlier round must not run into the next
           const ms = llm().messages.stream(
@@ -218,7 +229,7 @@ export function registerChatRoutes(app: Hono) {
           log[`usage${rounds}`] = { in: msg.usage.input_tokens, out: msg.usage.output_tokens, cacheRead: msg.usage.cache_read_input_tokens, cacheWrite: msg.usage.cache_creation_input_tokens };
           const uses = msg.content.filter((b): b is Anthropic.ToolUseBlock => b.type === "tool_use");
           if (msg.stop_reason === "refusal") {
-            parser.push("\nSorry, I can't help with that one. Ask me anything about your money.");
+            parser.push("\n" + T.t("Sorry, I can't help with that one. Ask me anything about your money."));
             break;
           }
           if (msg.stop_reason !== "tool_use" || !uses.length) {
@@ -235,7 +246,7 @@ export function registerChatRoutes(app: Hono) {
           const results = await Promise.all(
             uses.map(async (u) => {
               toolsUsed.push(u.name);
-              await send({ type: "status", label: toolStatus(u.name, u.input) });
+              await send({ type: "status", label: toolStatus(u.name, u.input, lang) });
               try {
                 const out = await runTool(ctx, u.name, u.input);
                 for (const k of out.cards) cards.set(k.id, k);
@@ -261,7 +272,7 @@ export function registerChatRoutes(app: Hono) {
             await send({ type: "card", card: cards.get(id)! });
           }
         }
-        const sugg = suggestions.length ? suggestions : ["What is safe to spend this week?", "Show my three baskets", "How could I save more?"];
+        const sugg = suggestions.length ? suggestions : ["What is safe to spend this week?", "Show my three baskets", "How could I save more?"].map((s) => T.t(s));
         await send({ type: "suggestions", items: sugg.slice(0, 3) });
         // the user's own amounts ("a 300 € trip") are valid sources too
         const check = checkProse(prose, [...fullResults, userNumbers(req.messages.filter((m) => m.role === "user").map((m) => m.content))]);
@@ -272,10 +283,10 @@ export function registerChatRoutes(app: Hono) {
           err instanceof UserError
             ? err.message
             : ac.signal.aborted
-              ? "That took too long. Please try again."
+              ? T.t("That took too long. Please try again.")
               : err instanceof Anthropic.RateLimitError
-                ? "Vara is very busy right now. Please try again in a moment."
-                : "Something went wrong on my side. Please try again.";
+                ? T.t("Vara is very busy right now. Please try again in a moment.")
+                : T.t("Something went wrong on my side. Please try again.");
         if (!(err instanceof UserError)) console.error("[chat] error", err);
         log.error = String((err as Error)?.message ?? err).slice(0, 300);
         await send({ type: "error", message: msg });

@@ -4,6 +4,7 @@ import { Columns, Donut, HBars, SERIES, TrendLine } from "@/ui/charts";
 import { monthAbbr, periodLabel } from "@/lib/format";
 import { basketColor, BASKETS } from "@/lib/domain";
 import type { Basket } from "@shared/types";
+import { t } from "@/lib/i18n";
 import { fmtUnit, type CardOf } from "./util";
 
 const isMonthKey = (k: string) => /^\d{4}-\d{2}$/.test(k);
@@ -18,7 +19,7 @@ export function BreakdownCard({ card }: { card: CardOf<"breakdown"> }) {
     const parts = items.map((it, i) => ({ key: it.key, label: it.label, value: it.value, color: colorOf(it.key, i) }));
     body = (
       <div className="flex items-center gap-4">
-        <Donut parts={parts} format={fmt} size={116} center={<><span className="text-xs text-ink-muted">Total</span><span className="tnum text-sm font-bold">{fmt(total)}</span></>} />
+        <Donut parts={parts} format={fmt} size={116} center={<><span className="text-xs text-ink-muted">{t("Total")}</span><span className="tnum text-sm font-bold">{fmt(total)}</span></>} />
         <ul className="flex min-w-0 flex-1 flex-col gap-2">
           {parts.map((p, i) => (
             <LegendRow key={p.key} color={p.color} label={p.label} value={items[i].share != null ? fmtUnit(items[i].share!, "pct") : fmt(p.value)} />
@@ -34,7 +35,7 @@ export function BreakdownCard({ card }: { card: CardOf<"breakdown"> }) {
   }
   const icon = card.chart === "donut" ? ChartPie : card.chart === "trend" ? ChartLine : ChartColumn;
   return (
-    <CardFrame icon={icon} title={card.title ?? "Breakdown"} explain={card.explain}>
+    <CardFrame icon={icon} title={card.title ?? t("Breakdown")} explain={card.explain}>
       {card.period && <p className="-mt-1 mb-3 text-sm text-ink-muted">{periodLabel(card.period)}</p>}
       {body}
     </CardFrame>

@@ -9,6 +9,7 @@ import { Button, IconCircle, STROKE, cx } from "@/ui/kit";
 import { ErrorBoundary } from "@/ui/ErrorBoundary";
 import { dateShort, money, pct, pctSigned, dateDM } from "@/lib/format";
 import { isReady, useMl } from "./data";
+import { t, tData } from "@/lib/i18n";
 import { chanceWords, habitGood, habitName, openYou, topHabit } from "./words";
 
 export interface TodaySlotProps {
@@ -18,7 +19,12 @@ export interface TodaySlotProps {
   ask: (question: string) => void;
 }
 
-const KIND: Record<string, string> = { housing: "Rent", investment: "Investing", goal: "Goal saving" };
+// English sentence keys, translated where shown
+const KIND: Record<string, string> = {
+  housing: "Rent of {amount} is due {date}, before your pay arrives.",
+  investment: "An investment of {amount} is due {date}, before your pay arrives.",
+  goal: "Goal saving of {amount} is due {date}, before your pay arrives.",
+};
 
 /** Shown right under the safe-to-spend hero on Today, only when it is worth the space. */
 export function EarlyWarningSlot({ customer, ask }: TodaySlotProps) {
@@ -30,33 +36,38 @@ export function EarlyWarningSlot({ customer, ask }: TodaySlotProps) {
   const fcOn = !!f && f.overdraftProbToPayday >= 0.2;
   if (!riskOn && !fcOn) return null;
   const p = riskOn ? r!.probability : f!.overdraftProbToPayday;
-  const horizon = riskOn ? `in the next ${r!.horizonDays} days` : `before payday on ${dateShort(f!.nextPayday.date)}`;
+  const chance = chanceWords(p);
+  const headline = (
+    riskOn
+      ? t("{chance} chance of dipping below zero in the next {n} days", { chance, n: r!.horizonDays })
+      : t("{chance} chance of dipping below zero before payday on {date}", { chance, date: dateShort(f!.nextPayday.date) })
+  ).replace(/^./, (s) => s.toUpperCase());
   let reason: string | null = null;
   const up = r?.drivers.find((d) => d.direction === "raises");
-  if (riskOn && up) reason = up.label.replace(/\s/g, "").includes(up.display.replace(/\s/g, "")) ? up.label : `${up.label}: ${up.display}`;
+  if (riskOn && up) reason = up.label.replace(/\s/g, "").includes(up.display.replace(/\s/g, "")) ? tData(up.label) : `${tData(up.label)}: ${tData(up.display)}`;
   else if (f) {
     const big = f.fixedEvents
       .filter((e) => e.amount < 0 && e.date < f.nextPayday.date)
       .sort((a, b) => a.amount - b.amount)[0];
-    if (big) reason = `${KIND[big.kind] ?? "A fixed payment"} of ${money(-big.amount, { whole: true })} is due ${dateShort(big.date)}, before your pay arrives.`;
+    if (big) reason = t(KIND[big.kind] ?? "A fixed payment of {amount} is due {date}, before your pay arrives.", { amount: money(-big.amount, { whole: true }), date: dateShort(big.date) });
   }
   return (
-    <section className="rounded-app-card bg-card p-4 shadow-app-card" aria-label="Early warning">
+    <section className="rounded-app-card bg-card p-4 shadow-app-card" aria-label={t("Early warning")}>
       <div className="flex items-start gap-3">
         <IconCircle icon={BellRing} color="#CF8300" />
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">Early warning</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-muted">{t("Early warning")}</p>
           <p className="text-base font-bold leading-snug text-ink">
-            {chanceWords(p).replace(/^./, (s) => s.toUpperCase())} chance of dipping below zero {horizon}
+            {headline}
             <span className="tnum ml-1 text-sm font-semibold text-ink-muted">({pct(p)})</span>
           </p>
           {reason && <p className="mt-1 text-sm text-ink-strong">{reason}</p>}
         </div>
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2 pl-12">
-        <Button size="sm" variant="tonal" onClick={() => ask("Why might I go below zero before payday?")}>What can I do?</Button>
+        <Button size="sm" variant="tonal" onClick={() => ask(t("Why might I go below zero before payday?"))}>{t("What can I do?")}</Button>
         <button type="button" onClick={() => openYou(riskOn ? "risk" : "forecast")} className="inline-flex min-h-9 items-center gap-0.5 text-sm font-semibold text-green-700">
-          See the forecast <ChevronRight size={16} strokeWidth={STROKE} aria-hidden />
+          {t("See the forecast")} <ChevronRight size={16} strokeWidth={STROKE} aria-hidden />
         </button>
       </div>
     </section>
@@ -71,9 +82,13 @@ export function HabitChipSlot({ customer }: TodaySlotProps) {
   if (!h) return null;
   const good = habitGood(h);
   const Icon = good ? PartyPopper : MessageCircleQuestion;
+  const v = { name: habitName(h), lower: habitName(h).toLowerCase(), pct: pctSigned(h.changePct).replace(/^[+−]/, ""), date: dateDM(h.since) };
+  const up = h.direction === "up";
   const text = good
-    ? `${h.status === "new_habit" ? "New habit" : "Habit forming"}: ${habitName(h).toLowerCase()} ${h.direction} ${pctSigned(h.changePct).replace(/^[+−]/, "")} since ${dateDM(h.since)}`
-    : `${habitName(h)} ${h.direction} ${pctSigned(h.changePct).replace(/^[+−]/, "")} since ${dateDM(h.since)}. On purpose?`;
+    ? h.status === "new_habit"
+      ? t(up ? "New habit: {lower} up {pct} since {date}" : "New habit: {lower} down {pct} since {date}", v)
+      : t(up ? "Habit forming: {lower} up {pct} since {date}" : "Habit forming: {lower} down {pct} since {date}", v)
+    : t(up ? "{name} up {pct} since {date}. On purpose?" : "{name} down {pct} since {date}. On purpose?", v);
   return (
     <button
       type="button"
@@ -98,8 +113,8 @@ function lazyCard(name: string): AnyCard {
   const L = lazy(() => import("./chatCards").then((m) => ({ default: (m as unknown as Record<string, AnyCard>)[name] })));
   return function MlChatCard({ card }: { card: CardSpec }) {
     return (
-      <ErrorBoundary label="This card">
-        <Suspense fallback={<div className="skeleton h-48 w-full rounded-app-card" aria-busy="true" aria-label="Loading" />}>
+      <ErrorBoundary label={t("This card")}>
+        <Suspense fallback={<div className="skeleton h-48 w-full rounded-app-card" aria-busy="true" aria-label={t("Loading")} />}>
           <L card={card} />
         </Suspense>
       </ErrorBoundary>

@@ -13,8 +13,12 @@ import { FullScreen, ScreenHeader, ScrollArea, BasketTag } from "@/ui/hero";
 import { Badge, Banner, Button, Card, CardTitle, ConceptNotice, cx, IconCircle, ListRow, Muted, Page, Segmented, SkeletonCard, STROKE, Unavailable } from "@/ui/kit";
 import { Sheet } from "@/ui/Sheet";
 import { StackedBar } from "@/ui/charts";
+import { rich, t, tn } from "@/lib/i18n";
+
+const tr = t; // inside DrillDown `t` is a transaction
 
 type PeriodKey = "this_month" | "last_month" | "last_3_months";
+// module constants keep the English; translated where shown
 const PERIODS: { value: PeriodKey; label: string }[] = [
   { value: "this_month", label: "This month" },
   { value: "last_month", label: "Last month" },
@@ -53,22 +57,27 @@ export default function BasketsExplorer() {
   return (
     <FullScreen>
       <ScreenHeader
-        title={drill ? categoryLabel(selCat) : "Your three baskets"}
+        title={drill ? categoryLabel(selCat) : t("Your three baskets")}
         onBack={() => goBack("/vara/today")}
       />
       <ScrollArea>
         <Page>
           {!drill && (
-            <Segmented label="Period" value={periodKey} options={PERIODS} onChange={(p) => setQuery(p, null, null, true)} />
+            <Segmented
+              label={t("Period")}
+              value={periodKey}
+              options={PERIODS.map((p) => ({ ...p, label: t(p.label) }))}
+              onChange={(p) => setQuery(p, null, null, true)}
+            />
           )}
           {prefs.learned.length > 0 && !drill && (
             <Banner
               tone="success"
               icon={Lightbulb}
-              title="What Vara learned from you"
+              title={t("What Vara learned from you")}
               action={
                 <Button size="sm" variant="ghost" icon={RotateCcw} onClick={actions.resetOverrides}>
-                  Undo all my changes
+                  {t("Undo all my changes")}
                 </Button>
               }
             >
@@ -85,7 +94,7 @@ export default function BasketsExplorer() {
               <SkeletonCard />
             </>
           ) : !res.ok ? (
-            <Unavailable title="Baskets not available right now" reason={res.notImplemented ? "Vara's calculator is being updated." : res.error} />
+            <Unavailable title={t("Baskets not available right now")} reason={res.notImplemented ? t("Vara's calculator is being updated.") : res.error} />
           ) : drill ? (
             <DrillDown basket={selBasket} category={selCat} period={res.value.period} />
           ) : (
@@ -93,19 +102,16 @@ export default function BasketsExplorer() {
               <Card>
                 <p className="text-sm text-ink-muted">{periodLabel(res.value.period)}</p>
                 <p className="mt-0.5 text-base text-ink">
-                  You spent <span className="tnum font-bold">{money(res.value.spending, { whole: true })}</span>
-                  {res.value.income > 0 && (
-                    <>
-                      {" "}
-                      with <span className="tnum font-bold">{money(res.value.income, { whole: true })}</span> coming in
-                    </>
+                  {rich(
+                    res.value.income > 0
+                      ? t("You spent **{spent}** with {income} coming in.", { spent: money(res.value.spending, { whole: true }), income: money(res.value.income, { whole: true }) })
+                      : t("You spent **{spent}**.", { spent: money(res.value.spending, { whole: true }) }),
                   )}
-                  .
                 </p>
                 <div className="mt-3">
                   <StackedBar
                     size="tall"
-                    label="Spending by basket"
+                    label={t("Spending by basket")}
                     format={(v) => money(v, { whole: true })}
                     parts={res.value.baskets.map((b) => ({ key: b.basket, label: basketMeta(b.basket).label, value: b.total, color: basketColor(b.basket) }))}
                   />
@@ -119,7 +125,11 @@ export default function BasketsExplorer() {
                 </div>
                 {nOverrides > 0 && (
                   <p className="mt-2 text-xs text-ink-muted">
-                    Includes your own sorting ({res.value.overridesApplied} transaction{res.value.overridesApplied === 1 ? "" : "s"} moved in this period).
+                    {tn(
+                      "Includes your own sorting ({n} transaction moved in this period).",
+                      "Includes your own sorting ({n} transactions moved in this period).",
+                      res.value.overridesApplied,
+                    )}
                   </p>
                 )}
               </Card>
@@ -127,8 +137,7 @@ export default function BasketsExplorer() {
                 <BasketCard key={b.basket} b={b} onCategory={(cat) => setQuery(periodKey, b.basket, cat)} />
               ))}
               <Muted className="px-1">
-                Vara makes a first guess for every purchase from its category and merchant type. You know your life better: tap
-                any purchase to move it.
+                {t("Vara makes a first guess for every purchase from its category and merchant type. You know your life better: tap any purchase to move it.")}
               </Muted>
             </>
           )}
@@ -153,12 +162,12 @@ function BasketCard({ b, onCategory }: { b: BasketSummary; onCategory: (cat: str
         </div>
         <div className="shrink-0 text-right">
           <p className="tnum text-lg font-bold">{money(b.total, { whole: true })}</p>
-          <p className="tnum text-sm text-ink-muted">{pct(b.share)} of spending</p>
+          <p className="tnum text-sm text-ink-muted">{t("{pct} of spending", { pct: pct(b.share) })}</p>
         </div>
       </div>
-      <p className="mt-2 text-sm text-ink-strong">{FRIENDLY[b.basket]}</p>
+      <p className="mt-2 text-sm text-ink-strong">{t(FRIENDLY[b.basket])}</p>
       {b.categories.length === 0 ? (
-        <p className="mt-2 text-sm text-ink-muted">Nothing in this basket in this period.</p>
+        <p className="mt-2 text-sm text-ink-muted">{t("Nothing in this basket in this period.")}</p>
       ) : (
         <ul className="mt-2 flex flex-col divide-y divide-line">
           {b.categories.map((cat) => (
@@ -166,7 +175,7 @@ function BasketCard({ b, onCategory }: { b: BasketSummary; onCategory: (cat: str
               <ListRow
                 icon={categoryIcon(cat.key)}
                 title={cat.label}
-                subtitle={`${cat.count} payment${cat.count === 1 ? "" : "s"}`}
+                subtitle={tn("{n} payment", "{n} payments", cat.count)}
                 right={money(cat.total, { whole: true })}
                 chevron
                 onClick={() => onCategory(cat.key)}
@@ -191,7 +200,7 @@ function DrillDown({ basket, category, period }: { basket: Basket; category: Cat
   const txs = useMemo(() => (q?.ok ? [...(q.value.transactions ?? [])].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.i - a.i)) : []), [q]);
   const m = basketMeta(basket);
   if (!q) return <SkeletonCard />;
-  if (!q.ok) return <Unavailable title="Transactions not available right now" reason={q.error} />;
+  if (!q.ok) return <Unavailable title={t("Transactions not available right now")} reason={q.error} />;
   const isMine = (t: Tx) => prefs.overrides.byTx?.[t.i] != null || prefs.overrides.byRule?.[ruleKey(t)] != null;
   return (
     <>
@@ -201,14 +210,14 @@ function DrillDown({ basket, category, period }: { basket: Basket; category: Cat
           <span className="font-semibold">{m.label}</span>
         </div>
         <p className="mt-2 text-base text-ink">
-          <span className="tnum font-bold">{money(q.value.total)}</span> on {categoryLabel(category).toLowerCase()} · {q.value.count} payment
-          {q.value.count === 1 ? "" : "s"}
+          {rich(t("**{amount}** on {category}", { amount: money(q.value.total), category: categoryLabel(category).toLowerCase() }))} ·{" "}
+          {tn("{n} payment", "{n} payments", q.value.count)}
         </p>
         <Muted>{periodLabel(period)}</Muted>
       </Card>
       <Card padded={false} className="px-4 py-1">
         {txs.length === 0 ? (
-          <p className="py-4 text-sm text-ink-muted">Nothing left here: you moved these to another basket.</p>
+          <p className="py-4 text-sm text-ink-muted">{t("Nothing left here: you moved these to another basket.")}</p>
         ) : (
           <ul className="flex flex-col divide-y divide-line">
             {txs.map((t) => (
@@ -218,7 +227,7 @@ function DrillDown({ basket, category, period }: { basket: Basket; category: Cat
                   title={
                     <span className="flex items-center gap-2">
                       <span className="truncate">{txTitle(t)}</span>
-                      {isMine(t) && <Badge tone="accent">Your choice</Badge>}
+                      {isMine(t) && <Badge tone="accent">{tr("Your choice")}</Badge>}
                     </span>
                   }
                   subtitle={`${dateShort(t.date)} · ${t.time.slice(0, 5)}`}
@@ -230,7 +239,7 @@ function DrillDown({ basket, category, period }: { basket: Basket; category: Cat
           </ul>
         )}
       </Card>
-      {q.value.count > txs.length && <Muted className="px-1">Showing the {txs.length} largest of {q.value.count}.</Muted>}
+      {q.value.count > txs.length && <Muted className="px-1">{t("Showing the {shown} largest of {n}.", { shown: txs.length, n: q.value.count })}</Muted>}
       <MoveSheet tx={moving} current={basket} onClose={() => setMoving(null)} />
     </>
   );
@@ -246,22 +255,25 @@ function MoveSheet({ tx, current, onClose }: { tx: Tx | null; current: Basket; o
   };
   if (!tx) return <Sheet open={false} onClose={close} title="">{null}</Sheet>;
   const kind = mccLabel(tx.mcc) ?? categoryLabel(tx.category);
-  const similarLabel = tx.mcc && mccLabel(tx.mcc) ? `all ${kind.toLowerCase()} purchases` : `all ${categoryLabel(tx.category).toLowerCase()} purchases without a merchant type`;
+  const similarLabel =
+    tx.mcc && mccLabel(tx.mcc)
+      ? t("all {kind} purchases", { kind: kind.toLowerCase() })
+      : t("all {category} purchases without a merchant type", { category: categoryLabel(tx.category).toLowerCase() });
   const save = () => {
     if (!target) return;
     const to = basketMeta(target).label;
-    if (all) actions.overrideRule(ruleKey(tx), target, `Got it: ${similarLabel} now count as ${to}. Vara will sort new ones the same way.`);
-    else actions.overrideTx(tx.i, target, `Moved one ${kind.toLowerCase()} purchase (${money(tx.amount)}, ${dateShort(tx.date)}) to ${to}.`);
+    if (all) actions.overrideRule(ruleKey(tx), target, t("Got it: {what} now count as {to}. Vara will sort new ones the same way.", { what: similarLabel, to }));
+    else actions.overrideTx(tx.i, target, t("Moved one {kind} purchase ({amount}, {date}) to {to}.", { kind: kind.toLowerCase(), amount: money(tx.amount), date: dateShort(tx.date), to }));
     close();
   };
   return (
     <Sheet
       open={!!tx}
       onClose={close}
-      title="Move to another basket"
+      title={t("Move to another basket")}
       footer={
         <Button full disabled={!target} icon={Check} onClick={save}>
-          {target ? `Move to ${basketMeta(target).label}` : "Choose a basket"}
+          {target ? t("Move to {basket}", { basket: basketMeta(target).label }) : t("Choose a basket")}
         </Button>
       }
     >
@@ -273,8 +285,8 @@ function MoveSheet({ tx, current, onClose }: { tx: Tx | null; current: Basket; o
         </div>
         <span className="tnum font-semibold">{money(tx.amount)}</span>
       </div>
-      <p className="mt-4 text-sm text-ink-strong">Which basket does this really belong in for you?</p>
-      <div className="mt-2 flex flex-col gap-2" role="radiogroup" aria-label="Basket">
+      <p className="mt-4 text-sm text-ink-strong">{t("Which basket does this really belong in for you?")}</p>
+      <div className="mt-2 flex flex-col gap-2" role="radiogroup" aria-label={t("Basket")}>
         {BASKETS.map((b) => {
           const m = basketMeta(b);
           const isCur = b === current;
@@ -297,9 +309,9 @@ function MoveSheet({ tx, current, onClose }: { tx: Tx | null; current: Basket; o
               <span className="min-w-0 flex-1">
                 <span className="block font-semibold">
                   {m.label}
-                  {isCur && <span className="font-normal text-ink-muted"> · now</span>}
+                  {isCur && <span className="font-normal text-ink-muted"> · {t("now")}</span>}
                 </span>
-                <span className="block text-sm text-ink-muted">{m.tagline}, like {m.example}</span>
+                <span className="block text-sm text-ink-muted">{t("{tagline}, like {example}", { tagline: m.tagline, example: m.example })}</span>
               </span>
               {sel && <Check size={20} strokeWidth={STROKE} className="shrink-0 text-green-700" aria-hidden />}
             </button>
@@ -310,7 +322,7 @@ function MoveSheet({ tx, current, onClose }: { tx: Tx | null; current: Basket; o
         <input type="checkbox" checked={all} onChange={(e) => setAll(e.target.checked)} className="h-5 w-5 accent-green-700" />
         <span className="text-sm text-ink">
           <ArrowRightLeft size={14} strokeWidth={STROKE} className="mr-1 inline" aria-hidden />
-          Also move {similarLabel}
+          {t("Also move {what}", { what: similarLabel })}
         </span>
       </label>
     </Sheet>

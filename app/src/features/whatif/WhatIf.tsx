@@ -15,6 +15,7 @@ import { HeroCard } from "@/ui/hero";
 import { SlidersHorizontal, Sparkles, TrendingUp, ChartLine, PiggyBank, House } from "lucide-react";
 import { Button, Card, CardTitle, ConceptNotice, Divider, HeroFigure, Muted, Page, Slider, SkeletonCard, Unavailable } from "@/ui/kit";
 import { FanChart } from "@/ui/charts";
+import { t, tn } from "@/lib/i18n";
 
 interface Sliders {
   pct: Partial<Record<Category, number>>;
@@ -25,12 +26,12 @@ const EMPTY: Sliders = { pct: {}, extra: 0, housing: 0 };
 // keep the scenario while the user hops between sections
 const memory = new Map<string, Sliders>();
 
-const HORIZON_LABEL: Record<number, string> = { 1: "1 month", 12: "1 year", 60: "5 years", 120: "10 years" };
+const horizonLabel = (m: number) => (m % 12 === 0 ? tn("{n} year", "{n} years", m / 12) : tn("{n} month", "{n} months", m));
 
 function scenarioOf(s: Sliders): Scenario {
   const adjustments: Adjustment[] = Object.entries(s.pct)
     .filter(([, v]) => v && v !== 0)
-    .map(([cat, v]) => ({ target: { category: cat as Category }, changePct: v!, label: `${categoryLabel(cat)} ${pctSigned(v!)}` }));
+    .map(([cat, v]) => ({ target: { category: cat as Category }, changePct: v!, label: `${categoryLabel(cat)}\u00a0${pctSigned(v!).replace(" ", "\u00a0")}` }));
   return { adjustments, extraMonthlySaving: s.extra || undefined, housingChange: s.housing || undefined };
 }
 
@@ -38,13 +39,15 @@ export function describeScenario(s: Sliders): string {
   const parts: string[] = [];
   for (const [cat, v] of Object.entries(s.pct)) {
     if (!v) continue;
-    parts.push(v < 0 ? `spent ${Math.abs(v)}% less on ${categoryLabel(cat).toLowerCase()}` : `spent ${v}% more on ${categoryLabel(cat).toLowerCase()}`);
+    const what = categoryLabel(cat).toLowerCase();
+    parts.push(v < 0 ? t("spent {pct}% less on {what}", { pct: Math.abs(v), what }) : t("spent {pct}% more on {what}", { pct: v, what }));
   }
-  if (s.extra) parts.push(`saved an extra ${s.extra} € a month`);
-  if (s.housing) parts.push(s.housing < 0 ? `found a home ${Math.abs(s.housing)} € a month cheaper` : `paid ${s.housing} € a month more for housing`);
-  if (!parts.length) return "What could I change to save more each month?";
-  const last = parts.pop();
-  return `What if I ${parts.length ? parts.join(", ") + " and " : ""}${last}? What would that mean for me?`;
+  if (s.extra) parts.push(t("saved an extra {amount} € a month", { amount: s.extra }));
+  if (s.housing) parts.push(s.housing < 0 ? t("found a home {amount} € a month cheaper", { amount: Math.abs(s.housing) }) : t("paid {amount} € a month more for housing", { amount: s.housing }));
+  if (!parts.length) return t("What could I change to save more each month?");
+  const last = parts.pop()!;
+  const all = parts.length ? t("{list} and {last}", { list: parts.join(", "), last }) : last;
+  return t("What if I {changes}? What would that mean for me?", { changes: all });
 }
 
 /** Baseline monthly spend per purchase category, using the same basis as simulateWhatIf. */
@@ -114,7 +117,7 @@ export default function WhatIf() {
   if (!base.ok)
     return (
       <Page>
-        <Unavailable title="What-if is not available right now" reason={base.notImplemented ? "Vara's calculator is being updated. Try again in a moment." : base.error} />
+        <Unavailable title={t("What-if is not available right now")} reason={base.notImplemented ? t("Vara's calculator is being updated. Try again in a moment.") : base.error} />
       </Page>
     );
 
@@ -127,12 +130,12 @@ export default function WhatIf() {
   return (
     <Page>
       <div className="px-1">
-        <h2 className="text-xl font-bold text-title">What if you…</h2>
-        <Muted>Move a slider and see what changes. Starting points are your own monthly averages ({base.value.basis.replace(/^Monthly average of /, "").replace(/\s*\(.*\)$/, "")}).</Muted>
+        <h2 className="text-xl font-bold text-title">{t("What if you…")}</h2>
+        <Muted>{t("Move a slider and see what changes. Starting points are your own monthly averages ({range}).", { range: base.value.basis.replace(/^[^:]*: /, "").replace(/^Monthly average of /, "").replace(/\s*\(.*\)$/, "") })}</Muted>
       </div>
 
       <Card>
-        <CardTitle icon={SlidersHorizontal} right={touched ? <Button size="sm" variant="ghost" icon={RotateCcw} onClick={() => setS(EMPTY)}>Reset</Button> : undefined}>Your spending</CardTitle>
+        <CardTitle icon={SlidersHorizontal} right={touched ? <Button size="sm" variant="ghost" icon={RotateCcw} onClick={() => setS(EMPTY)}>{t("Reset")}</Button> : undefined}>{t("Your spending")}</CardTitle>
         <div className="mt-2 flex flex-col gap-1">
           {base.value.cats.map(({ cat, monthly }) => {
             const v = s.pct[cat] ?? 0;
@@ -146,68 +149,68 @@ export default function WhatIf() {
                 max={50}
                 step={5}
                 onChange={(x) => setPct(cat, x)}
-                valueLabel={v === 0 ? "as now" : pctSigned(v)}
+                valueLabel={v === 0 ? t("as now") : pctSigned(v)}
                 hint={
                   v === 0
-                    ? `About ${money(monthly, { whole: true })} a month now`
-                    : `About ${money(monthly, { whole: true })} → ${money(monthly * (1 + v / 100), { whole: true })} a month`
+                    ? t("About {amount} a month now", { amount: money(monthly, { whole: true }) })
+                    : t("About {from} → {to} a month", { from: money(monthly, { whole: true }), to: money(monthly * (1 + v / 100), { whole: true }) })
                 }
               />
             );
           })}
-          {base.value.cats.length === 0 && <Muted>Not enough card spending in the last months to build sliders.</Muted>}
+          {base.value.cats.length === 0 && <Muted>{t("Not enough card spending in the last months to build sliders.")}</Muted>}
         </div>
         <Divider />
         <Slider
-          label="Save extra per month"
+          label={t("Save extra per month")}
           icon={PiggyBank}
           value={s.extra}
           min={0}
           max={500}
           step={10}
           onChange={(x) => setS((o) => ({ ...o, extra: x }))}
-          valueLabel={s.extra ? money(s.extra, { whole: true }) : "nothing extra"}
-          hint="Moved to savings on top of what you do now"
+          valueLabel={s.extra ? money(s.extra, { whole: true }) : t("nothing extra")}
+          hint={t("Moved to savings on top of what you do now")}
         />
         {c.hasHousing && (
           <Slider
-            label="Rent change"
+            label={t("Rent change")}
             icon={House}
             value={s.housing}
             min={-600}
             max={400}
             step={10}
             onChange={(x) => setS((o) => ({ ...o, housing: x }))}
-            valueLabel={s.housing ? `${s.housing > 0 ? "+" : "−"}${money(Math.abs(s.housing), { whole: true })}` : "as now"}
-            hint={housingNow != null ? `Now about ${money(housingNow, { whole: true })} a month${s.housing ? ` → ${money(Math.max(0, housingNow + s.housing), { whole: true })}` : ""}` : "Change in monthly housing cost"}
+            valueLabel={s.housing ? `${s.housing > 0 ? "+" : "−"}${money(Math.abs(s.housing), { whole: true })}` : t("as now")}
+            hint={housingNow != null ? (s.housing ? t("Now about {amount} a month → {to}", { amount: money(housingNow, { whole: true }), to: money(Math.max(0, housingNow + s.housing), { whole: true }) }) : t("Now about {amount} a month", { amount: money(housingNow, { whole: true }) })) : t("Change in monthly housing cost")}
           />
         )}
       </Card>
 
       {result && !result.ok ? (
-        <Unavailable title="Results not available right now" reason={result.error} />
+        <Unavailable title={t("Results not available right now")} reason={result.error} />
       ) : r && !touched ? (
         <Card>
-          <CardTitle icon={Sparkles}>What changes</CardTitle>
-          <Muted>Move a slider above and Vara shows what you would free up each month, and what that changes for you.</Muted>
+          <CardTitle icon={Sparkles}>{t("What changes")}</CardTitle>
+          <Muted>{t("Move a slider above and Vara shows what you would free up each month, and what that changes for you.")}</Muted>
           <p className="tnum mt-3 text-ink">
             Safe to spend now: <strong>{money(r.safePerWeekBefore, { whole: true })} a week</strong>
           </p>
         </Card>
       ) : r ? (
         <>
-          <HeroCard label="What this change does">
-            <p className="text-sm text-hero-meta">{saved >= 0 ? "Freed up every month" : "Extra spending every month"}</p>
+          <HeroCard label={t("What this change does")}>
+            <p className="text-sm text-hero-meta">{saved >= 0 ? t("Freed up every month") : t("Extra spending every month")}</p>
             <HeroFigure value={moneyParts(Math.abs(saved)).num} ink="inverse" />
-            {r.equivalents.length > 0 && <p className="mt-1 text-sm text-hero-meta">That's {r.equivalents.join(", and ")}.</p>}
+            {r.equivalents.length > 0 && <p className="mt-1 text-sm text-hero-meta">{t("That's {list}.", { list: r.equivalents.join(t(", and ")) })}</p>}
             {r.safeChanges !== false || r.monthEndLeftBefore == null || r.monthEndLeftAfter == null ? (
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-md bg-white/10 p-3">
-                  <p className="text-xs text-hero-meta">Safe to spend / week now</p>
+                  <p className="text-xs text-hero-meta">{t("Safe to spend / week now")}</p>
                   <p className="tnum text-lg font-bold text-white">{money(r.safePerWeekBefore, { whole: true })}</p>
                 </div>
                 <div className="rounded-md bg-white/10 p-3">
-                  <p className="text-xs text-hero-meta">With this change</p>
+                  <p className="text-xs text-hero-meta">{t("With this change")}</p>
                   <p className="tnum text-lg font-bold text-hero-num">{money(r.safePerWeekAfter, { whole: true })}</p>
                 </div>
               </div>
@@ -215,16 +218,17 @@ export default function WhatIf() {
               <>
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className="rounded-md bg-white/10 p-3">
-                    <p className="text-xs text-hero-meta">Left at month end now</p>
+                    <p className="text-xs text-hero-meta">{t("Left at month end now")}</p>
                     <p className="tnum text-lg font-bold text-white">{money(r.monthEndLeftBefore, { whole: true })}</p>
                   </div>
                   <div className="rounded-md bg-white/10 p-3">
-                    <p className="text-xs text-hero-meta">With this change</p>
+                    <p className="text-xs text-hero-meta">{t("With this change")}</p>
                     <p className="tnum text-lg font-bold text-hero-num">{money(r.monthEndLeftAfter, { whole: true })}</p>
                   </div>
                 </div>
                 <p className="tnum mt-2 text-sm text-hero-meta">
-                  {saved >= 0 ? `${money(r.yearlySaved ?? saved * 12, { whole: true })} a year` : `${money(-(r.yearlySaved ?? saved * 12), { whole: true })} more a year`}. Your safe-to-spend stays the same: this changes what you spend, not what your musts need.
+                  {saved >= 0 ? t("{amount} a year.", { amount: money(r.yearlySaved ?? saved * 12, { whole: true }) }) : t("{amount} more a year.", { amount: money(-(r.yearlySaved ?? saved * 12), { whole: true }) })}{" "}
+                  {t("Your safe-to-spend stays the same: this changes what you spend, not what your musts need.")}
                 </p>
               </>
             )}
@@ -235,7 +239,7 @@ export default function WhatIf() {
                     <span className="text-white">{p.label}</span>
                     <span className="tnum text-hero-meta">
                       {money(p.baselineMonthly, { whole: true })} → {money(p.newMonthly, { whole: true })}{" "}
-                      <span className="font-semibold text-white">{p.savedMonthly >= 0 ? `saves ${money(p.savedMonthly, { whole: true })}` : `costs ${money(-p.savedMonthly, { whole: true })}`}</span>
+                      <span className="font-semibold text-white">{p.savedMonthly >= 0 ? t("saves {amount}", { amount: money(p.savedMonthly, { whole: true }) }) : t("costs {amount}", { amount: money(-p.savedMonthly, { whole: true }) })}</span>
                     </span>
                   </li>
                 ))}
@@ -245,48 +249,48 @@ export default function WhatIf() {
 
           {saved > 0 && (
             <Card>
-              <CardTitle icon={TrendingUp}>If you keep it up</CardTitle>
+              <CardTitle icon={TrendingUp}>{t("If you keep it up")}</CardTitle>
               <table className="mt-2 w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs text-ink-muted">
-                    <th className="py-1 font-normal">After</th>
-                    <th className="py-1 text-right font-normal">Saved</th>
-                    <th className="py-1 text-right font-normal">If invested (4 %/yr)</th>
+                    <th className="py-1 font-normal">{t("After")}</th>
+                    <th className="py-1 text-right font-normal">{t("Saved")}</th>
+                    <th className="py-1 text-right font-normal">{t("If invested (4 %/yr)")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
                   {r.projections.map((p) => (
                     <tr key={p.months}>
-                      <td className="py-2 text-ink">{HORIZON_LABEL[p.months] ?? `${p.months} months`}</td>
+                      <td className="py-2 text-ink">{horizonLabel(p.months)}</td>
                       <td className="tnum py-2 text-right font-semibold">{money(p.saved, { whole: true })}</td>
                       <td className="tnum py-2 text-right font-semibold text-title">{money(p.invested, { whole: true })}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <p className="mt-2 text-xs text-ink-muted">The invested column assumes an average 4 % yearly return. Real returns go up and down; this is an illustration, not advice.</p>
+              <p className="mt-2 text-xs text-ink-muted">{t("The invested column assumes an average 4 % yearly return. Real returns go up and down; this is an illustration, not advice.")}</p>
             </Card>
           )}
         </>
       ) : null}
 
       <Card>
-        <CardTitle icon={ChartLine}>Your balance until payday</CardTitle>
+        <CardTitle icon={ChartLine}>{t("Your balance until payday")}</CardTitle>
         {!sim ? (
-          sts && !sts.ok ? <Unavailable title="Forecast not available" reason={sts.error} compact /> : <SkeletonCard lines={2} />
+          sts && !sts.ok ? <Unavailable title={t("Forecast not available")} reason={sts.error} compact /> : <SkeletonCard lines={2} />
         ) : !sim.ok ? (
-          <div className="mt-2"><Unavailable title="Forecast not available right now" reason={sim.notImplemented ? "Vara's simulator is being updated." : sim.error} compact /></div>
+          <div className="mt-2"><Unavailable title={t("Forecast not available right now")} reason={sim.notImplemented ? t("Vara's simulator is being updated.") : sim.error} compact /></div>
         ) : (
           <>
             <Muted>
-              500 possible paths to payday on {dateShort(sim.value.payday)}, replaying your own days from the last six months.
+              {t("500 possible paths to payday on {date}, replaying your own days from the last six months.", { date: dateShort(sim.value.payday) })}
             </Muted>
             <div className="mt-3">
               <FanChart fan={sim.value.after.fan} format={(v) => money(v, { whole: true })} dateLabel={dateShort} />
             </div>
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted">
-              <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4 rounded-pill bg-accent" aria-hidden /> most likely</span>
-              <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-4 rounded-sm bg-green-200" aria-hidden /> 8 in 10 paths</span>
+              <span className="inline-flex items-center gap-1.5"><span className="h-0.5 w-4 rounded-pill bg-accent" aria-hidden /> {t("most likely")}</span>
+              <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-4 rounded-sm bg-green-200" aria-hidden /> {t("8 in 10 paths")}</span>
             </div>
             <OverdraftLine before={sim.value.before.overdraftProbToPayday} after={sim.value.after.overdraftProbToPayday} touched={touched} />
           </>
@@ -295,10 +299,10 @@ export default function WhatIf() {
 
       <div className="flex flex-col gap-2">
         <Button icon={MessageCircle} full onClick={() => { actions.ask(describeScenario(s), "whatif"); navigate("/vara/chat", { replace: true }); }}>
-          Ask Vara about this
+          {t("Ask Vara about this")}
         </Button>
         <Button variant="soft" icon={Target} full disabled={saved <= 0} onClick={() => navigate(`/flow/goal?monthly=${Math.round(saved)}`)}>
-          Make it a goal
+          {t("Make it a goal")}
         </Button>
       </div>
       <ConceptNotice />
@@ -307,20 +311,20 @@ export default function WhatIf() {
 }
 
 function chanceWords(p: number): string {
-  if (p < 0.01) return "almost no chance";
-  if (p < 0.05) return "a small chance (under 1 in 20)";
+  if (p < 0.01) return t("almost no chance");
+  if (p < 0.05) return t("a small chance (under 1 in 20)");
   const n = Math.round(p * 10);
-  if (n <= 0) return `about a ${Math.round(p * 100)} % chance`;
-  return `about ${n} in 10`;
+  if (n <= 0) return t("about a {pct} % chance", { pct: Math.round(p * 100) });
+  return t("about {n} in 10", { n });
 }
 
 function OverdraftLine({ before, after, touched }: { before: number; after: number; touched: boolean }) {
   const diff = Math.round((before - after) * 100);
   return (
     <p className="mt-3 rounded-md bg-green-50 p-3 text-sm text-ink">
-      Chance of dipping below zero before payday: <strong>{chanceWords(after)}</strong> ({Math.round(after * 100)} %).
+      {t("Chance of dipping below zero before payday:")} <strong>{chanceWords(after)}</strong> ({Math.round(after * 100)} %).
       {touched && diff !== 0 && (
-        <> {`That's ${Math.abs(diff)} percentage point${Math.abs(diff) === 1 ? "" : "s"} ${diff > 0 ? "lower" : "higher"} than now.`}</>
+        <> {diff > 0 ? tn("That's {n} percentage point lower than now.", "That's {n} percentage points lower than now.", Math.abs(diff)) : tn("That's {n} percentage point higher than now.", "That's {n} percentage points higher than now.", Math.abs(diff))}</>
       )}
     </p>
   );

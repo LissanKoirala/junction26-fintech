@@ -3,6 +3,7 @@
 import type { ChatEvent, ChatRequest } from "@shared/chat";
 import type { CheckIn } from "@shared/checkin";
 import type { CustomerData, CustomerIndexRow } from "@shared/types";
+import { getLang, t } from "@shared/i18n";
 
 function readMockFlag(): boolean {
   try {
@@ -23,7 +24,7 @@ export function fetchCustomer(id: string): Promise<CustomerData> {
   let p = customerCache.get(key);
   if (!p) {
     p = fetch(`/api/customer/${encodeURIComponent(key)}`).then(async (r) => {
-      if (!r.ok) throw new Error(r.status === 404 ? `No customer with id ${key}` : `Could not load ${key} (HTTP ${r.status})`);
+      if (!r.ok) throw new Error(r.status === 404 ? t("No customer with id {id}", { id: key }) : t("Could not load {id} (HTTP {status})", { id: key, status: r.status }));
       return (await r.json()) as CustomerData;
     });
     p.catch(() => customerCache.delete(key));
@@ -61,12 +62,12 @@ export async function fetchCheckin(id: string, customer: CustomerData | null): P
   if (!MOCK) {
     // the server words the check-in with the language model; fall back to the local version if it takes too long
     const d = await Promise.race([
-      fetchOptional<CheckIn>(`/api/checkin/${encodeURIComponent(id)}`),
+      fetchOptional<CheckIn>(`/api/checkin/${encodeURIComponent(id)}${getLang() === "fi" ? "?lang=fi" : ""}`),
       new Promise<null>((r) => setTimeout(() => r(null), 20000)),
     ]);
     if (d && Array.isArray(d.slides)) return { data: d, mocked: false };
   }
-  if (!customer) throw new Error("Check-in unavailable");
+  if (!customer) throw new Error(t("Check-in unavailable"));
   const { mockCheckin } = await import("./mockCheckin");
   return { data: mockCheckin(customer), mocked: true };
 }
@@ -98,7 +99,7 @@ export async function streamChat(
   }
   if (res.status === 404 || res.status === 405) return runMock();
   if (!res.ok || !res.body) {
-    onEvent({ type: "error", message: `Vara could not answer right now (HTTP ${res.status}).` });
+    onEvent({ type: "error", message: t("Vara could not answer right now (HTTP {status}).", { status: res.status }) });
     onEvent({ type: "done" });
     return { mocked: false };
   }

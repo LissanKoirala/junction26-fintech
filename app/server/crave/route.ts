@@ -1,5 +1,6 @@
 // Crave mode API.
-//   POST /api/crave/shop  { customerId, craving } -> text/event-stream of CraveEvent (shared/crave.ts)
+//   POST /api/crave/shop  { customerId, craving, lang? } -> text/event-stream of CraveEvent (shared/crave.ts)
+// Shops are generated in the request's language ("en" | "fi"); the cache key includes it, so the two never mix.
 //   GET  /api/crave/img/:file                      -> cached product photo
 // Shops are cached on disk by a hash of the normalised craving, so repeats (and the demo cravings) are instant.
 // The customer id is only validated; it is never sent to the language or image model.
@@ -14,6 +15,7 @@ import { isCustomerId } from "../data";
 import { clientIp, rateLimit, takeDailyBudget } from "../llm";
 import { CRAVE_MODEL, generateDetails, generateShop } from "./generate";
 import { CRAVE_DIR, IMAGE_MODEL, productImage, readImage } from "./images";
+import { tr, type Lang } from "../../shared/i18n";
 
 const VERSION = 1;
 const SHOP_TIMEOUT_MS = 60_000;
@@ -21,16 +23,18 @@ const IMAGE_WAIT_MS = 16_000;
 const SHOPS_PER_IP_PER_10MIN = Number(process.env.CRAVE_SHOPS_PER_10MIN ?? 12);
 const SHOPS_PER_DAY = Number(process.env.CRAVE_SHOPS_PER_DAY ?? 400);
 
-const ReqSchema = z.object({ customerId: z.string().refine(isCustomerId), craving: z.string().min(1).max(200) });
+const ReqSchema = z.object({ customerId: z.string().refine(isCustomerId), craving: z.string().min(1).max(200), lang: z.enum(["en", "fi"]).optional() });
 
 export function normaliseCraving(s: string): string {
   return s.toLowerCase().normalize("NFC").replace(/[^\p{L}\p{N}\s'-]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 120);
 }
+// English keys stay as they were (existing caches remain valid); other languages are prefixed
+const cacheKey = (craving: string, lang: Lang) => (lang === "en" ? normaliseCraving(craving) : `${lang}|${normaliseCraving(craving)}`);
 const shopFile = (key: string) => path.join(CRAVE_DIR, `shop-${createHash("sha1").update(`${VERSION}|${key}`).digest("hex").slice(0, 16)}.json`);
 
-export async function loadCachedShop(craving: string): Promise<CraveShop | null> {
+export async function loadCachedShop(craving: string, lang: Lang = "en"): Promise<CraveShop | null> {
   try {
-    return JSON.parse(await readFile(shopFile(normaliseCraving(craving)), "utf8")) as CraveShop;
+    return JSON.parse(await readFile(shopFile(cacheKey(craving, lang)), "utf8")) as CraveShop;
   } catch {
     return null;
   }
@@ -65,7 +69,8 @@ export interface BuildLog {
 }
 
 /** Generates a shop (LLM + images), calling `send` progressively; caches the result. Exported for the prewarm script. */
-export async function buildShop(craving: string, send: (ev: CraveEvent) => void | Promise<void>, signal: AbortSignal, model = CRAVE_MODEL): Promise<{ shop: CraveShop | null; log: BuildLog }> {
+export async function buildShop(craving: string, send: (ev: CraveEvent) => void | Promise<void>, signal: AbortSignal, model = CRAVE_MODEL, lang: Lang = "en"): Promise<{ shop: CraveShop | null; log: BuildLog }> {
+  const { t } = tr(lang);
   const t0 = Date.now();
   let firstProductMs: number | undefined;
   let header: CraveShopHeader | null = null;
@@ -101,7 +106,7 @@ export async function buildShop(craving: string, send: (ev: CraveEvent) => void 
       generateDetails(header, batch, (id, d) => {
         details.set(id, d);
         void send({ type: "details", id, ...d });
-      }, signal, model)
+      }, signal, model, lang)
         .then((u) => {
           dUsage.in += u.in;
           dUsage.out += u.out;
@@ -135,11 +140,12 @@ export async function buildShop(craving: string, send: (ev: CraveEvent) => void 
     },
     signal,
     model,
+    lang,
   );
   const llmMs = Date.now() - t0;
   const log: BuildLog = { model, ttftMs: res.ttftMs, firstProductMs, llmMs, totalMs: 0, usage: res.usage, detailsUsage: dUsage, images: img };
   if (res.refused || refused || !res.header) {
-    await send({ type: "refused", message: res.refusalMessage || "Crave mode can't open a shop for that one." });
+    await send({ type: "refused", message: res.refusalMessage || t("Crave mode can't open a shop for that one.") });
     log.totalMs = Date.now() - t0;
     return { shop: null, log };
   }
@@ -162,7 +168,7 @@ export async function buildShop(craving: string, send: (ev: CraveEvent) => void 
     // cache only complete shops whose images all arrived (a later visit retries missing images)
     if (shop.products.every((p) => p.image && p.details)) {
       await mkdir(CRAVE_DIR, { recursive: true });
-      await writeFile(shopFile(normaliseCraving(craving)), JSON.stringify(shop));
+      await writeFile(shopFile(cacheKey(craving, lang)), JSON.stringify(shop));
     }
   }
   return { shop, log };
@@ -185,6 +191,8 @@ export function registerCraveRoutes(app: Hono) {
       return c.json({ error: "bad request" }, 400);
     }
     const craving = req.craving.replace(/\s+/g, " ").trim().slice(0, 120);
+    const lang: Lang = req.lang ?? "en";
+    const { t } = tr(lang);
     const ip = clientIp(c.req.raw.headers);
     c.header("X-Accel-Buffering", "no");
     c.header("Cache-Control", "no-cache");
@@ -197,8 +205,8 @@ export function registerCraveRoutes(app: Hono) {
       const timer = setTimeout(() => ac.abort(), SHOP_TIMEOUT_MS);
       stream.onAbort(() => ac.abort());
       try {
-        await send({ type: "status", label: "Hunting for the best deals…" });
-        const cached = await loadCachedShop(craving);
+        await send({ type: "status", label: t("Hunting for the best deals…") });
+        const cached = await loadCachedShop(craving, lang);
         if (cached) {
           const { products, alsoBought: _a, craving: _c, ...header } = cached;
           await send({ type: "shop", shop: header });
@@ -207,13 +215,13 @@ export function registerCraveRoutes(app: Hono) {
           return;
         }
         const limited = rateLimit(ip) ?? craveLimit(ip);
-        if (limited) throw new UserError(limited);
-        if (!takeDailyBudget(3)) throw new UserError("Crave mode is resting for today. Try one of the demo cravings.");
-        const { shop, log } = await buildShop(craving, send, ac.signal);
-        console.log(`[crave] ${JSON.stringify({ ...log, imageModel: IMAGE_MODEL, chars: craving.length, ok: !!shop })}`);
+        if (limited) throw new UserError(t(limited));
+        if (!takeDailyBudget(3)) throw new UserError(t("Crave mode is resting for today. Try one of the demo cravings."));
+        const { shop, log } = await buildShop(craving, send, ac.signal, CRAVE_MODEL, lang);
+        console.log(`[crave] ${JSON.stringify({ ...log, imageModel: IMAGE_MODEL, chars: craving.length, lang, ok: !!shop })}`);
         if (shop) await send({ type: "done", shop, meta: { model: log.model, cached: false, ms: log.totalMs, firstProductMs: log.firstProductMs } });
       } catch (err) {
-        const msg = err instanceof UserError ? err.message : ac.signal.aborted ? "The shop took too long to open. Please try again." : "The shop could not be opened right now. Please try again.";
+        const msg = err instanceof UserError ? err.message : ac.signal.aborted ? t("The shop took too long to open. Please try again.") : t("The shop could not be opened right now. Please try again.");
         if (!(err instanceof UserError)) console.error("[crave] error", (err as Error)?.message ?? err);
         await send({ type: "error", message: msg });
       } finally {

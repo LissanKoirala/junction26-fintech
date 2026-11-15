@@ -7,6 +7,7 @@ import type { MlAnomalies, MlHabits, MlHome, MlProfile, MlTwins, Tribe } from ".
 import type { MlForecast, MlRisk, MlTxGpt } from "./ml/typesB";
 import type { BasketOverrides, Goal, Period, Tx } from "./types";
 import type { CraveSummary } from "./crave";
+import type { Lang } from "./i18n";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -18,6 +19,7 @@ export interface ChatRequest {
   customerId: string;
   messages: ChatMessage[]; // full history, last one is the new user message
   locale?: string; // UI locale hint; the coach always answers in the language the user writes in
+  lang?: Lang; // app language: default reply language, and the language of every server-built card text (default "en")
   overrides?: BasketOverrides;
   goal?: Goal | null;
   screen?: string; // where the chat was opened from, e.g. "today" | "whatif"

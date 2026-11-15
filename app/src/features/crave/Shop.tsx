@@ -154,7 +154,7 @@ function BadgeTag({ p, color, kind }: { p: CraveProduct; color: string; kind: st
   const label = p.badge === "Deal" && discountPct(p) ? t("−{n} % today", { n: discountPct(p) }) : p.badge === "Chef's pick" && kind !== "food" ? t("Staff pick") : badgeLabel(p.badge);
   if (!label) return null;
   return (
-    <span className="absolute left-2 top-2 rounded-pill px-2 py-0.5 text-[11px] font-bold text-white shadow-low" style={{ background: color }}>
+    <span className="absolute left-2 top-2 max-w-[calc(100%-3.25rem)] truncate rounded-pill px-2 py-0.5 text-[11px] font-bold text-white shadow-low" style={{ background: color }}>
       {label}
     </span>
   );

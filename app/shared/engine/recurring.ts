@@ -118,7 +118,9 @@ export function predictPaydays(c: CustomerData, horizonDays = 45): PaydayPredict
   const use15 = s.share15 >= 0.5;
   const nPaid = Math.round(s.share15 * Math.max(1, Math.min(12, s.monthsSeen)));
   const basis = use15
-    ? et("You were paid on the 15th in {n} of the last {m} months; the other months it came at the end of the month.", { n: nPaid, m: Math.min(12, s.monthsSeen) })
+    ? nPaid >= Math.min(12, s.monthsSeen)
+      ? et("You were paid on the 15th in each of the last {m} months.", { m: Math.min(12, s.monthsSeen) })
+      : et("You were paid on the 15th in {n} of the last {m} months; the other months it came at the end of the month.", { n: nPaid, m: Math.min(12, s.monthsSeen) })
     : et("Your salary usually arrives around day {day} of the month.", { day: s.lateDay });
   const out: PaydayPrediction[] = [];
   const paidThisMonth = s.last != null && monthKey(s.last) === monthKey(asOf);

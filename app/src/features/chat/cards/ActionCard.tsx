@@ -5,6 +5,7 @@ import { getState } from "@/state/store";
 import { CardFrame } from "@/ui/chat";
 import { Button } from "@/ui/kit";
 import { navigate } from "@/lib/router";
+import { t } from "@/lib/i18n";
 import type { CardOf } from "./util";
 
 const ICON: Record<CardOf<"action">["action"], LucideIcon> = {
@@ -37,7 +38,7 @@ export function ActionCard({ card }: { card: CardOf<"action"> }) {
     if (craving) startShop(craving, getState().customerId);
   }, [craving]);
   return (
-    <CardFrame icon={ICON[card.action] ?? ArrowRight} eyebrow={card.action === "open_crave" ? "Crave mode · nothing ships" : "Next step"} title={card.title ?? card.label} explain={card.explain}>
+    <CardFrame icon={ICON[card.action] ?? ArrowRight} eyebrow={card.action === "open_crave" ? t("Crave mode · nothing ships") : t("Next step")} title={card.title ?? card.label} explain={card.explain}>
       {card.description && <p className="text-sm text-ink-strong">{card.description}</p>}
       <Button className="mt-3" full iconRight={ArrowRight} onClick={() => navigate(routeFor(card))}>
         {card.label}

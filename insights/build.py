@@ -705,7 +705,7 @@ if c:
 
 for k, eyebrow, title in (("forecast", "Model 5 · Will I make it to payday?", "Crystal ball: a balance forecast with honest uncertainty"),
                           ("risk", "Model 6 · Should I worry?", "Early warning: overdraft risk, with reasons"),
-                          ("txgpt", "Model 7 · The moonshot", "TransactionGPT: a small transformer trained on 3.6 million transactions")):
+                          ("txgpt", "Model 7 · The moonshot", "TransactionGPT: a small transformer that reads account history like text")):
     c = cards.get(k)
     try:
         if not c:
@@ -720,8 +720,14 @@ for k, eyebrow, title in (("forecast", "Model 5 · Will I make it to payday?", "
             r = ML["risk"]
             extra = "<p>Risk level today: " + ", ".join(f"<b>{esc(a)}</b> {n0(n)}" for a, n in sorted(r["levels"].items(), key=lambda z: -z[1])) + f" (of {n0(r['n'])} customers).</p>" + \
                 (chart({'type': 'hbars', 'rows': [{'label': l, 'vals': [n]} for l, n in r['drivers']], 'series': [{'name': 'Customers for whom this is the top reason', 'color': C['g7']}], 'fmt': 'num'}, 'The most common top reason behind a customer\'s risk score.') if r.get("drivers") else "")
-        if k == "txgpt" and ML.get("txgptN"):
-            extra = f"<p>Sampled futures were generated for {n0(ML['txgptN'])} customers.</p>"
+        if k == "txgpt":
+            pr = ((c.get("evidence") or {}).get("params")) or {}
+            bits = []
+            if pr.get("parameters") and pr.get("trainTokens"):
+                bits.append(f"The model has {pr['parameters'] / 1e6:.1f} million parameters ({pr.get('layers')} layers, context of {pr.get('context')} tokens) and was trained on {pr['trainTokens'] / 1e6:.1f} million tokens in {pr.get('trainingSeconds', 0) / 60:.0f} minutes on {esc(str(pr.get('device', 'CPU')))}. A token is one day marker or one transaction (category and amount bucket).")
+            if ML.get("txgptN"):
+                bits.append(f"For {n0(ML['txgptN'])} customers it sampled 200 possible next fortnights each; the app shows three of them (a thrifty, a typical and a spendy one) as imagined futures.")
+            extra = "<p>" + " ".join(bits) + "</p>" if bits else ""
         body = card_head(c) + extra + metric_table(c) + generic_evidence(c) + caveats(c)
         MS.append((f"m-{k}", TITLES[k], section(f"m-{k}", eyebrow, title, body)))
     except Exception as e:

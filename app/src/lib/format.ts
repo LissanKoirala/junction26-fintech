@@ -1,4 +1,6 @@
 // Finnish money and date formatting (CONTRACTS.md section 7). Never use the real clock: "today" is customer.asOf.
+// Numbers and amounts use Finnish style in both languages; weekday and month names follow the app language.
+import { getLang, locale } from "@shared/i18n";
 
 const eur2 = new Intl.NumberFormat("fi-FI", { style: "currency", currency: "EUR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const eur0 = new Intl.NumberFormat("fi-FI", { style: "currency", currency: "EUR", minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -41,14 +43,23 @@ export function pctSigned(p: number | null | undefined): string {
 function d(iso: string): Date {
   return new Date(iso.slice(0, 10) + "T12:00:00Z");
 }
+// English: "Wed 30 Sep", "30 Sep", "September 2026". Finnish (getLang() === "fi"): "ke 30.9.", "30.9.", "syyskuu 2026", "syys".
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const monthYear = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" });
-const short = { format: (x: Date) => `${WD[x.getUTCDay()]} ${x.getUTCDate()} ${MON[x.getUTCMonth()]}` };
-const dayMonth = { format: (x: Date) => `${x.getUTCDate()} ${MON[x.getUTCMonth()]}` };
-const monthShort = { format: (x: Date) => MON[x.getUTCMonth()] };
+const MON_FI = ["tammi", "helmi", "maalis", "huhti", "touko", "kesä", "heinä", "elo", "syys", "loka", "marras", "joulu"];
+const WD_FI = ["su", "ma", "ti", "ke", "to", "pe", "la"];
+const fi = () => getLang() === "fi";
+const monthYearFmt: Partial<Record<string, Intl.DateTimeFormat>> = {};
+const monthYear = {
+  format: (x: Date) => (monthYearFmt[locale()] ??= new Intl.DateTimeFormat(locale(), { month: "long", year: "numeric", timeZone: "UTC" })).format(x),
+};
+const short = {
+  format: (x: Date) => (fi() ? `${WD_FI[x.getUTCDay()]} ${x.getUTCDate()}.${x.getUTCMonth() + 1}.` : `${WD[x.getUTCDay()]} ${x.getUTCDate()} ${MON[x.getUTCMonth()]}`),
+};
+const dayMonth = { format: (x: Date) => (fi() ? `${x.getUTCDate()}.${x.getUTCMonth() + 1}.` : `${x.getUTCDate()} ${MON[x.getUTCMonth()]}`) };
+const monthShort = { format: (x: Date) => (fi() ? MON_FI : MON)[x.getUTCMonth()] };
 
-/** "Wed 30 Sep" */
+/** "Wed 30 Sep" (fi: "ke 30.9.") */
 export function dateShort(iso: string | null | undefined): string {
   if (!iso) return "–";
   return short.format(d(iso));
@@ -75,7 +86,8 @@ export function dateWindow(from: string | null, to: string | null): string {
   if (!from && !to) return "";
   if (!from || !to || from === to) return dateShort(from || to);
   const a = d(from), b = d(to);
-  if (a.getUTCMonth() === b.getUTCMonth()) return `${a.getUTCDate()}–${b.getUTCDate()} ${monthShort.format(b)}`;
+  if (a.getUTCMonth() === b.getUTCMonth())
+    return fi() ? `${a.getUTCDate()}.–${b.getUTCDate()}.${b.getUTCMonth() + 1}.` : `${a.getUTCDate()}–${b.getUTCDate()} ${monthShort.format(b)}`;
   return `${dateDM(from)} – ${dateDM(to)}`;
 }
 export function daysBetween(a: string, b: string): number {
