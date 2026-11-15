@@ -1,5 +1,111 @@
 import React from "react";
-import { Slide, Title } from "../kit";
-export const S07CraveIdea: React.FC = () => <Slide n={7}><Title eyebrow="Placeholder">S07CraveIdea</Title></Slide>;
+import { Accent, CravePill, Eyebrow, Headline, Icon, In, s, Slide, Sound, Title, useAmbient, useIn, useProgress } from "../kit";
+import { C } from "../theme";
+
+/* Crave slides: 07 the idea, 08 the live run, 09 honest by design.
+ * Entrance times are seconds into the slide; the narration starts at 0.8 s.
+ * Phrase times below come from the pauses measured in the narration file (silencedetect), plus 0.8 s. */
+
+const ease = (t: number) => 1 - (1 - t) ** 3;
+
+/* ============================================================ 07 · Crave mode, the idea (19 s) */
+// "But advice doesn't stop a craving.(0.8) So we tried something else.(2.6) Crave mode.(4.5)
+//  Tell Vara what you want,(5.3) and it builds a shop for it on the spot.(6.9) You hunt,(9.0) you fill the basket,(9.7)
+//  you check out.(10.9) Nothing ships.(12.0) The money goes to your savings instead.(13.4–15.3)"
+const steps = [
+  { icon: "chat", label: "Say the craving", d: 5.3 },
+  { icon: "bag", label: "A shop appears", d: 7.0 },
+  { icon: "basket", label: <>Hunt and fill<br />the basket</>, d: 9.0 },
+  { icon: "card", label: "Check out", d: 10.9 },
+];
+const STEP_X = [96, 406, 716, 1026], DISC = 96, DISC_TOP = 540, TRACK_Y = DISC_TOP + DISC / 2;
+const TWIST = { left: 1356, top: 452, width: 468, d: 12.0, savings: 13.4 };
+
+export const S07CraveIdea: React.FC = () => {
+  const glow = 0.5 + useAmbient(9) * 0.06;
+  return <Slide n={7} dark bg={`radial-gradient(900px 640px at 82% 58%, rgba(145,250,155,${0.14 * glow}), rgba(0,70,40,0) 70%), ${C.deep}`}>
+    <Sound src="n-crave-idea.m4a" at={s(0.8)} />
+    {/* the set-up, in fewer words than the narrator */}
+    <div style={{ position: "absolute", left: 96, top: 92, display: "flex", gap: 14, fontSize: 32, fontWeight: 500, color: C.heroMeta }}>
+      <In delay={s(0.9)} from="up" dist={14}><span>Advice doesn't stop a craving.</span></In>
+      <In delay={s(2.6)} from="up" dist={14}><span style={{ color: "#fff" }}>So we tried something else.</span></In>
+    </div>
+    <div style={{ position: "absolute", left: 96, top: 196, width: 1240 }}>
+      <Eyebrow dark delay={s(4.3)}>Crave mode</Eyebrow>
+      <Headline dark size={76} delay={s(4.5)} style={{ marginTop: 18 }}>Helping you save money,<br /><Accent dark>a craving at a time.</Accent></Headline>
+    </div>
+    <In delay={s(4.7)} from="up" dist={14} style={{ position: "absolute", right: 96, top: 186 }}><CravePill scale={1.3} style={{ border: "1.5px solid rgba(145,250,155,.45)" }} /></In>
+    <Track />
+    {steps.map((st, k) => <Step key={k} n={k + 1} x={STEP_X[k]} {...st} />)}
+    <Twist />
+    <In delay={s(14.6)} from="up" dist={14} style={{ position: "absolute", left: 96, top: 900, display: "flex", alignItems: "center", gap: 14 }}>
+      <Icon name="shield" size={28} color={C.mint} />
+      <span style={{ fontSize: 24, color: C.heroMeta }}>Opt-in · the shop and its brands are invented · all money movement is simulated in the prototype</span>
+    </In>
+  </Slide>;
+};
+
+/** The journey line between the steps: each segment draws in just before the step it leads to. */
+const Track: React.FC = () => {
+  const ends = [...steps.slice(1).map(st => st.d), TWIST.d];
+  const segs = ends.map((d, k) => {
+    const x0 = STEP_X[k] + DISC + 14, x1 = k < 3 ? STEP_X[k + 1] - 14 : TWIST.left - 14;
+    return { x0, x1, d, last: k === 3 };
+  });
+  return <svg width={1920} height={1080} style={{ position: "absolute", inset: 0 }}>
+    {segs.map(sg => <Seg key={sg.x0} {...sg} />)}
+  </svg>;
+};
+const Seg: React.FC<{ x0: number; x1: number; d: number; last: boolean }> = ({ x0, x1, d, last }) => {
+  const p = ease(useProgress(s(d) - 12, s(d) + 2));
+  if (p <= 0) return null;
+  const x = x0 + (x1 - x0) * p;
+  return <g>
+    <path d={`M ${x0} ${TRACK_Y} L ${x} ${TRACK_Y}`} stroke={last ? C.mint : "rgba(255,255,255,.28)"} strokeWidth={last ? 4 : 3} strokeLinecap="round" strokeDasharray={last ? undefined : "2 12"} />
+    {last && p > 0.96 ? <path d={`M ${x1 - 14} ${TRACK_Y - 12} L ${x1} ${TRACK_Y} L ${x1 - 14} ${TRACK_Y + 12}`} fill="none" stroke={C.mint} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" /> : null}
+  </g>;
+};
+
+const Step: React.FC<{ n: number; x: number; icon: string; label: React.ReactNode; d: number }> = ({ n, x, icon, label, d }) =>
+  <In delay={s(d)} from="up" dist={24} style={{ position: "absolute", left: x, top: DISC_TOP, width: 280 }}>
+    <div style={{ width: DISC, height: DISC, borderRadius: DISC, background: "rgba(145,250,155,.14)", border: "1.5px solid rgba(145,250,155,.35)", display: "grid", placeItems: "center", boxSizing: "border-box" }}>
+      <Icon name={icon} size={46} color={C.mint} />
+    </div>
+    <div style={{ marginTop: 24, fontSize: 22, fontWeight: 700, letterSpacing: 2, color: C.mint, fontVariantNumeric: "tabular-nums" }}>{String(n).padStart(2, "0")}</div>
+    <div style={{ marginTop: 6, fontSize: 32, fontWeight: 700, lineHeight: 1.2, color: "#fff" }}>{label}</div>
+  </In>;
+
+/** Step 05, the twist: a mint card instead of a disc. "Nothing ships" first, then where the money goes. */
+const Twist: React.FC = () => {
+  const t = useIn(s(TWIST.d));
+  const halo = ease(useProgress(s(TWIST.d) + 6, s(TWIST.d) + 36));
+  return <div style={{ position: "absolute", left: TWIST.left, top: TWIST.top, width: TWIST.width, opacity: Math.min(1, t * 1.4), transform: `translateY(${(1 - t) * 30}px)` }}>
+    <div style={{ borderRadius: 28, background: C.mint, color: C.deep, padding: "32px 36px 34px", boxShadow: `0 0 ${80 * halo}px rgba(145,250,155,${0.35 * halo})` }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: 2, color: C.green, fontVariantNumeric: "tabular-nums" }}>05</div>
+        <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: 2.4, textTransform: "uppercase", color: C.green }}>The twist</div>
+      </div>
+      <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 18 }}>
+        <StruckBox at={s(TWIST.d) + 10} />
+        <div style={{ fontSize: 46, fontWeight: 800, letterSpacing: -1, lineHeight: 1.05 }}>Nothing ships</div>
+      </div>
+      <In delay={s(TWIST.savings)} from="up" dist={18} style={{ marginTop: 22, paddingTop: 22, borderTop: `2px solid rgba(0,70,40,.18)`, display: "flex", alignItems: "center", gap: 18 }}>
+        <div style={{ width: 72, height: 72, borderRadius: 72, background: C.deep, display: "grid", placeItems: "center", flexShrink: 0 }}><Icon name="piggy" size={40} color={C.mint} stroke={2} /></div>
+        <div style={{ fontSize: 32, fontWeight: 700, lineHeight: 1.2 }}>The money lands<br />in savings</div>
+      </In>
+    </div>
+  </div>;
+};
+/** A parcel with a stroke drawn through it. */
+const StruckBox: React.FC<{ at: number }> = ({ at }) => {
+  const p = ease(useProgress(at, at + 14));
+  return <div style={{ width: 72, height: 72, borderRadius: 72, background: "rgba(0,70,40,.12)", display: "grid", placeItems: "center", flexShrink: 0, position: "relative" }}>
+    <Icon name="box" size={40} color={C.deep} stroke={2} />
+    <svg width={72} height={72} style={{ position: "absolute", inset: 0 }}>
+      {p > 0 ? <path d={`M 18 18 L ${18 + 36 * p} ${18 + 36 * p}`} stroke={C.deep} strokeWidth={4} strokeLinecap="round" /> : null}
+    </svg>
+  </div>;
+};
+
 export const S08CraveLive: React.FC = () => <Slide n={8}><Title eyebrow="Placeholder">S08CraveLive</Title></Slide>;
 export const S09CraveHonest: React.FC = () => <Slide n={9}><Title eyebrow="Placeholder">S09CraveHonest</Title></Slide>;
