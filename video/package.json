@@ -1,0 +1,26 @@
+{
+  "name": "vara-pitch",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Vara pitch deck: one Remotion composition per slide, rendered to numbered 1920x1080 MP4s and one full video.",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render:all": "node scripts/render-all.mjs",
+    "render:one": "node scripts/render-all.mjs --only"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.543",
+    "@remotion/cli": "4.0.543",
+    "@remotion/google-fonts": "4.0.543",
+    "@remotion/paths": "4.0.543",
+    "@remotion/renderer": "4.0.543",
+    "@remotion/shapes": "4.0.543",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.543"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "typescript": "5.8.3"
+  }
+}

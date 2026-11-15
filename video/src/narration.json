@@ -1,0 +1,107 @@
+[
+  {
+    "id": "opening",
+    "slide": 1,
+    "text": "Meet Aino. She's twenty-one, payday is two weeks away, and she really wants new sneakers. Her banking app shows what she has. It doesn't show what she can afford.",
+    "file": "n-opening.m4a",
+    "seconds": 10.0
+  },
+  {
+    "id": "data",
+    "slide": 2,
+    "text": "She's not alone. In the challenge data, three point six million transactions from five thousand one hundred customers, seven in ten dipped below zero at least once in two years. Among eighteen to twenty-four-year-olds, it's eight in ten. Almost always in the last days before payday.",
+    "file": "n-data.m4a",
+    "seconds": 19.2
+  },
+  {
+    "id": "insight",
+    "slide": 3,
+    "text": "And the dips are small. A typical everyday purchase is thirty-nine euros. The deepest dip in two years is the size of six of them. So this isn't a maths problem. It's about the moment, and whether the money is still there when the dip would have come.",
+    "file": "n-insight.m4a",
+    "seconds": 15.3
+  },
+  {
+    "id": "meet",
+    "slide": 4,
+    "text": "So we built Vara, a personal economic trainer inside S-mobiili. It starts with one number: what's safe to spend, after rent, bills and a cushion.",
+    "file": "n-meet.m4a",
+    "seconds": 9.6
+  },
+  {
+    "id": "chat",
+    "slide": 5,
+    "text": "Ask it anything, in plain words. Answers arrive as cards, built from your own transactions, and every number shows how it was worked out. The language model never does the arithmetic. An engine does, and a guard checks every figure before it reaches you.",
+    "file": "n-chat.m4a",
+    "seconds": 16.0
+  },
+  {
+    "id": "coach",
+    "slide": 6,
+    "text": "What-if lets you try a decision before you make it. Every week, Vara checks in first, with the story of your week. And it works in English and in Finnish.",
+    "file": "n-coach.m4a",
+    "seconds": 8.9
+  },
+  {
+    "id": "crave-idea",
+    "slide": 7,
+    "text": "But advice doesn't stop a craving. So we tried something else. Crave mode. Tell Vara what you want, and it builds a shop for it on the spot. You hunt, you fill the basket, you check out. Nothing ships. The money goes to your savings instead.",
+    "file": "n-crave-idea.m4a",
+    "seconds": 14.6
+  },
+  {
+    "id": "crave-live-a",
+    "slide": 8,
+    "text": "Here it is, live. New sneakers.",
+    "file": "n-crave-live-a.m4a",
+    "seconds": 2.46
+  },
+  {
+    "id": "crave-live-b",
+    "slide": 8,
+    "text": "The thrill of buying. And the money is still hers.",
+    "file": "n-crave-live-b.m4a",
+    "seconds": 3.3
+  },
+  {
+    "id": "crave-honest",
+    "slide": 9,
+    "text": "Crave mode is honest by design. You opt in, and every screen says nothing ships. It never sets aside more than is safe to spend, and you can release the money and buy it for real at any time. In this prototype the money movement is simulated, and checkout can use a real wallet sheet in Stripe's test mode. No card is charged.",
+    "file": "n-crave-honest.m4a",
+    "seconds": 19.6
+  },
+  {
+    "id": "models",
+    "slide": 10,
+    "text": "Behind the coach are eight machine-learning models trained on the challenge data, from a balance forecast and an overdraft early warning to a small transformer that reads account history like text. We tested each one against the strongest simple baseline we could find. Two clearly win, and ship. Six are labelled experimental, and the app says so.",
+    "file": "n-models.m4a",
+    "seconds": 21.7
+  },
+  {
+    "id": "insights",
+    "slide": 11,
+    "text": "It's all written up for the judges on a separate insights site: seven findings, every model card, and the limits of what this data can tell.",
+    "file": "n-insights.m4a",
+    "seconds": 8.9
+  },
+  {
+    "id": "fit",
+    "slide": 12,
+    "text": "Vara is built to fit S-mobiili. It lives inside the app's shell, hands savings goals to Säästäjä, and can read other banks through an open-banking mock. One engine, one guarded chat endpoint, two languages. And it's live today.",
+    "file": "n-fit.m4a",
+    "seconds": 15.3
+  },
+  {
+    "id": "criteria",
+    "slide": 13,
+    "text": "Five criteria. Financial literacy: every answer shows its working. Original AI: a shop that sells nothing. A clear mobile experience, in two languages. Feasible: it's running now. And made for S-mobiili.",
+    "file": "n-criteria.m4a",
+    "seconds": 14.9
+  },
+  {
+    "id": "close",
+    "slide": 14,
+    "text": "Vara. Helping you save money, a craving at a time.",
+    "file": "n-close.m4a",
+    "seconds": 3.3
+  }
+]
