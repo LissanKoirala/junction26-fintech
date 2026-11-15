@@ -217,8 +217,8 @@ const fi: Record<string, string> = {
     "Pidä arjen ekstrat alle {target} tällä viikolla (tavallinen viikkosi arjen ekstroihin on {typical}).",
   "Opening Crave mode…": "Avaan Mielitekotilaa…",
   "Shop it in Crave mode": "Osta se Mielitekotilassa",
-  "Get the full hunt and checkout for “{craving}”. Nothing ships: the money goes to your Crave pot, and you can release it after 48 hours if you still want it.":
-    "Koe koko etsintä ja kassa mielitekoon ”{craving}”. Mitään ei lähetetä: raha menee Mielitekopottiisi, ja voit vapauttaa sen 48 tunnin jälkeen, jos haluat sen yhä.",
+  "Get the full hunt and checkout for “{craving}”. Nothing ships: the money goes to your Crave pot, and you can release it any time and buy it for real.":
+    "Koe koko etsintä ja kassa mielitekoon ”{craving}”. Mitään ei lähetetä: raha menee Mielitekopottiisi, ja voit vapauttaa sen milloin tahansa ja ostaa tuotteen oikeasti.",
   "Opt-in: the shop is generated for this craving only": "Vapaaehtoinen: kauppa luodaan vain tätä mielitekoa varten",
   "Simulation: no money is moved": "Simulaatio: rahaa ei siirretä",
   "Crave mode (Junction 2026 concept)": "Mielitekotila (Junction 2026 -konsepti)",

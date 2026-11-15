@@ -762,7 +762,7 @@ const craveTool = tool({
       action: "open_crave",
       title: t.t("Shop it in Crave mode"),
       label: t.t("Shop it in Crave mode"),
-      description: t.t("Get the full hunt and checkout for “{craving}”. Nothing ships: the money goes to your Crave pot, and you can release it after 48 hours if you still want it.", { craving }),
+      description: t.t("Get the full hunt and checkout for “{craving}”. Nothing ships: the money goes to your Crave pot, and you can release it any time and buy it for real.", { craving }),
       payload: { craving },
       explain: { tool: "offer_crave_mode", filters: [t.t("Opt-in: the shop is generated for this craving only"), t.t("Simulation: no money is moved")], source: t.t("Crave mode (Junction 2026 concept)") },
     };
