@@ -1,0 +1,16 @@
+{
+  "_note": "On-screen model credits (EDIT's file). Plain text only: no logo or mark. Facts from the orchestrator after the app's switch to Gemini: the shop's text (name, brands, products, reviews) is written by gemini-3.5-flash-lite with streaming structured output; the photos come from a separate image model (FLUX), never credited to Gemini; the coach uses Gemini with function calling. Nothing else is credited to Gemini (not the ML models, not the map's tribe names, not the photos). coach.footage_is_gemini: set true once the chat clip on screen was recorded after the switch (the coach credit is shown over the chat footage only then).",
+  "build": {
+    "lead": "Built live by",
+    "model": "Gemini",
+    "feature": "streaming structured output",
+    "id": "Gemini 3.5 Flash-Lite"
+  },
+  "coach": {
+    "lead": "",
+    "model": "Gemini",
+    "feature": "function calling",
+    "footage_is_gemini": false
+  },
+  "photos": "Photos · image model"
+}

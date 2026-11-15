@@ -1,0 +1,531 @@
+{
+  "clips": {
+    "crave-run": {
+      "file": "v2/live/crave-run.mp4",
+      "seconds": 62,
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "craving": "new sneakers",
+      "real_time": true,
+      "build_seconds": 8.8,
+      "build": {
+        "first_paint_seconds": 2.2,
+        "shop_open_seconds": 2.5,
+        "server": {
+          "model": "gemini-3.5-flash-lite,gemini-3.6-flash,gemini-3.1-flash-lite",
+          "cached": false,
+          "ms": 8818,
+          "firstProductMs": 2217
+        }
+      },
+      "model": "gemini-3.5-flash-lite",
+      "model_fallback": false,
+      "first_product_seconds_server": 2.2,
+      "events": [
+        {
+          "t": 1.626,
+          "label": "typing-start"
+        },
+        {
+          "t": 2.906,
+          "label": "craving-typed"
+        },
+        {
+          "t": 3.822,
+          "label": "submitted"
+        },
+        {
+          "t": 6.028,
+          "label": "build-first-paint"
+        },
+        {
+          "t": 6.028,
+          "label": "found-shop"
+        },
+        {
+          "t": 6.319,
+          "label": "shop-open"
+        },
+        {
+          "t": 7.945,
+          "label": "first-photo"
+        },
+        {
+          "t": 12.646,
+          "label": "shop-visible"
+        },
+        {
+          "t": 15.124,
+          "label": "scroll-start"
+        },
+        {
+          "t": 23.502,
+          "label": "scroll-end"
+        },
+        {
+          "t": 23.715,
+          "label": "product-open"
+        },
+        {
+          "t": 26.575,
+          "label": "product-reviews"
+        },
+        {
+          "t": 28.16,
+          "label": "added"
+        },
+        {
+          "t": 29.555,
+          "label": "basket"
+        },
+        {
+          "t": 31.168,
+          "label": "checkout"
+        },
+        {
+          "t": 33.596,
+          "label": "payday-check"
+        },
+        {
+          "t": 35.717,
+          "label": "sheet-open"
+        },
+        {
+          "t": 37.36,
+          "label": "wallet-ready-dom"
+        },
+        {
+          "t": 37.4,
+          "label": "wallet-visible"
+        },
+        {
+          "t": 39.368,
+          "label": "simulated-pay-link"
+        },
+        {
+          "t": 39.369,
+          "label": "sim-sheet"
+        },
+        {
+          "t": 41.201,
+          "label": "pay-tap-1"
+        },
+        {
+          "t": 41.386,
+          "label": "pay-tap"
+        },
+        {
+          "t": 41.809,
+          "label": "scan"
+        },
+        {
+          "t": 42.48,
+          "label": "processing"
+        },
+        {
+          "t": 43.179,
+          "label": "tick"
+        },
+        {
+          "t": 43.246,
+          "label": "tick-visible"
+        },
+        {
+          "t": 44.508,
+          "label": "reveal"
+        },
+        {
+          "t": 47.699,
+          "label": "twist"
+        },
+        {
+          "t": 48.999,
+          "label": "coins"
+        },
+        {
+          "t": 53.559,
+          "label": "inbox"
+        },
+        {
+          "t": 57.103,
+          "label": "pot"
+        }
+      ],
+      "shop": {
+        "name": "Puro Soles",
+        "tagline": "Nordic comfort for every step",
+        "kind": "store",
+        "brands": [
+          "Puro",
+          "Vektor",
+          "Halt",
+          "Kivi",
+          "Fjell"
+        ],
+        "products": 10,
+        "photos": 10,
+        "products_with_reviews": 10,
+        "rating": 4.8,
+        "product": "Nordic Air Runner",
+        "product_brand": "Puro",
+        "price": "129,00 €",
+        "checkout_total": "129,00 €",
+        "payday_check": "Checked against your safe-to-spend: 137 € is free until payday, so this fits.",
+        "wallet_button_shown": true
+      },
+      "frame_gaps_over_120ms": [
+        35.8,
+        36,
+        36.3
+      ],
+      "take": "Gemini take 2 (07:45 UTC)",
+      "avoid": [
+        [
+          18.4,
+          21.9
+        ]
+      ],
+      "avoid_why": "18.4-21.9 s: the last grid row comes on screen and shows 'Vektor Night Glow', a black shoe with three diagonal side stripes (a real sportswear trademark look-alike). Use the grid before 18.4 s and cut to 'product-open' (23.7 s). Every other frame was checked: no look-alike.",
+      "sounds": [
+        {
+          "at_event": "added",
+          "t": 28.16,
+          "file": "audio/pop.wav",
+          "what": "basket pop"
+        },
+        {
+          "at_event": "tick",
+          "t": 43.179,
+          "file": "audio/chime.wav",
+          "what": "pay chime; the app plays it on the state change that draws the tick (visible from 'tick-visible', 2 frames later)"
+        },
+        {
+          "at_event": "coins",
+          "t": 48.999,
+          "file": "audio/coins.wav",
+          "what": "coins as the pot lands and starts counting up (1.3 s after the twist)"
+        }
+      ],
+      "notes": "Real time, one continuous uncut take, 30 fps, 780x1688 (390x844 at 2x). Shop generated by gemini-3.5-flash-lite (no fallback: read from the production log), photos by the image model. Build: 'submitted' -> hunting animation -> 'found-shop' (= 'build-first-paint': the hunting screen names the shop, 2.2 s) -> 'shop-open' (grid with first products, 2.5 s) -> photos fade in -> 'shop-visible' (all 10 products in, every photo on screen loaded, 8.8 s). The grid is left alone while it fills, then read slowly ('scroll-start'..'scroll-end'). Pay: the sheet opens on the simulated wallet while Stripe probes; the real Stripe test-mode wallet button (Apple Pay, 'TEST PAYMENT · YOUR CARD IS NOT CHARGED') is fully painted at 'wallet-visible' and held ~2 s; never pressed: 'simulated-pay-link' taps 'Or use the simulated pay', then double-click, scan, processing, tick. The simulated sheet shows the app's own 'S-Pankki Debit •••• 4821 · Invented demo card'."
+    },
+    "shop-sushi": {
+      "file": "v2/live/shop-sushi.mp4",
+      "seconds": 18.1,
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "craving": "sushi tonight",
+      "real_time": true,
+      "build_seconds": 15.8,
+      "build": {
+        "first_paint_seconds": 2.9,
+        "shop_open_seconds": 2.9,
+        "server": {
+          "model": "anthropic:claude@haiku-5.5",
+          "cached": false,
+          "ms": 15763,
+          "firstProductMs": 2641
+        }
+      },
+      "model": "anthropic:claude@haiku-5.5 (OLD take, being re-recorded with Gemini; shop-headphones shows a white earbud case look-alike: do not use)",
+      "model_fallback": null,
+      "first_product_seconds_server": 2.6,
+      "events": [
+        {
+          "t": 0.3,
+          "label": "build-first-paint"
+        },
+        {
+          "t": 0.3,
+          "label": "shop-open"
+        },
+        {
+          "t": 2.45,
+          "label": "first-photo"
+        },
+        {
+          "t": 13.167,
+          "label": "shop-visible"
+        },
+        {
+          "t": 13.669,
+          "label": "scroll-start"
+        },
+        {
+          "t": 17.282,
+          "label": "scroll-end"
+        }
+      ],
+      "shop": {
+        "name": "Umi Nordic Kitchen",
+        "tagline": "Fresh rolls, delivered to your door tonight",
+        "kind": "food",
+        "brands": [
+          "Umi Nordic Kitchen"
+        ],
+        "products": 10,
+        "photos": 10,
+        "products_with_reviews": 10,
+        "rating": 4.6
+      },
+      "full": {
+        "file": "v2/live/shop-sushi-full.mp4",
+        "seconds": 23.567,
+        "events": [
+          {
+            "t": 1.25,
+            "label": "typing-start"
+          },
+          {
+            "t": 2.227,
+            "label": "craving-typed"
+          },
+          {
+            "t": 2.847,
+            "label": "submitted"
+          },
+          {
+            "t": 5.752,
+            "label": "build-first-paint"
+          },
+          {
+            "t": 5.752,
+            "label": "shop-open"
+          },
+          {
+            "t": 7.902,
+            "label": "first-photo"
+          },
+          {
+            "t": 18.619,
+            "label": "shop-visible"
+          },
+          {
+            "t": 19.121,
+            "label": "scroll-start"
+          },
+          {
+            "t": 22.734,
+            "label": "scroll-end"
+          }
+        ]
+      }
+    },
+    "shop-headphones": {
+      "file": "v2/live/shop-headphones.mp4",
+      "seconds": 18.733,
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "craving": "wireless headphones",
+      "real_time": true,
+      "build_seconds": 16.3,
+      "build": {
+        "first_paint_seconds": 2.7,
+        "shop_open_seconds": 2.7,
+        "server": {
+          "model": "anthropic:claude@haiku-5.5",
+          "cached": false,
+          "ms": 16241,
+          "firstProductMs": 2475
+        }
+      },
+      "model": "anthropic:claude@haiku-5.5 (OLD take, being re-recorded with Gemini; shop-headphones shows a white earbud case look-alike: do not use)",
+      "model_fallback": null,
+      "first_product_seconds_server": 2.5,
+      "events": [
+        {
+          "t": 0.3,
+          "label": "build-first-paint"
+        },
+        {
+          "t": 0.3,
+          "label": "shop-open"
+        },
+        {
+          "t": 1.65,
+          "label": "first-photo"
+        },
+        {
+          "t": 13.802,
+          "label": "shop-visible"
+        },
+        {
+          "t": 14.31,
+          "label": "scroll-start"
+        },
+        {
+          "t": 17.977,
+          "label": "scroll-end"
+        }
+      ],
+      "shop": {
+        "name": "Hiljainen Audio",
+        "tagline": "Quiet sound for busy days",
+        "kind": "store",
+        "brands": [
+          "Lumi Sound",
+          "Nordvik",
+          "Tundra Labs",
+          "Aalto & Co",
+          "Halkea"
+        ],
+        "products": 10,
+        "photos": 10,
+        "products_with_reviews": 10,
+        "rating": 4.6
+      },
+      "full": {
+        "file": "v2/live/shop-headphones-full.mp4",
+        "seconds": 24.433,
+        "events": [
+          {
+            "t": 1.225,
+            "label": "typing-start"
+          },
+          {
+            "t": 2.621,
+            "label": "craving-typed"
+          },
+          {
+            "t": 3.268,
+            "label": "submitted"
+          },
+          {
+            "t": 6.017,
+            "label": "build-first-paint"
+          },
+          {
+            "t": 6.017,
+            "label": "shop-open"
+          },
+          {
+            "t": 7.367,
+            "label": "first-photo"
+          },
+          {
+            "t": 19.519,
+            "label": "shop-visible"
+          },
+          {
+            "t": 20.027,
+            "label": "scroll-start"
+          },
+          {
+            "t": 23.694,
+            "label": "scroll-end"
+          }
+        ]
+      }
+    },
+    "shop-coat": {
+      "file": "v2/live/shop-coat.mp4",
+      "seconds": 24.433,
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "craving": "a winter coat",
+      "real_time": true,
+      "build_seconds": 22.7,
+      "build": {
+        "first_paint_seconds": 3.5,
+        "shop_open_seconds": 3.5,
+        "server": {
+          "model": "anthropic:claude@haiku-5.5",
+          "cached": false,
+          "ms": 22722,
+          "firstProductMs": 3267
+        }
+      },
+      "model": "anthropic:claude@haiku-5.5 (OLD take, being re-recorded with Gemini; shop-headphones shows a white earbud case look-alike: do not use)",
+      "model_fallback": null,
+      "first_product_seconds_server": 3.3,
+      "events": [
+        {
+          "t": 0.3,
+          "label": "build-first-paint"
+        },
+        {
+          "t": 0.3,
+          "label": "shop-open"
+        },
+        {
+          "t": 1.643,
+          "label": "first-photo"
+        },
+        {
+          "t": 19.49,
+          "label": "shop-visible"
+        },
+        {
+          "t": 20.025,
+          "label": "scroll-start"
+        },
+        {
+          "t": 23.653,
+          "label": "scroll-end"
+        }
+      ],
+      "shop": {
+        "name": "Nordlys Outerwear",
+        "tagline": "Warm coats for long Finnish winters",
+        "kind": "store",
+        "brands": [
+          "Nordlys"
+        ],
+        "products": 10,
+        "photos": 10,
+        "products_with_reviews": 10,
+        "rating": 4.6
+      },
+      "full": {
+        "file": "v2/live/shop-coat-full.mp4",
+        "seconds": 30.967,
+        "events": [
+          {
+            "t": 1.29,
+            "label": "typing-start"
+          },
+          {
+            "t": 2.47,
+            "label": "craving-typed"
+          },
+          {
+            "t": 3.3,
+            "label": "submitted"
+          },
+          {
+            "t": 6.84,
+            "label": "build-first-paint"
+          },
+          {
+            "t": 6.84,
+            "label": "shop-open"
+          },
+          {
+            "t": 8.182,
+            "label": "first-photo"
+          },
+          {
+            "t": 26.03,
+            "label": "shop-visible"
+          },
+          {
+            "t": 26.565,
+            "label": "scroll-start"
+          },
+          {
+            "t": 30.193,
+            "label": "scroll-end"
+          }
+        ]
+      }
+    }
+  },
+  "sounds_files": "The app's own sounds are in video/public/audio/ (pop.wav, chime.wav, coins.wav).",
+  "capture": {
+    "device": "390x844 CSS px at deviceScaleFactor 2 (780x1688), headless Chromium (site isolation off so the Stripe frame does not slow capture), frames over CDP, assembled to constant 30 fps in real time",
+    "script": "video/scripts/record-v2.mjs"
+  }
+}
