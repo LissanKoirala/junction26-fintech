@@ -5,79 +5,84 @@
       "width": 780,
       "height": 1688,
       "fps": 30,
-      "frames": 378,
-      "seconds": 12.6,
+      "frames": 388,
+      "seconds": 12.933,
       "cut": [],
       "events": [
         {
           "t": 1.87,
           "label": "vara-open"
         }
-      ]
+      ],
+      "recorded": "2026-11-15 08:07-08:11 UTC, on the production deploy of 07:58 UTC"
     },
     {
       "file": "chat.mp4",
       "width": 780,
       "height": 1688,
       "fps": 30,
-      "frames": 609,
-      "seconds": 20.3,
+      "frames": 486,
+      "seconds": 16.2,
       "cut": [
         {
-          "at": 5.66,
-          "removed": 4.14,
+          "at": 5.79,
+          "removed": 1.1,
           "where": "waiting for the first words of the answer"
         }
       ],
       "events": [
         {
-          "t": 1.93,
+          "t": 1.96,
           "label": "typing-start"
         },
         {
-          "t": 4.76,
+          "t": 4.89,
           "label": "sent"
         },
         {
-          "t": 6.26,
+          "t": 6.39,
           "label": "answer-first-card"
         },
         {
-          "t": 6.26,
+          "t": 6.5,
           "label": "answer-complete"
         },
         {
-          "t": 16.18,
+          "t": 12.09,
           "label": "how-open"
         }
-      ]
+      ],
+      "recorded": "2026-11-15 08:07-08:11 UTC, on the production deploy of 07:58 UTC",
+      "model": "gemini-3.5-flash-lite",
+      "model_note": "From the production log: provider gemini, both rounds answered by gemini-3.5-flash-lite (no fallback), tool offer_crave_mode, numbers check verified. Q 'Can I afford new sneakers this month?' A: 'things are a bit tight until payday with €137.46 free right now', offers Crave mode with a 'Shop it in Crave mode' card."
     },
     {
       "file": "whatif.mp4",
       "width": 780,
       "height": 1688,
       "fps": 30,
-      "frames": 376,
-      "seconds": 12.533,
+      "frames": 379,
+      "seconds": 12.633,
       "cut": [],
       "events": [
         {
-          "t": 3.14,
+          "t": 3.11,
           "label": "changed"
         },
         {
-          "t": 8.37,
+          "t": 8.48,
           "label": "changed-2"
         }
-      ]
+      ],
+      "recorded": "2026-11-15 08:07-08:11 UTC, on the production deploy of 07:58 UTC"
     },
     {
       "file": "checkin.mp4",
       "width": 780,
       "height": 1688,
       "fps": 30,
-      "frames": 403,
-      "seconds": 13.433,
+      "frames": 405,
+      "seconds": 13.5,
       "cut": [],
       "events": [
         {
@@ -85,41 +90,45 @@
           "label": "slide-2"
         },
         {
-          "t": 4.11,
+          "t": 4.14,
           "label": "slide-3"
         },
         {
-          "t": 6.22,
+          "t": 6.23,
           "label": "slide-4"
         },
         {
-          "t": 8.31,
+          "t": 8.21,
           "label": "slide-5"
         },
         {
-          "t": 10.25,
+          "t": 10.31,
           "label": "slide-6"
         }
-      ]
+      ],
+      "recorded": "2026-11-15 08:07-08:11 UTC, on the production deploy of 07:58 UTC",
+      "model": "gemini-3.5-flash-lite",
+      "model_note": "Check-in wording: generatedBy 'gemini-3.5-flash-lite (wording) + engine (numbers)'; served from the check-in cache (written 07:42 UTC), so no generation wait in the clip."
     },
     {
       "file": "finnish.mp4",
       "width": 780,
       "height": 1688,
       "fps": 30,
-      "frames": 260,
-      "seconds": 8.667,
+      "frames": 264,
+      "seconds": 8.8,
       "cut": [],
       "events": [
         {
-          "t": 2.26,
+          "t": 2.39,
           "label": "switched"
         },
         {
-          "t": 5.07,
+          "t": 5.2,
           "label": "chat-tab"
         }
-      ]
+      ],
+      "recorded": "2026-11-15 08:07-08:11 UTC, on the production deploy of 07:58 UTC"
     },
     {
       "file": "crave.mp4",
@@ -220,8 +229,8 @@
       "width": 780,
       "height": 1688,
       "fps": 30,
-      "frames": 554,
-      "seconds": 18.467,
+      "frames": 566,
+      "seconds": 18.867,
       "cut": [],
       "events": [
         {
@@ -229,30 +238,31 @@
           "label": "baskets"
         },
         {
-          "t": 3.83,
+          "t": 3.86,
           "label": "last-month"
         },
         {
-          "t": 4.84,
+          "t": 4.89,
           "label": "goal"
         },
         {
-          "t": 10.95,
+          "t": 11.2,
           "label": "saastaja"
         },
         {
-          "t": 12.05,
+          "t": 12.3,
           "label": "connect"
         }
-      ]
+      ],
+      "recorded": "2026-11-15 08:07-08:11 UTC, on the production deploy of 07:58 UTC"
     },
     {
       "file": "insights.mp4",
       "width": 1600,
       "height": 900,
       "fps": 30,
-      "frames": 471,
-      "seconds": 15.7,
+      "frames": 472,
+      "seconds": 15.733,
       "cut": [],
       "events": [
         {
@@ -264,14 +274,15 @@
           "label": "charts"
         },
         {
-          "t": 9.59,
+          "t": 9.6,
           "label": "models-link"
         },
         {
-          "t": 11.79,
+          "t": 11.81,
           "label": "model-table"
         }
-      ]
+      ],
+      "recorded": "2026-11-15 08:07-08:11 UTC, on the production deploy of 07:58 UTC"
     }
   ],
   "sounds": [

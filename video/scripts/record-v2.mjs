@@ -597,7 +597,7 @@ const TAKES = {
 };
 
 // montage: a fresh shop built and its front page scrolled slowly
-for (const [key, craving] of [["sushi", "sushi tonight"], ["headphones", "wireless headphones"], ["coat", "a winter coat"]]) {
+for (const [key, craving] of [["sushi", "sushi tonight"], ["headphones", opt.hpq ?? "wireless headphones"], ["coat", "a winter coat"]]) {
   TAKES[key] = async () => {
     if (!opt.noretire) retire(craving);
     const { ctx, page } = await newPhone();

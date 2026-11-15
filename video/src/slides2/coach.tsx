@@ -5,7 +5,7 @@ import { EarlyWarning, Forecast, MoneyMap3D, Scorecard, TwoFutures } from "../v2
 import { At, Big, C, Chip, CREDITS, Disc, Frame, In, LEAD, len, Mint, Ml, Sfx, SlideDef, speedOf, Sprout, Take, useT, v1, v1ev, voice } from "./core";
 
 /** The chat clip is re-recorded after the app's switch to Gemini; until then its slide is marked provisional. */
-export const CHAT_REDONE = false;
+export const CHAT_REDONE = true;
 
 /* 12 · The coach, built on Gemini ------------------------------------------------------------ p9 */
 const V12 = voice(LEAD, { scene: "p9" });

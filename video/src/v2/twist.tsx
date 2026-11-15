@@ -196,7 +196,8 @@ const Slam: React.FC<{ at: number; shrinkAt: number }> = ({ at, shrinkAt }) => {
 export const Twist: React.FC<{ c: Clock; id: string; T: TwistT; potLabel: string }> = ({ c, id, T, potLabel }) => {
   const t = useT();
   // the inbox screen itself (it slides in over ~0.5 s after the take's `inbox` event)
-  const inbox: Seg[] = [{ from: T.emailAt, to: T.twistAt, a: E("inbox") + 0.6, b: E("inbox") + 0.6 + Math.max(0.1, T.stopAt - T.emailAt), anchor: "start", maxRate: 1 }];
+  // held on its first frame if the words run longer than the inbox stays on screen (never into the take's own pot screen)
+  const inbox: Seg[] = [{ from: T.emailAt, to: T.twistAt, a: E("inbox") + 0.6, b: Math.min(E("inbox") + 0.6 + Math.max(0.1, T.stopAt - T.emailAt), (Eo("pot") ?? 1e9) - 0.3), anchor: "hold", maxRate: 1 }];
   const potSegs = potSegsOf(T);
   const frozen = clamp((t - T.stopAt) / 0.12);
   // the parcel → pot flip
@@ -259,7 +260,7 @@ export const Twist: React.FC<{ c: Clock; id: string; T: TwistT; potLabel: string
     {void id}
   </>;
 };
-export const potSegsOf = (T: TwistT): Seg[] => [{ from: T.potAt, to: T.hitAt, a: E("twist") - 0.2, b: E("coins") + 1.8, maxRate: 2 }];
+export const potSegsOf = (T: TwistT): Seg[] => [{ from: T.potAt, to: T.hitAt, a: E("twist") + 0.7, b: E("coins") + 1.8, maxRate: 2 }];
 export const twistSounds = (T: TwistT) => <>
   <TakeSounds clipId={RUN} segs={potSegsOf(T)} only={["coins"]} />
   <Sfx name="stop" at={T.stopAt - 0.02} volume={0.9} />

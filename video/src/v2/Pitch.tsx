@@ -89,10 +89,10 @@ const Bar: React.FC<{ at: number; pct: number; label: string; y: number; strong?
 const Problem: React.FC = () => <Act plan={plan} from="p3" to="p3" sounds={c => <>
   <Sfx name="whoosh" at={0} volume={0.4} />
   <Sfx name="tick" at={c.w("p3", "seventy-two") - 0.05} volume={0.6} />
-  <Sfx name="tick" at={c.w("p3", "fifteen") - 0.05} volume={0.6} />
+  <Sfx name="tick" at={c.n("p3", 3) - 0.05} volume={0.6} />
 </>}>{c => {
   const n = (i: number) => c.n("p3", i) - 0.05;
-  const s72 = c.w("p3", "seventy-two") - 0.05, s15 = c.w("p3", "fifteen") - 0.05;
+  const s72 = c.w("p3", "seventy-two") - 0.05, s15 = n(3);   // the second bar opens with "Spend it by…" so it has landed on 15% well before the cut
   return <>
     <Win from={0} to={n(2)}>
       <At x={960} y={300} center w={1800}>

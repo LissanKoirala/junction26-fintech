@@ -211,26 +211,22 @@
     },
     "shop-sushi": {
       "file": "v2/live/shop-sushi.mp4",
-      "seconds": 18.1,
+      "seconds": 12.867,
       "width": 780,
       "height": 1688,
       "fps": 30,
       "craving": "sushi tonight",
       "real_time": true,
-      "build_seconds": 15.8,
+      "model": "gemini-3.5-flash-lite",
+      "model_fallback": false,
+      "build_seconds": 8,
       "build": {
-        "first_paint_seconds": 2.9,
-        "shop_open_seconds": 2.9,
-        "server": {
-          "model": "anthropic:claude@haiku-5.5",
-          "cached": false,
-          "ms": 15763,
-          "firstProductMs": 2641
-        }
+        "to_shop_named_s": 1.9,
+        "to_shop_open_s": 1.9,
+        "to_first_product_server_s": 1.6,
+        "to_complete_s": 8,
+        "server_ms": 7986
       },
-      "model": "anthropic:claude@haiku-5.5 (OLD take, being re-recorded with Gemini; shop-headphones shows a white earbud case look-alike: do not use)",
-      "model_fallback": null,
-      "first_product_seconds_server": 2.6,
       "events": [
         {
           "t": 0.3,
@@ -241,99 +237,96 @@
           "label": "shop-open"
         },
         {
-          "t": 2.45,
+          "t": 2.034,
           "label": "first-photo"
         },
         {
-          "t": 13.167,
+          "t": 6.402,
           "label": "shop-visible"
         },
         {
-          "t": 13.669,
+          "t": 8.45,
           "label": "scroll-start"
         },
         {
-          "t": 17.282,
+          "t": 12.097,
           "label": "scroll-end"
         }
       ],
       "shop": {
-        "name": "Umi Nordic Kitchen",
-        "tagline": "Fresh rolls, delivered to your door tonight",
+        "name": "Höyry Sushi Kitchen",
+        "tagline": "Fresh Nordic fusion rolls made to order",
         "kind": "food",
         "brands": [
-          "Umi Nordic Kitchen"
+          "Höyry Sushi Kitchen"
         ],
         "products": 10,
         "photos": 10,
         "products_with_reviews": 10,
-        "rating": 4.6
+        "rating": 4.8
       },
       "full": {
         "file": "v2/live/shop-sushi-full.mp4",
-        "seconds": 23.567,
+        "seconds": 17.633,
         "events": [
           {
-            "t": 1.25,
+            "t": 1.248,
             "label": "typing-start"
           },
           {
-            "t": 2.227,
+            "t": 2.428,
             "label": "craving-typed"
           },
           {
-            "t": 2.847,
+            "t": 3.174,
             "label": "submitted"
           },
           {
-            "t": 5.752,
+            "t": 5.079,
             "label": "build-first-paint"
           },
           {
-            "t": 5.752,
+            "t": 5.079,
             "label": "shop-open"
           },
           {
-            "t": 7.902,
+            "t": 6.813,
             "label": "first-photo"
           },
           {
-            "t": 18.619,
+            "t": 11.181,
             "label": "shop-visible"
           },
           {
-            "t": 19.121,
+            "t": 13.229,
             "label": "scroll-start"
           },
           {
-            "t": 22.734,
+            "t": 16.876,
             "label": "scroll-end"
           }
         ]
-      }
+      },
+      "notes": "Real time, from 0.3 s before the hunting screen names the shop to the end of a slow scroll of the front page. Every product photo checked: no logos, stripes, lettering or real-product look-alikes in any frame."
     },
     "shop-headphones": {
       "file": "v2/live/shop-headphones.mp4",
-      "seconds": 18.733,
+      "seconds": 12.1,
       "width": 780,
       "height": 1688,
       "fps": 30,
-      "craving": "wireless headphones",
+      "craving": "over-ear headphones",
       "real_time": true,
-      "build_seconds": 16.3,
+      "model": "gemini-3.5-flash-lite",
+      "model_fallback": false,
+      "build_seconds": 7.2,
       "build": {
-        "first_paint_seconds": 2.7,
-        "shop_open_seconds": 2.7,
-        "server": {
-          "model": "anthropic:claude@haiku-5.5",
-          "cached": false,
-          "ms": 16241,
-          "firstProductMs": 2475
-        }
+        "to_shop_named_s": 1.8,
+        "to_shop_open_s": 1.8,
+        "to_first_product_server_s": 1.3,
+        "to_complete_s": 7.2,
+        "server_ms": 7155
       },
-      "model": "anthropic:claude@haiku-5.5 (OLD take, being re-recorded with Gemini; shop-headphones shows a white earbud case look-alike: do not use)",
-      "model_fallback": null,
-      "first_product_seconds_server": 2.5,
       "events": [
         {
           "t": 0.3,
@@ -344,103 +337,97 @@
           "label": "shop-open"
         },
         {
-          "t": 1.65,
+          "t": 2.349,
           "label": "first-photo"
         },
         {
-          "t": 13.802,
+          "t": 5.702,
           "label": "shop-visible"
         },
         {
-          "t": 14.31,
+          "t": 7.741,
           "label": "scroll-start"
         },
         {
-          "t": 17.977,
+          "t": 11.37,
           "label": "scroll-end"
         }
       ],
       "shop": {
-        "name": "Hiljainen Audio",
-        "tagline": "Quiet sound for busy days",
+        "name": "Hilla Audio",
+        "tagline": "Pure Nordic acoustic engineering",
         "kind": "store",
         "brands": [
-          "Lumi Sound",
-          "Nordvik",
-          "Tundra Labs",
-          "Aalto & Co",
-          "Halkea"
+          "Hilla"
         ],
         "products": 10,
         "photos": 10,
         "products_with_reviews": 10,
-        "rating": 4.6
+        "rating": 4.7
       },
       "full": {
         "file": "v2/live/shop-headphones-full.mp4",
-        "seconds": 24.433,
+        "seconds": 17,
         "events": [
           {
-            "t": 1.225,
+            "t": 1.282,
             "label": "typing-start"
           },
           {
-            "t": 2.621,
+            "t": 2.735,
             "label": "craving-typed"
           },
           {
-            "t": 3.268,
+            "t": 3.439,
             "label": "submitted"
           },
           {
-            "t": 6.017,
+            "t": 5.199,
             "label": "build-first-paint"
           },
           {
-            "t": 6.017,
+            "t": 5.199,
             "label": "shop-open"
           },
           {
-            "t": 7.367,
+            "t": 7.248,
             "label": "first-photo"
           },
           {
-            "t": 19.519,
+            "t": 10.601,
             "label": "shop-visible"
           },
           {
-            "t": 20.027,
+            "t": 12.64,
             "label": "scroll-start"
           },
           {
-            "t": 23.694,
+            "t": 16.269,
             "label": "scroll-end"
           }
         ]
-      }
+      },
+      "notes": "Real time, from 0.3 s before the hunting screen names the shop to the end of a slow scroll of the front page. Every product photo checked: no logos, stripes, lettering or real-product look-alikes in any frame.",
+      "craving_note": "Craving changed from 'wireless headphones' to 'over-ear headphones': 'wireless headphones' produced a white stem-earbud case look-alike twice."
     },
     "shop-coat": {
       "file": "v2/live/shop-coat.mp4",
-      "seconds": 24.433,
+      "seconds": 12.033,
       "width": 780,
       "height": 1688,
       "fps": 30,
       "craving": "a winter coat",
       "real_time": true,
-      "build_seconds": 22.7,
+      "model": "gemini-3.5-flash-lite",
+      "model_fallback": false,
+      "build_seconds": 7,
       "build": {
-        "first_paint_seconds": 3.5,
-        "shop_open_seconds": 3.5,
-        "server": {
-          "model": "anthropic:claude@haiku-5.5",
-          "cached": false,
-          "ms": 22722,
-          "firstProductMs": 3267
-        }
+        "to_shop_named_s": 1.7,
+        "to_shop_open_s": 1.7,
+        "to_first_product_server_s": 1.3,
+        "to_complete_s": 7,
+        "server_ms": 6983
       },
-      "model": "anthropic:claude@haiku-5.5 (OLD take, being re-recorded with Gemini; shop-headphones shows a white earbud case look-alike: do not use)",
-      "model_fallback": null,
-      "first_product_seconds_server": 3.3,
       "events": [
         {
           "t": 0.3,
@@ -451,76 +438,77 @@
           "label": "shop-open"
         },
         {
-          "t": 1.643,
+          "t": 1.832,
           "label": "first-photo"
         },
         {
-          "t": 19.49,
+          "t": 5.567,
           "label": "shop-visible"
         },
         {
-          "t": 20.025,
+          "t": 7.591,
           "label": "scroll-start"
         },
         {
-          "t": 23.653,
+          "t": 11.203,
           "label": "scroll-end"
         }
       ],
       "shop": {
-        "name": "Nordlys Outerwear",
-        "tagline": "Warm coats for long Finnish winters",
+        "name": "Hanki Outerwear",
+        "tagline": "Built for the Nordic chill",
         "kind": "store",
         "brands": [
-          "Nordlys"
+          "Hanki"
         ],
         "products": 10,
         "photos": 10,
-        "products_with_reviews": 10,
-        "rating": 4.6
+        "products_with_reviews": 7,
+        "rating": 4.8
       },
       "full": {
         "file": "v2/live/shop-coat-full.mp4",
-        "seconds": 30.967,
+        "seconds": 16.633,
         "events": [
           {
-            "t": 1.29,
+            "t": 1.271,
             "label": "typing-start"
           },
           {
-            "t": 2.47,
+            "t": 2.415,
             "label": "craving-typed"
           },
           {
-            "t": 3.3,
+            "t": 3.155,
             "label": "submitted"
           },
           {
-            "t": 6.84,
+            "t": 4.895,
             "label": "build-first-paint"
           },
           {
-            "t": 6.84,
+            "t": 4.895,
             "label": "shop-open"
           },
           {
-            "t": 8.182,
+            "t": 6.427,
             "label": "first-photo"
           },
           {
-            "t": 26.03,
+            "t": 10.162,
             "label": "shop-visible"
           },
           {
-            "t": 26.565,
+            "t": 12.186,
             "label": "scroll-start"
           },
           {
-            "t": 30.193,
+            "t": 15.798,
             "label": "scroll-end"
           }
         ]
-      }
+      },
+      "notes": "Real time, from 0.3 s before the hunting screen names the shop to the end of a slow scroll of the front page. Every product photo checked: no logos, stripes, lettering or real-product look-alikes in any frame."
     }
   },
   "sounds_files": "The app's own sounds are in video/public/audio/ (pop.wav, chime.wav, coins.wav).",

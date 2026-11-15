@@ -1,7 +1,11 @@
 {
   "build_seconds": {
     "hero": 8.8,
-    "others": [],
+    "others": [
+      8,
+      7.2,
+      7
+    ],
     "hero_detail": {
       "model": "gemini-3.5-flash-lite",
       "to_shop_named_s": 2.2,
@@ -27,7 +31,41 @@
         "complete_s": 19.8,
         "note": "image model slow, 6 of 10 photos missing: rejected"
       }
-    ]
+    ],
+    "others_cravings": [
+      "sushi tonight",
+      "over-ear headphones",
+      "a winter coat"
+    ],
+    "others_detail": {
+      "sushi": {
+        "to_shop_named_s": 1.9,
+        "to_shop_open_s": 1.9,
+        "to_first_product_server_s": 1.6,
+        "to_complete_s": 8,
+        "server_ms": 7986,
+        "model": "gemini-3.5-flash-lite",
+        "shop": "Höyry Sushi Kitchen"
+      },
+      "headphones": {
+        "to_shop_named_s": 1.8,
+        "to_shop_open_s": 1.8,
+        "to_first_product_server_s": 1.3,
+        "to_complete_s": 7.2,
+        "server_ms": 7155,
+        "model": "gemini-3.5-flash-lite",
+        "shop": "Hilla Audio"
+      },
+      "coat": {
+        "to_shop_named_s": 1.7,
+        "to_shop_open_s": 1.7,
+        "to_first_product_server_s": 1.3,
+        "to_complete_s": 7,
+        "server_ms": 6983,
+        "model": "gemini-3.5-flash-lite",
+        "shop": "Hanki Outerwear"
+      }
+    }
   },
   "shop_has": {
     "name": true,
@@ -37,5 +75,5 @@
     "reviews": true
   },
   "model": "gemini-3.5-flash-lite (shop text, streamed structured output); product photos from the separate image model",
-  "notes": "Live app, never from cache (the craving's cache file moved aside before each take; server done event cached:false; model read from the production log). From the tap on 'I'm in, open the shop': the hunting animation names the shop at 2.2 s, the shop opens with its first products at 2.5 s, and the finished shop (10 products, every photo on screen loaded) is there at 8.8 s. Hero 'new sneakers' -> 'Puro Soles'. What the visitor sees: a short pulsing hunting animation, then the shop's name and tagline, then the shop: banner with rating and delivery promise, the 'Crave mode · nothing ships' pill, product cards streaming into the grid with shimmering placeholders that fill with generated photos. Every shop has an invented name, invented brands, 10 products, 10 photos, ratings with review counts, and written reviews on each product page. 8.8 s is under 15 s: 'In seconds' is true. Montage build times follow when the Gemini montage is recorded."
+  "notes": "Live app, never from cache (the craving's cache file moved aside before each take; server done event cached:false; model read from the production log). From the tap on 'I'm in, open the shop': the hunting animation names the shop at 2.2 s, the shop opens with its first products at 2.5 s, and the finished shop (10 products, every photo on screen loaded) is there at 8.8 s. Hero 'new sneakers' -> 'Puro Soles'. What the visitor sees: a short pulsing hunting animation, then the shop's name and tagline, then the shop: banner with rating and delivery promise, the 'Crave mode · nothing ships' pill, product cards streaming into the grid with shimmering placeholders that fill with generated photos. Every shop has an invented name, invented brands, 10 products, 10 photos, ratings with review counts, and written reviews on each product page. 8.8 s is under 15 s: 'In seconds' is true. Montage (all gemini-3.5-flash-lite, no fallback): 'sushi tonight' -> 'Höyry Sushi Kitchen' 8 s, 'over-ear headphones' -> 'Hilla Audio' 7.2 s, 'a winter coat' -> 'Hanki Outerwear' 7 s; first product at 1.3-1.6 s."
 }
