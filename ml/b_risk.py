@@ -174,7 +174,71 @@ def baselines(tr, te, target):
         "Rule: balance minus fixed payments still to come < 0": (te.bal_after_fixed.values < 0).astype(float),
         "Rule score: -(balance minus fixed payments)": -te.bal_after_fixed.values,
         "Logistic regression (balance vs spend to payday, dip rate, pace)": lr.predict_proba(clip(te[f3]))[:, 1],
+        # one hand-made feature already carries the 3-feature regression
+        SINGLE: -te.bal_rel.values,
+        LR_ALL: lr_all(tr, te, target),
     }, lr
+
+
+SINGLE = "Single feature: -(balance after fixed payments / usual spend to payday)"
+LR_ALL = "Logistic regression on all features"
+
+
+def lr_all(tr, te, target):
+    """Logistic regression on the same features as the model (inf -> NaN -> 0, clipped at the training p1/p99, standardised)."""
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+    X = lambda Z: Z[FEATS].replace([np.inf, -np.inf], np.nan).fillna(0).clip(-1e6, 1e6)  # noqa: E731
+    qs = X(tr).quantile([0.01, 0.99])
+    cl = lambda Z: X(Z).clip(qs.iloc[0], qs.iloc[1], axis=1)  # noqa: E731
+    m = make_pipeline(StandardScaler(), LogisticRegression(max_iter=3000, C=1.0)).fit(cl(tr), tr[target])
+    return m.predict_proba(cl(te))[:, 1]
+
+
+def card_metrics(mt, mt_unseen):
+    """Card rows, strongest simple baseline first (the overview and the chat quote metrics[0])."""
+    L = "LightGBM (isotonic-calibrated)"
+    metrics = [
+        dict(label="ROC AUC (test, Jul-Aug 2026)", model=mt[L]["rocAuc"], baseline=mt[LR_ALL]["rocAuc"], baselineName="logistic regression on the same features", unit="", better="higher"),
+        dict(label="PR AUC (test)", model=mt[L]["prAuc"], baseline=mt[LR_ALL]["prAuc"], baselineName="logistic regression on the same features", unit="", better="higher"),
+        dict(label="Brier score (test)", model=mt[L]["brier"], baseline=mt[LR_ALL]["brier"], baselineName="logistic regression on the same features", unit="", better="lower"),
+        dict(label="ROC AUC (test)", model=mt[L]["rocAuc"], baseline=mt[SINGLE]["rocAuc"], baselineName="one feature: what is left after fixed payments vs usual spend to payday", unit="", better="higher"),
+        dict(label="ROC AUC (test)", model=mt[L]["rocAuc"], baseline=mt["Dipped in the previous cycle"]["rocAuc"], baselineName="dipped in the previous cycle", unit="", better="higher"),
+        dict(label="Brier score (test)", model=mt[L]["brier"], baseline=mt["Base rate (constant)"]["brier"], baselineName="base rate", unit="", better="lower"),
+        dict(label="ROC AUC, customers never seen in training", model=mt_unseen[L]["rocAuc"], baseline=mt_unseen[LR_ALL]["rocAuc"], baselineName="logistic regression on the same features", unit="", better="higher"),
+    ]
+    if "Simulator (calibrated bootstrap, same rows)" in mt:
+        metrics.append(dict(label="Brier score vs the balance simulator (same rows)", model=mt["LightGBM on the simulator's rows"]["brier"],
+                            baseline=mt["Simulator (calibrated bootstrap, same rows)"]["brier"], baselineName="calibrated bootstrap simulator", unit="", better="lower"))
+    return metrics
+
+
+def card_verdict(metrics):
+    """'ships' only if every row is better AND the gain over the logistic regression on the same features is material on
+    the ranking of rare positives (PR AUC +0.02) and on calibration (Brier at least 5% lower); ROC AUC alone is near its ceiling."""
+    better = all((m["model"] > m["baseline"]) if m["better"] == "higher" else (m["model"] < m["baseline"]) for m in metrics)
+    pr, br = metrics[1], metrics[2]
+    material = pr["model"] - pr["baseline"] >= 0.02 and br["model"] <= 0.95 * br["baseline"]
+    return "ships" if better and material else "experimental"
+
+
+def card_caveats(mt, thr, elevated, verdict):
+    L = "LightGBM (isotonic-calibrated)"
+    why = ("It ships on that PR AUC and calibration gain, which is what the alert threshold uses; the ROC AUC gain alone would not justify it."
+           if verdict == "ships" else "That gain is too small to call it more than experimental.")
+    return [
+        f"A single hand-made feature (what is left after fixed payments, relative to usual spending until payday) already reaches ROC AUC "
+        f"{mt[SINGLE]['rocAuc']:.3f}. The model adds {mt[L]['rocAuc'] - mt[LR_ALL]['rocAuc']:+.3f} ROC AUC and {mt[L]['prAuc'] - mt[LR_ALL]['prAuc']:+.3f} "
+        f"PR AUC over a logistic regression on the same {len(FEATS)} features, and lowers the Brier score from {mt[LR_ALL]['brier']:.4f} to "
+        f"{mt[L]['brier']:.4f}. " + why,
+        "Target uses the intraday balance between the cut-off and the actual next salary; synthetic opening balances (Oct 2024) never enter a target.",
+        f"Alert threshold {thr:.2f} chosen to maximise F1 on the validation period; 'elevated' starts at {elevated:.2f}.",
+        "Probabilities are calibrated on Apr-Jun 2026 and checked on Jul-Aug 2026 (see reliability).",
+        "Explanations are SHAP attributions of the uncalibrated model in log-odds; correlated features (balance, balance after fixed payments) share credit.",
+        "Salary-sweep customers: the model only sees this account.",
+        "Tail (irregular-income) customers are not scored.",
+    ]
 
 
 def main():
@@ -209,7 +273,8 @@ def main():
         mt["Base rate (constant)"] = dict(brier=float(np.mean((base_rate - y) ** 2)))
         un = te.unseen.values
         mt_unseen = {"LightGBM (isotonic-calibrated)": metrics_block(y[un], p[un], thr),
-                     "Logistic regression (3 features)": metrics_block(y[un], bl["Logistic regression (balance vs spend to payday, dip rate, pace)"][un])}
+                     "Logistic regression (3 features)": metrics_block(y[un], bl["Logistic regression (balance vs spend to payday, dip rate, pace)"][un]),
+                     LR_ALL: metrics_block(y[un], bl[LR_ALL][un])}
         if name == "to_payday":
             od = pd.read_parquet(os.path.join(CACHE_DIR, "b_od_backtest.parquet"))
             j = te[["customer_id", "t"]].reset_index().merge(od, on=["customer_id", "t"])
@@ -293,20 +358,8 @@ def main():
     # ------------------------------------------------------------ model card
     mt = R["mt"]
     L = "LightGBM (isotonic-calibrated)"
-    lr_name = "Logistic regression (balance vs spend to payday, dip rate, pace)"
-    metrics = [
-        dict(label="ROC AUC (test, Jul-Aug 2026)", model=mt[L]["rocAuc"], baseline=mt[lr_name]["rocAuc"], baselineName="logistic regression, 3 features", unit="", better="higher"),
-        dict(label="ROC AUC (test)", model=mt[L]["rocAuc"], baseline=mt["Dipped in the previous cycle"]["rocAuc"], baselineName="dipped in the previous cycle", unit="", better="higher"),
-        dict(label="ROC AUC (test)", model=mt[L]["rocAuc"], baseline=mt["Rule score: -(balance minus fixed payments)"]["rocAuc"], baselineName="balance minus fixed payments still to come", unit="", better="higher"),
-        dict(label="PR AUC (test)", model=mt[L]["prAuc"], baseline=mt[lr_name]["prAuc"], baselineName="logistic regression, 3 features", unit="", better="higher"),
-        dict(label="Brier score (test)", model=mt[L]["brier"], baseline=mt[lr_name]["brier"], baselineName="logistic regression, 3 features", unit="", better="lower"),
-        dict(label="Brier score (test)", model=mt[L]["brier"], baseline=mt["Base rate (constant)"]["brier"], baselineName="base rate", unit="", better="lower"),
-        dict(label="ROC AUC, customers never seen in training", model=R["mt_unseen"][L]["rocAuc"], baseline=R["mt_unseen"]["Logistic regression (3 features)"]["rocAuc"], baselineName="logistic regression, 3 features", unit="", better="higher"),
-    ]
-    if "Simulator (calibrated bootstrap, same rows)" in mt:
-        metrics.append(dict(label="Brier score vs the balance simulator (same rows)", model=mt["LightGBM on the simulator's rows"]["brier"],
-                            baseline=mt["Simulator (calibrated bootstrap, same rows)"]["brier"], baselineName="calibrated bootstrap simulator", unit="", better="lower"))
-    beats = all((mm["model"] > mm["baseline"]) if mm["better"] == "higher" else (mm["model"] < mm["baseline"]) for mm in metrics)
+    metrics = card_metrics(mt, R["mt_unseen"])
+    verdict = card_verdict(metrics)
     R14 = res["14d"]
     card = dict(
         key="risk", name="Early warning: below zero before payday",
@@ -319,15 +372,8 @@ def main():
         split="Time split by cut-off date AND outcome window: train cut-offs <= 2026-03-31 whose next salary is also by 2026-03-31; "
               "validation 2026-04..06 (early stopping, isotonic calibration, alert threshold); test cut-offs 2026-07-01..2026-08-31. "
               "10% of customers are never used for fitting and are reported separately.",
-        metrics=metrics, verdict="ships" if beats else "experimental",
-        caveats=[
-            "Target uses the intraday balance between the cut-off and the actual next salary; synthetic opening balances (Oct 2024) never enter a target.",
-            f"Alert threshold {thr:.2f} chosen to maximise F1 on the validation period; 'elevated' starts at {elevated:.2f}.",
-            "Probabilities are calibrated on Apr-Jun 2026 and checked on Jul-Aug 2026 (see reliability).",
-            "Explanations are SHAP attributions of the uncalibrated model in log-odds; correlated features (balance, balance after fixed payments) share credit.",
-            "Salary-sweep customers: the model only sees this account.",
-            "Tail (irregular-income) customers are not scored.",
-        ],
+        metrics=metrics, verdict=verdict,
+        caveats=card_caveats(mt, thr, elevated, verdict),
         trainedAt=time.strftime("%Y-%m-%dT%H:%M:%S"),
         trainSeconds=round(time.time() - T0, 1),
         validation=dict(testAll=mt, testUnseenCustomers=R["mt_unseen"], variant14d=dict(testAll=R14["mt"], testUnseenCustomers=R14["mt_unseen"], threshold=R14["thr"], reliability=R14["rel"]),

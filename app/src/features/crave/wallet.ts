@@ -10,7 +10,7 @@ const READY_TIMEOUT_MS = 4000;
 const BUSINESS_NAME = "Vara Crave demo";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-type StripeJs = (pk: string, opts?: { locale?: string }) => any;
+type StripeJs = (pk: string, opts?: { locale?: string; developerTools?: { assistant?: { enabled?: boolean } } }) => any;
 declare global {
   interface Window {
     Stripe?: StripeJs;
@@ -86,7 +86,8 @@ export function useRealWallet({ open, amountCents, lang, onPaid }: { open: boole
       if (!cfg?.enabled || !cfg.publishableKey || !cfg.publishableKey.startsWith("pk_test_")) return off();
       const Stripe = await loadStripeJs();
       if (!alive || !mountRef.current) return off();
-      const stripe = Stripe(cfg.publishableKey, { locale: lang });
+      // Stripe's floating test-mode helper badge would sit on top of the sheet's footer note: switched off.
+      const stripe = Stripe(cfg.publishableKey, { locale: lang, developerTools: { assistant: { enabled: false } } });
       const elements = stripe.elements({ mode: "payment", amount: amountCents, currency: "eur", allowedPaymentMethodTypes: ["card"], locale: lang, appearance: { theme: "stripe", variables: { borderRadius: "12px" } } });
       el = elements.create("expressCheckout", {
         business: { name: BUSINESS_NAME },

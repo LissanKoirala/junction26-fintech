@@ -230,7 +230,7 @@ export function HabitsSection() {
       {hs.length > 0 && (
         <Caveat>
           {t("These are patterns in your weekly numbers, not judgements.")}{" "}
-          {hl.data.chanceShare ? t("Up to about 1 in {n} flagged changes could be chance.", { n: Math.max(2, Math.round(1 / hl.data.chanceShare)) }) : t("Some flagged changes could be chance.")}
+          {hl.data.chanceShare ? t("About 1 in {n} flagged changes could be chance, possibly more.", { n: Math.max(2, Math.round(1 / hl.data.chanceShare)) }) : t("Some flagged changes could be chance.")}
         </Caveat>
       )}
     </MlCard>

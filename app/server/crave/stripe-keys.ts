@@ -43,7 +43,10 @@ export function intentForm(amountCents: number): URLSearchParams {
   const f = new URLSearchParams();
   f.set("amount", String(amountCents));
   f.set("currency", "eur");
-  f.append("payment_method_types[]", "card"); // Apple Pay and Google Pay are card wallets
+  // This Stripe account's API version no longer accepts payment_method_types; payment methods are dynamic.
+  // Redirect-based methods are switched off: the wallet sheet confirms in place.
+  f.set("automatic_payment_methods[enabled]", "true");
+  f.set("automatic_payment_methods[allow_redirects]", "never");
   f.set("description", DEMO_DESCRIPTION);
   f.set("metadata[demo]", "crave");
   return f;

@@ -142,7 +142,8 @@ export interface MlHabits {
   }[];
   method: string;
   falsePositiveRate?: number; // per series, measured on 4-week block-shuffled series (conservative)
-  chanceShare?: number; // upper estimate of the share of flagged shifts that could be chance (0..1)
+  chanceShare?: number; // share of flagged shifts that could be chance on the middle (8-week block) null (0..1); longer blocks give more
+  chanceShareRange?: number[]; // [4-week, 13-week block null]
 }
 
 // ------------------------------------------------------------------ ml/home/{id}.json  ("First-home readiness", illustrative)
@@ -170,7 +171,17 @@ export interface ModelCard {
   method: string;
   trainedOn: string; // rows / customers / date range
   split: string; // how it was validated (time split etc.)
-  metrics: { label: string; model: number; baseline: number; baselineName: string; unit: string; better: "lower" | "higher" }[];
+  metrics: {
+    label: string;
+    model: number;
+    baseline: number;
+    baselineName: string;
+    unit: string;
+    better: "lower" | "higher";
+    /** The difference is within noise (e.g. a bootstrap interval that includes zero): shown as "about equal". */
+    onPar?: boolean;
+    diffCI95?: number[];
+  }[];
   verdict: "ships" | "experimental" | "not_better_than_baseline";
   caveats: string[];
   trainedAt: string;

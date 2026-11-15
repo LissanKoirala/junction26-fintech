@@ -258,7 +258,14 @@ def _():
                            avg((bal + 0.05*cycev < 0)::int) cycle5, median(0.05*cumev) keptMedian from cf group by 1 order by 1""")
     cushion = [dict(q(f"""select count(distinct case when bal + {k} < 0 then customer_id end) customersNegative,
                                  sum((bal + {k} < 0)::int) negativeDays from cf""")[0], cushion=k) for k in (0, 100, 250, 500, 1000, 2000)]
-    return {"rows": rows, "everydayMonthly": ev, "keptAtEnd5": kept_end, "byMonth": by_month, "cushion": cushion}
+    # the opening-balance artefact: many kept-version dips happen only in Oct-Nov 2024, before any cushion has built up
+    kept_only_start = one("""select count(*) from (select customer_id, max(date) md from cf where bal + 0.05*cumev < 0 group by 1)
+                             where md < date '2024-12-01'""")
+    from_nov = q("""select sum((bal<0)::int) negativeDays, sum((bal + 0.05*cumev < 0)::int) negativeDaysKept,
+                           count(distinct case when bal + 0.05*cumev < 0 then customer_id end) customersNegativeKept
+                    from cf where date >= date '2024-11-01'""")[0]
+    return {"rows": rows, "everydayMonthly": ev, "keptAtEnd5": kept_end, "byMonth": by_month, "cushion": cushion,
+            "keptNegativeOnlyOctNov2024": kept_only_start, "fromNov2024": from_nov}
 
 
 @section("baskets")

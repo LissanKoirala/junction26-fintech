@@ -104,7 +104,14 @@ def predict(models, X):
     return P * X["base"].values[:, None]
 
 
-def evaluate(L, P):
+def fit_ratio(L):
+    """One-parameter baseline: own 182-day daily average x days x the median ratio actual / that, fitted per horizon on
+    the training rows. The model's target is exactly this ratio, so this is the strongest naive point forecast."""
+    tr = L[(L.split == "train") & ~L.unseen]
+    return {hn: float(np.median((tr[tr.hn == hn].y / tr[tr.hn == hn].base).dropna())) for hn in HN}
+
+
+def evaluate(L, P, ratio=None):
     out = {"pinball": [], "coverage": [], "maeByHorizon": []}
     rows = []
     for hn in HN:
@@ -113,8 +120,8 @@ def evaluate(L, P):
         tr = (L.m90.values[m] * L.h.values[m])
         emp = L[[f"emp{int(q*100)}" for q in QS]].values[m]
         for j, q in enumerate(QS):
-            out["pinball"].append(dict(horizon=hn, quantile=q, model=pinball(y, P[m, j], q),
-                                       baselineTrailing=pinball(y, tr, q), baselineEmpirical=pinball(y, emp[:, j], q)))
+            # no trailing-average column: one point forecast used for every quantile is not a quantile forecast
+            out["pinball"].append(dict(horizon=hn, quantile=q, model=pinball(y, P[m, j], q), baselineEmpirical=pinball(y, emp[:, j], q)))
         cov_m = np.mean((y >= P[m, 0]) & (y <= P[m, 4]))
         cov_e = np.mean((y >= emp[:, 0]) & (y <= emp[:, 4]))
         out["coverage"].append(dict(horizon=hn, nominal=0.8, model=cov_m, baseline=cov_e,
@@ -122,8 +129,47 @@ def evaluate(L, P):
                                     cov50Baseline=np.mean((y >= emp[:, 1]) & (y <= emp[:, 3]))))
         out["maeByHorizon"].append(dict(horizon=hn, model=np.mean(np.abs(y - P[m, 2])), baselineTrailing=np.mean(np.abs(y - tr)),
                                         baselineEmpirical=np.mean(np.abs(y - emp[:, 2])), meanActual=np.mean(y), n=int(m.sum())))
+        if ratio is not None:
+            out["maeByHorizon"][-1]["baselineRatio"] = float(np.mean(np.abs(y - L.base.values[m] * ratio[hn])))
         rows.append(hn)
     return out
+
+
+def card_metrics(ev_all, od_stats):
+    """Card rows, strongest simple baseline first (the overview and the chat quote metrics[0])."""
+    mae = {r["horizon"]: r for r in ev_all["maeByHorizon"]}
+    cov = {r["horizon"]: r for r in ev_all["coverage"]}
+    pin = pd.DataFrame(ev_all["pinball"]).groupby("horizon")[["model", "baselineEmpirical"]].mean()
+    metrics = []
+    for hn in ["14d", "to_payday"]:
+        metrics.append(dict(label=f"MAE of median spend, {hn}", model=mae[hn]["model"], baseline=mae[hn]["baselineRatio"],
+                            baselineName="own 182-day average x days x a ratio fitted on training rows", unit="EUR", better="lower"))
+        metrics.append(dict(label=f"MAE of median spend, {hn}", model=mae[hn]["model"], baseline=mae[hn]["baselineTrailing"],
+                            baselineName="own trailing-90-day average x days", unit="EUR", better="lower"))
+        metrics.append(dict(label=f"Mean pinball loss (5 quantiles), {hn}", model=float(pin.loc[hn, "model"]), baseline=float(pin.loc[hn, "baselineEmpirical"]),
+                            baselineName="empirical quantiles of own past windows (last 182 days)", unit="EUR", better="lower"))
+        metrics.append(dict(label=f"Coverage error of the 10-90% band, {hn} (|coverage - 80%|)", model=abs(cov[hn]["model"] - 0.8) * 100,
+                            baseline=abs(cov[hn]["baseline"] - 0.8) * 100, baselineName="empirical quantiles of own past windows", unit="pp", better="lower"))
+    metrics.append(dict(label="Brier score, overdraft before payday (simulator, calibrated scale)", model=od_stats["brierSimCalibrated"],
+                        baseline=od_stats["brierBaseRate"], baselineName="training-period base rate", unit="", better="lower"))
+    metrics.append(dict(label="Brier score, overdraft before payday (simulator, calibrated scale)", model=od_stats["brierSimCalibrated"],
+                        baseline=od_stats["brierSameAsLastCycle"], baselineName="same as last cycle (0/1)", unit="", better="lower"))
+    return metrics
+
+
+def card_caveats(metrics):
+    g = {m["label"]: 1 - m["model"] / m["baseline"] for m in metrics if m["baselineName"].startswith("own 182-day")}
+    return [
+        f"Against the strongest point baseline (own 182-day average x days x one ratio fitted on training rows) the median forecast is "
+        f"{g['MAE of median spend, 14d']:.1%} more accurate over 14 days and {g['MAE of median spend, to_payday']:.1%} to payday; against the "
+        "trailing 90-day average the gain looks larger. Most of the value is in the calibrated range, not the median.",
+        "Synthetic data: spending is smooth and seasonality weak, so baselines are already decent.",
+        "Spend = card purchases + utility bills; salary, rent and investing are placed as fixed events on their expected dates.",
+        "The overdraft probability counts paths that go below zero before the predicted payday; the outcome is whether the real balance went below zero before the real next salary.",
+        "Historical backtest of the simulator places rent on its expected day and a pending investment on day 1 (as the app does approximately).",
+        "Salary-sweep customers: only spending visible in this account is forecast.",
+        "Tail (irregular-income) customers get the unscaled simulator with a note.",
+    ]
 
 
 # ------------------------------------------------------------------ simulator (bit-exact port of shared/engine/simulate.ts)
@@ -254,9 +300,10 @@ def main():
 
     te = L[L.split == "test"].reset_index(drop=True)
     P = predict(models, te)
-    ev_all = evaluate(te, P)
+    ratio = fit_ratio(L)
+    ev_all = evaluate(te, P, ratio)
     unseen_m = te.unseen.values
-    ev_unseen = evaluate(te[unseen_m].reset_index(drop=True), P[unseen_m])
+    ev_unseen = evaluate(te[unseen_m].reset_index(drop=True), P[unseen_m], ratio)
     log("test rows", len(te), "unseen", int(unseen_m.sum()))
     for r in ev_all["maeByHorizon"]:
         log("MAE", r)
@@ -368,22 +415,8 @@ def main():
     log("scale", scale_dist)
 
     # ---------------------------------------------------------------- model card
-    mae = {r["horizon"]: r for r in ev_all["maeByHorizon"]}
-    cov = {r["horizon"]: r for r in ev_all["coverage"]}
-    pin = pd.DataFrame(ev_all["pinball"]).groupby("horizon")[["model", "baselineTrailing", "baselineEmpirical"]].mean()
     rel_cal = reliability(od_cal, y)
-    metrics = []
-    for hn in ["14d", "to_payday"]:
-        metrics.append(dict(label=f"MAE of median spend, {hn}", model=mae[hn]["model"], baseline=mae[hn]["baselineTrailing"],
-                            baselineName="own trailing-90-day average x days", unit="EUR", better="lower"))
-        metrics.append(dict(label=f"Mean pinball loss (5 quantiles), {hn}", model=float(pin.loc[hn, "model"]), baseline=float(pin.loc[hn, "baselineEmpirical"]),
-                            baselineName="empirical quantiles of own past windows (last 182 days)", unit="EUR", better="lower"))
-        metrics.append(dict(label=f"Coverage error of the 10-90% band, {hn} (|coverage - 80%|)", model=abs(cov[hn]["model"] - 0.8) * 100,
-                            baseline=abs(cov[hn]["baseline"] - 0.8) * 100, baselineName="empirical quantiles of own past windows", unit="pp", better="lower"))
-    metrics.append(dict(label="Brier score, overdraft before payday (simulator, calibrated scale)", model=od_stats["brierSimCalibrated"],
-                        baseline=od_stats["brierBaseRate"], baselineName="training-period base rate", unit="", better="lower"))
-    metrics.append(dict(label="Brier score, overdraft before payday (simulator, calibrated scale)", model=od_stats["brierSimCalibrated"],
-                        baseline=od_stats["brierSameAsLastCycle"], baselineName="same as last cycle (0/1)", unit="", better="lower"))
+    metrics = card_metrics(ev_all, od_stats)
     beats = all(m["model"] < m["baseline"] for m in metrics)
     import shap
     samp = te.sample(min(8000, len(te)), random_state=0)
@@ -406,14 +439,7 @@ def main():
               "test cut-offs 2026-07-01..2026-08-31 with windows ending by 2026-09-30.",
         metrics=metrics,
         verdict="ships" if beats else "experimental",
-        caveats=[
-            "Synthetic data: spending is smooth and seasonality weak, so baselines are already decent.",
-            "Spend = card purchases + utility bills; salary, rent and investing are placed as fixed events on their expected dates.",
-            "The overdraft probability counts paths that go below zero before the predicted payday; the outcome is whether the real balance went below zero before the real next salary.",
-            "Historical backtest of the simulator places rent on its expected day and a pending investment on day 1 (as the app does approximately).",
-            "Salary-sweep customers: only spending visible in this account is forecast.",
-            "Tail (irregular-income) customers get the unscaled simulator with a note.",
-        ],
+        caveats=card_caveats(metrics),
         trainedAt=time.strftime("%Y-%m-%dT%H:%M:%S"),
         trainSeconds=round(t_train, 1),
         validation=dict(unseenCustomers=dict(maeByHorizon=ev_unseen["maeByHorizon"], coverage=ev_unseen["coverage"]),

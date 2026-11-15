@@ -39,7 +39,7 @@ function fmtMetric(v: number, unit: string): string {
 function MetricRow({ m }: { m: ModelCard["metrics"][number] }) {
   const max = Math.max(1e-9, Math.abs(m.model), Math.abs(m.baseline));
   const better = m.better === "lower" ? m.model < m.baseline : m.model > m.baseline;
-  const tie = Math.abs(m.model - m.baseline) / max < 0.01;
+  const tie = m.onPar === true || Math.abs(m.model - m.baseline) / max < 0.01;
   return (
     <li className="py-2.5">
       <div className="flex items-start justify-between gap-2">

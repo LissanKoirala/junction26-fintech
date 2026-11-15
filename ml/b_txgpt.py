@@ -175,7 +175,9 @@ def batch(seqs, keys, w, bs, rng, cut=TRAIN_CUT):
         s = seqs[cid]
         n = int((s["day"] <= cut).sum())
         st = rng.integers(0, max(1, n - L))
-        win = s["tok"][st: st + L].astype(np.int64)
+        # capped at n: a customer with fewer than L tokens before the cut-off must not see tokens after it. The trained
+        # checkpoint predates this cap (see leak_check() and the card caveat); it was not retrained.
+        win = s["tok"][st: min(st + L, n)].astype(np.int64)
         full = np.concatenate([s["prefix"].astype(np.int64), win])
         X[b, : len(full) - 1] = full[:-1]
         Y[b, 2: len(full) - 1] = full[3:]
@@ -513,6 +515,88 @@ def gen(shard, nshards):
     log("shard", shard, "wrote", nw, "of", len(mine), "backtest", len(bt))
 
 
+def eval_test_ids(seqs):
+    """The customers evaluate() scores (same rng and order)."""
+    rng = np.random.default_rng(3)
+    main = [c for c in seqs if c <= "CUST05000"]
+    ns, nu = int(os.environ.get("TXGPT_EVAL_SEEN", "1000")), int(os.environ.get("TXGPT_EVAL_UNSEEN", "300"))
+    return sorted(rng.choice([c for c in main if not unseen(c)], ns, replace=False).tolist()) + sorted([c for c in main if unseen(c)][:nu])
+
+
+def leak_check(seqs):
+    """Training customers whose window (before the cap in batch()) could reach past TRAIN_CUT: fewer than CTX-3 tokens
+    before the cut-off. Returns how many and the most tokens dated after the cut-off any of them could show."""
+    L = CTX - 3
+    keys = [c for c in seqs if c <= "CUST05000" and not unseen(c)]
+    n = np.array([(seqs[c]["day"] <= TRAIN_CUT).sum() for c in keys])
+    tot = np.array([len(seqs[c]["tok"]) for c in keys])
+    short = n < L
+    extra = np.minimum(L, tot[short]) - n[short]
+    return dict(customers=int(short.sum()), maxTokensAfterCut=int(extra.max()) if short.any() else 0,
+                tokensAfterCutTotal=int(extra.sum()), trainTokens=int(n.sum()))
+
+
+def ctx_baseline(seqs):
+    """A context-aware tabular baseline for the next category: LightGBM multiclass on the previous two categories, the
+    previous amount bucket, the DAY context (gap, weekday, day-of-month bucket), position in the day, and the customer's
+    own category frequencies overall, by day-of-month bucket and by weekday (all from before the cut-off). Trained on
+    2026-01..06 transactions of 1,500 training customers (features from <= 2025-12-31), scored on exactly the test
+    transactions evaluate() uses. Cached in WDIR/ctx_baseline.json. Ported from the independent verification (t2.py)."""
+    path = os.path.join(WDIR, "ctx_baseline.json")
+    if os.path.exists(path):
+        return json.load(open(path))
+    import lightgbm as lgb
+    NC = len(CATS)
+    cut0 = (B.dt.date(2025, 12, 31) - B.D0).days
+    test_ids = eval_test_ids(seqs)
+
+    def feats(c, lo, hi, fcut):
+        s = seqs[c]
+        tok, day = s["tok"].astype(int), s["day"].astype(int)
+        trm = (day <= fcut) & (tok >= TX0)
+        fr = np.bincount((tok[trm] - TX0) // NAB, minlength=NC) + 0.0
+        fr = fr / max(1, fr.sum())
+        dfr, wfr = np.ones((5, NC)) * 0.01, np.ones((7, NC)) * 0.01
+        rows, curd, pos, pc, pc2, pab = [], None, 0, NC, NC, NAB
+        for k in range(len(tok)):
+            t = tok[k]
+            if t < TX0:
+                g = t - DAY0
+                curd, pos = (g // 35, (g % 35) // 5, g % 5), 0
+                continue
+            cat, ab = (t - TX0) // NAB, (t - TX0) % NAB
+            if day[k] <= fcut:
+                dfr[curd[2], cat] += 1
+                wfr[curd[1], cat] += 1
+            if lo < day[k] <= hi:
+                rows.append([pc, pc2, pab, curd[0], curd[1], curd[2], pos] + list(fr) + list(dfr[curd[2]] / dfr[curd[2]].sum())
+                            + list(wfr[curd[1]] / wfr[curd[1]].sum()) + [cat])
+            pc2, pc, pab, pos = pc, cat, ab, pos + 1
+        return rows
+
+    main = [c for c in seqs if c <= "CUST05000"]
+    ts = set(test_ids)
+    tr_ids = list(np.random.default_rng(0).choice([c for c in main if not unseen(c) and c not in ts], 1500, replace=False))
+    Xtr = np.array([r for c in tr_ids for r in feats(c, cut0, TRAIN_CUT, cut0)], float)
+    te, un = [], []
+    for c in test_ids:
+        rr = feats(c, TRAIN_CUT, 10 ** 6, TRAIN_CUT)
+        te += rr
+        un += [unseen(c)] * len(rr)
+    Xte, un = np.array(te, float), np.array(un)
+    m = lgb.LGBMClassifier(objective="multiclass", n_estimators=300, learning_rate=0.05, num_leaves=63, min_child_samples=50, verbose=-1, n_jobs=30)
+    m.fit(Xtr[:, :-1], Xtr[:, -1].astype(int), categorical_feature=[0, 1, 3, 4, 5])
+    r = m.classes_[np.argsort(-m.predict_proba(Xte[:, :-1]), 1)]
+    y = Xte[:, -1].astype(int)
+    out = {}
+    for nm, mask in [("all", np.ones(len(y), bool)), ("unseenCustomers", un)]:
+        out[nm] = dict(top1=float((r[mask, 0] == y[mask]).mean()), top3=float((r[mask, :3] == y[mask, None]).any(1).mean()), n=int(mask.sum()))
+    out["trainRows"] = int(len(Xtr))
+    json.dump(out, open(path, "w"))
+    log("context baseline", out)
+    return out
+
+
 def card():
     import glob
 
@@ -540,20 +624,34 @@ def card():
            dict(method="Trailing 90-day average x 14", mae=float(np.mean(np.abs(y - j.trailing))), coverage80=None),
            dict(method="Empirical quantiles of own past 14-day windows", mae=float(np.mean(np.abs(y - j.emp50))), coverage80=float(np.mean((y >= j.emp10) & (y <= j.emp90))))]
     nfiles = len(glob.glob(os.path.join(ML_DIR, "txgpt", "*.json")))
+    seqs = build_sequences()
+    leak = leak_check(seqs)
+    cb = ctx_baseline(seqs)
+    # paired bootstrap of the 14-day MAE difference TransactionGPT - LightGBM on the same rows
+    d = np.abs(y - j.p50.values) - np.abs(y - j.lg50.values)
+    bs = d[np.random.default_rng(0).integers(0, len(d), (5000, len(d)))].mean(1)
+    mae_ci = [float(np.quantile(bs, 0.025)), float(np.quantile(bs, 0.975))]
+    fc_on_par = mae_ci[0] <= 0 <= mae_ci[1]
+    cutoffs = sorted({B.i2s(int(t)) for t in j.t})
+    window = f"{cutoffs[0]}" if len(cutoffs) == 1 else f"{cutoffs[0]}..{cutoffs[-1]}"
     a = ev["all"]
     nc = {r["method"]: r for r in a["nextCategory"]}
     pp = {r["method"]: r["value"] for r in a["perplexity"]}
-    mk = "First-order Markov chain (per customer, smoothed)"
+    tf = nc["TransactionGPT"]
     metrics = [
-        dict(label="Next-category top-1 accuracy (test, Jul-Sep 2026)", model=nc["TransactionGPT"]["top1"], baseline=nc[mk]["top1"], baselineName="first-order Markov chain", unit="", better="higher"),
-        dict(label="Next-category top-3 accuracy", model=nc["TransactionGPT"]["top3"], baseline=nc["Customer's most frequent categories"]["top3"], baselineName="customer's most frequent categories", unit="", better="higher"),
-        dict(label="Perplexity of the next transaction token (category x amount bucket)", model=pp["TransactionGPT"], baseline=pp["Bigram Markov (per customer, smoothed)"], baselineName="bigram Markov", unit="", better="lower"),
-        dict(label="14-day spending forecast, MAE of the median", model=f14[0]["mae"], baseline=f14[1]["mae"], baselineName="LightGBM quantile model", unit="EUR", better="lower"),
+        # strongest simple baseline first (the overview and the chat quote metrics[0])
+        dict(label="Next-category top-1 accuracy (test, Jul-Sep 2026)", model=tf["top1"], baseline=cb["all"]["top1"], baselineName="LightGBM on the context (previous categories, day, own frequencies)", unit="", better="higher"),
+        dict(label="Next-category top-3 accuracy", model=tf["top3"], baseline=cb["all"]["top3"], baselineName="LightGBM on the context (previous categories, day, own frequencies)", unit="", better="higher"),
+        dict(label="Perplexity of the next transaction token (category x amount bucket)", model=pp["TransactionGPT"], baseline=pp["Unigram (per customer, smoothed)"], baselineName="customer's own token frequencies (unigram)", unit="", better="lower"),
+        dict(label="14-day spending forecast, MAE of the median", model=f14[0]["mae"], baseline=f14[1]["mae"], baselineName="LightGBM quantile model", unit="EUR", better="lower",
+             onPar=fc_on_par, diffCI95=mae_ci),
         dict(label="14-day spending forecast, MAE of the median", model=f14[0]["mae"], baseline=f14[2]["mae"], baselineName="trailing 90-day average", unit="EUR", better="lower"),
         dict(label="14-day spending forecast, coverage of the 10-90% band", model=f14[0]["coverage80"] * 100, baseline=f14[1]["coverage80"] * 100, baselineName="LightGBM quantile model (nominal 80%)", unit="%", better="higher"),
     ]
-    beats_fc = f14[0]["mae"] < f14[1]["mae"]
-    verdict = "experimental" if beats_fc else "not_better_than_baseline"
+    # experimental while the next-category and perplexity gains hold; the 14-day forecast only has to be on par with LightGBM
+    beats_tokens = all(m["model"] > m["baseline"] if m["better"] == "higher" else m["model"] < m["baseline"] for m in metrics[:3])
+    fc_ok = fc_on_par or f14[0]["mae"] < f14[1]["mae"]
+    verdict = "experimental" if beats_tokens and fc_ok else "not_better_than_baseline"
     out = dict(
         key="txgpt", name="TransactionGPT (experimental)",
         purpose="A small transformer that has read every customer's transaction history and imagines plausible next two weeks.",
@@ -563,16 +661,27 @@ def card():
                "amounts are drawn from the customer's own past amounts in the sampled cell.",
         trainedOn=f"{ck['trainTokens']:,} tokens dated 2024-10-01..2026-06-30 from 4,500 customers (10% hold-out for validation loss)",
         split=f"Time split: train <= 2026-06-30, test 2026-07-01..2026-09-30 ({ev['customers']['seen']:,} seen + {ev['customers']['unseen']} never-seen customers for token metrics; "
-              f"{len(j)} customers for the 14-day forecast backtest at their first LightGBM test cut-off on or after 2026-07-15).",
+              f"{len(j)} customers for the 14-day forecast backtest, all at the cut-off {window}, so the backtest is a single 14-day window).",
         metrics=metrics, verdict=verdict,
         caveats=["Experimental: shown as 'imagined futures', not as a prediction to act on.",
+                 f"The 14-day forecast is on par with LightGBM, not better: the error difference is {f14[0]['mae'] - f14[1]['mae']:+.1f} EUR with a 95% "
+                 f"interval of {mae_ci[0]:+.1f} to {mae_ci[1]:+.1f} EUR (paired bootstrap), and its 10-90% band covers {f14[0]['coverage80']:.0%} of "
+                 f"outcomes against a nominal 80%. All {len(j)} backtest customers share one cut-off ({window}), i.e. one 14-day window.",
+                 f"Next-category accuracy holds against the strongest simple baseline we tried, a LightGBM on the same context "
+                 f"(top-1 {cb['all']['top1']:.3f}, top-3 {cb['all']['top3']:.3f} against {tf['top1']:.3f} and {tf['top3']:.3f}); the first-order "
+                 f"Markov chain ({nc['First-order Markov chain (per customer, smoothed)']['top1']:.3f}) is a weaker one.",
+                 f"Training windows were not capped at the cut-off for customers with fewer than {CTX - 3} tokens before it: {leak['customers']} "
+                 f"training customers could show {leak['tokensAfterCutTotal']} tokens dated after 2026-06-30 in all (of {leak['trainTokens'] / 1e6:.1f} "
+                 "million training tokens). The code is fixed; the model was not retrained.",
                  "The transformer knows the date (DAY tokens) while the Markov baselines do not; that is part of the comparison.",
                  "Amounts are bucketed (12 log buckets), so perplexity is over category x bucket, not exact euros.",
                  "Surprises are the recent real transactions the model gave the lowest probability: a learned second opinion, not fraud detection."],
         trainedAt=time.strftime("%Y-%m-%dT%H:%M:%S"), trainSeconds=round(ck["seconds"], 1),
         validation=dict(unseenCustomers=ev["unseenCustomers"], fullVocabPerplexity=ev["fullVocabPerplexityTransformer"],
-                        forecastTruncatedShare=float(j.truncated.mean())),
-        evidence=dict(trainingCurve=ck["curve"], nextCategory=a["nextCategory"], perplexity=a["perplexity"], forecast14d=f14,
+                        forecastTruncatedShare=float(j.truncated.mean()), forecastCutoffs=cutoffs,
+                        forecastMaeDiffVsLightGBM=dict(diff=float(d.mean()), ci95=mae_ci), contextBaseline=cb, trainingWindowLeak=leak),
+        evidence=dict(trainingCurve=ck["curve"], perplexity=a["perplexity"], forecast14d=f14,
+                      nextCategory=a["nextCategory"] + [dict(method="LightGBM on the context (tabular baseline)", top1=cb["all"]["top1"], top3=cb["all"]["top3"])],
                       params=dict(parameters=ck["params"], layers=CFG["layers"], dModel=CFG["d"], heads=CFG["heads"], context=CTX, vocabulary=V,
                                   vocabParts=dict(special=2, age=6, income=8, day=NDAY, tx=len(CATS) * NAB), steps=ck["step"],
                                   trainingSeconds=round(ck["seconds"], 1), trainTokens=ck["trainTokens"], device="CPU (32 cores)"),

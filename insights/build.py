@@ -209,7 +209,7 @@ try:
 except Exception as e:
     print("twins agg failed", repr(e))
 try:
-    hb = load_dir("habits")
+    hb = [h for h in load_dir("habits") if h.get("id", "") <= "CUST05000"]   # main cohort, as on the model card
     stc, catc, imp = collections.Counter(), collections.Counter(), collections.defaultdict(list)
     for h in hb:
         for x in h.get("habits", []):
@@ -283,7 +283,7 @@ find = [
     (pc(neg_all), "of customers dipped below zero at least once in two years",
      f"Almost always late in the pay cycle: {pc(low_after20)} of the dips bottom out 20 or more days after payday."),
     (f"{pc(kept_d)} fewer", "days below zero if a 5% trim of everyday extras is kept as a cushion",
-     f"About {eur(ev_med * 0.05)} a month for the median customer, about {eur(kept_end)} after two years. If the same money is spent again before the next payday, the drop is only {pc(cyc_d)}."),
+     f"About {eur(ev_med * 0.05)} a month for the median customer, about {eur(kept_end)} after two years. If it is kept only until the next payday, the drop is only {pc(cyc_d)}."),
     (pc(sos["mr"]["p50"]), "of salary is committed to fixed musts before any choice is made",
      f"Everyday extras are {pc(sos['ev']['p50'])} of salary: the part a coach can actually help with."),
     (pc(su["customersWithShock"]), "of customers were hit by a surprise-must month",
@@ -401,20 +401,26 @@ S.append(("small", "Small purchases", section("small", "Finding 5", f"The latte 
 # ---- F6 counterfactual
 trims = [r for r in cf if 0 < r["trim"] <= 0.2]
 bm = cfr["byMonth"]
+cf_tail = ""
+if cfr.get("fromNov2024") and cfr.get("keptNegativeOnlyOctNov2024") is not None:
+    fn = cfr["fromNov2024"]
+    cf_tail = (f"Of those, {n0(cfr['keptNegativeOnlyOctNov2024'])} dip only in October and November 2024, before any cushion exists, where the "
+               f"synthetic opening balances distort the picture (see Honest limits). Leaving out October 2024, the kept trim removes "
+               f"{pc(1 - fn['negativeDaysKept'] / fn['negativeDays'])} of the days below zero and {n0(fn['customersNegativeKept'])} customers still dip. ")
 body = f"""
 <p class="lede">We replayed two years of balances for every main-cohort customer with everyday extras trimmed by 5%, about {eur(ev_med * 0.05)} a month for the median customer, in two ways. The result depends almost entirely on what happens to the money afterwards.</p>
-{kpis([(pc(cyc_d), 'fewer days below zero', 'if the trimmed money is spent again before the next payday'), (pc(kept_d), 'fewer days below zero', f'if it is kept and builds up (median {eur(kept_end)} after two years)'), (pc(cyc_c), 'fewer customers ever below zero', f"spent again: {n0(cf0['customersNegative'])} to {n0(c5['customersNegativeCycle'])}"), (pc(kept_c), 'fewer customers ever below zero', f"kept: {n0(cf0['customersNegative'])} to {n0(c5['customersNegative'])}")])}
+{kpis([(pc(cyc_d), 'fewer days below zero', 'if the trimmed money is kept only until the next payday'), (pc(kept_d), 'fewer days below zero', f'if it is kept and builds up (median {eur(kept_end)} after two years)'), (pc(cyc_c), 'fewer customers ever below zero', f"kept until payday: {n0(cf0['customersNegative'])} to {n0(c5['customersNegativeCycle'])}"), (pc(kept_c), 'fewer customers ever below zero', f"kept: {n0(cf0['customersNegative'])} to {n0(c5['customersNegative'])}")])}
 <div class="g2">
-{chart({'type': 'hbars', 'rows': [{'label': f"{pc(r['trim'])} trim", 'vals': [cut(r, 'negativeDaysCycle', 'negativeDays'), cut(r, 'negativeDays', 'negativeDays')]} for r in trims], 'series': [{'name': 'Spent again before the next payday', 'color': C['amber']}, {'name': 'Kept and built up', 'color': C['g7']}], 'fmt': 'pct'}, 'Share of days below zero that disappear, by size of trim and by what happens to the money.')}
-{chart({'type': 'line', 'x': [r['month'] for r in bm], 'series': [{'name': 'As it happened', 'y': [r['actual'] for r in bm], 'color': C['grey']}, {'name': '5% trim, spent again', 'y': [r['cycle5'] for r in bm], 'color': C['amber']}, {'name': '5% trim, kept', 'y': [r['kept5'] for r in bm], 'color': C['g7']}], 'fmt': 'pct', 'every': 4, 'yTitle': 'Share of customer-days below zero'}, 'The kept version starts where the others do and pulls away as the cushion builds: the cushion does the work, not the trim.')}
+{chart({'type': 'hbars', 'rows': [{'label': f"{pc(r['trim'])} trim", 'vals': [cut(r, 'negativeDaysCycle', 'negativeDays'), cut(r, 'negativeDays', 'negativeDays')]} for r in trims], 'series': [{'name': 'Kept only until the next payday', 'color': C['amber']}, {'name': 'Kept and built up', 'color': C['g7']}], 'fmt': 'pct'}, 'Share of days below zero that disappear, by size of trim and by what happens to the money.')}
+{chart({'type': 'line', 'x': [r['month'] for r in bm], 'series': [{'name': 'As it happened', 'y': [r['actual'] for r in bm], 'color': C['grey']}, {'name': '5% trim, kept until payday', 'y': [r['cycle5'] for r in bm], 'color': C['amber']}, {'name': '5% trim, kept', 'y': [r['kept5'] for r in bm], 'color': C['g7']}], 'fmt': 'pct', 'every': 4, 'yTitle': 'Share of customer-days below zero'}, 'The kept version starts where the others do and pulls away as the cushion builds: the cushion does the work, not the trim.')}
 </div>
 <p>This follows from the earlier findings. Dips are shallow and late in the pay cycle, so what prevents one is money that is already there when the dip would have happened. A standing cushion of 100 € would have removed {pc(cut(cush[100], 'negativeDays', 'negativeDays'))} of the days below zero, and 250 € would have removed {pc(cut(cush[250], 'negativeDays', 'negativeDays'))}. A 5% trim builds 250 € in about {250 / (ev_med * 0.05):.0f} months for the median customer. (No account in the dataset goes lower than about −500 €, which looks like an overdraft limit in the synthetic data, so a 500 € cushion removes every dip by construction.)</p>
-<p>Even with the money kept, {n0(c5['customersNegative'])} customers still go below zero at some point. A small trim is a real help for most people who dip, not a cure for all of them.</p>
+<p>Even with the money kept, {n0(c5['customersNegative'])} customers still go below zero at some point. {cf_tail}A small trim is a real help for most people who dip, not a cure for all of them.</p>
 {vara('Two things follow in the product. The <b>what-if simulator</b> shows a customer their own version of this on their own transactions. And saving has to mean <b>moving the money</b>, not just skipping a purchase: Crave mode and the Säästäjä hand-off both put the amount in a savings pot where it stays, because the data says the staying is what counts.')}
-{method('A mechanical replay, not a behavioural prediction. "Kept": end-of-day balance plus the trim percentage times cumulative everyday-extras spending since October 2024, so the saved money counts as available when a dip comes (for example a savings pot that tops the account up). "Spent again": the same, but the cumulative sum restarts at each salary. Both assume income and all other spending stay the same. Customers ever below zero is counted on end-of-day balances.')}
+{method('A mechanical replay, not a behavioural prediction. "Kept": end-of-day balance plus the trim percentage times cumulative everyday-extras spending since October 2024, so the saved money counts as available when a dip comes (for example a savings pot that tops the account up). "Kept only until the next payday": the same, but the cumulative sum restarts at each salary, so the trimmed money stays available through the whole pay cycle and is gone at the next salary. Both assume income and all other spending stay the same. Customers ever below zero is counted on end-of-day balances.')}
 """
 
-S.append(("trims", "Small trims", section("trims", "Finding 6", f"A small trim only counts if the money is kept: {pc(kept_d)} fewer days below zero when kept, {pc(cyc_d)} when spent later", body)))
+S.append(("trims", "Small trims", section("trims", "Finding 6", f"A small trim only counts if the money is kept: {pc(kept_d)} fewer days below zero when kept, {pc(cyc_d)} when kept only until payday", body)))
 
 # ---- cravings (the data behind Crave mode)
 try:
@@ -522,8 +528,9 @@ def metric_table(card):
     rows = []
     for x in card.get("metrics", []):
         win = (x["model"] > x["baseline"]) if x.get("better") == "higher" else (x["model"] < x["baseline"])
-        rows.append([esc(x["label"]), f"<b>{mval(x['model'], x.get('unit'))}</b>", f"{mval(x['baseline'], x.get('unit'))} <span class='mut'>({esc(x['baselineName'])})</span>",
-                     '<span class="win">better</span>' if win else '<span class="lose">not better</span>'])
+        res = ('<span class="mut">on par (within noise)</span>' if x.get("onPar") else
+               '<span class="win">better</span>' if win else '<span class="lose">not better</span>')
+        rows.append([esc(x["label"]), f"<b>{mval(x['model'], x.get('unit'))}</b>", f"{mval(x['baseline'], x.get('unit'))} <span class='mut'>({esc(x['baselineName'])})</span>", res])
     return table(["Metric", "Model", "Baseline", ""], rows, "num")
 
 
@@ -589,14 +596,15 @@ def generic_evidence(card):
 
 def twins_note(card):
     """One honest sentence on how much the twins beat their baselines, computed from the card itself."""
-    gains = [(1 - mt["model"] / mt["baseline"], mt.get("baselineName", "baseline")) for mt in card.get("metrics", [])
+    gains = [(1 - mt["model"] / mt["baseline"], mt.get("baselineName", "baseline"), mt.get("onPar")) for mt in card.get("metrics", [])
              if "MAE" in mt.get("label", "") and mt.get("better") == "lower" and mt.get("baseline")]
     if not gains:
         return "<p>Read this model as a mirror, not a forecast.</p>"
-    lo, hi = min(g for g, _ in gains), max(g for g, _ in gains)
-    rng = pc(lo, 1) if abs(hi - lo) < 0.002 else f"{pc(lo, 1)} to {pc(hi, 1)}"
-    return (f"<p>Read this model as a mirror, not a forecast. Its error is only {rng} lower than its baselines ({', '.join(n for _, n in gains)}), "
-            "so the app presents it as \"what happened to people like you\" and never as a prediction.</p>")
+    parts = [f"{pc(g, 1)} better than {esc(n)}" + (" (within noise)" if p else "") for g, n, p in gains]
+    return (f"<p>Read this model as a mirror, not a forecast. Its error is {', '.join(parts[:-1])} and {parts[-1]}. "
+            "Against the strongest of these it is on a par, so the app presents it as \"what happened to people like you\" and never as a prediction.</p>"
+            if any(p for _, _, p in gains) else
+            f"<p>Read this model as a mirror, not a forecast. Its error is {', '.join(parts)}, so the app presents it as \"what happened to people like you\" and never as a prediction.</p>")
 
 
 MS = []  # model sub-sections
@@ -610,10 +618,11 @@ for k in ORDER:
         continue
     x = (c.get("metrics") or [{}])[0]
     v, cls = VERD.get(c.get("verdict"), ("?", "exp"))
-    head = f"{esc(x.get('label', ''))}: <b>{mval(x['model'], x.get('unit'))}</b> vs {mval(x['baseline'], x.get('unit'))} ({esc(x.get('baselineName', ''))})" if x else ""
+    head = (f"{esc(x.get('label', ''))}: <b>{mval(x['model'], x.get('unit'))}</b> vs {mval(x['baseline'], x.get('unit'))} ({esc(x.get('baselineName', ''))})"
+            + (" · on par" if x.get("onPar") else "")) if x else ""
     overview.append([f'<a href="#m-{k}"><b>{TITLES[k]}</b></a>', esc(c.get("purpose", "")), head, f'<span class="badge {cls}">{v}</span>'])
 body = f"""
-<p class="lede">The team asked for machine learning with a real point, so each model answers a question a customer would ask, and each is measured against the simplest thing that could work. The verdicts below are the models' own: "ships" when it clearly beats the baseline, "experimental" when the gain is small or the validation is weak. We kept the weak ones on the page on purpose.</p>
+<p class="lede">The team asked for machine learning with a real point, so each model answers a question a customer would ask, and each is measured against simple baselines; the table shows each against the strongest simple baseline we tried. The verdicts come from a rule in each model's code: "ships" only when the model beats every baseline on its card by a clear margin (each card says which); "experimental" when the gain is small, within noise, depends on a choice we made by hand (such as the shuffle used to test the habit detector), or the model is unsupervised or illustrative. After an independent re-check of every number, the cards compare against stronger baselines than before and the habit detector went from "ships" to "experimental". We kept the weak ones on the page on purpose.</p>
 {table(['Model', 'Question it answers', 'Headline result vs baseline', 'Verdict'], overview)}
 """
 S.append(("models", "Models", section("models", "Machine learning", "Eight models, each measured against a naive baseline", body)))
@@ -634,7 +643,9 @@ if c and mmap:
         pfm = ML.get("profile", {})
         body = card_head(c) + chart(spec, f"Every main-cohort customer placed by spending behaviour (shares and rates, so the map is about habits, not income). Colours are the {len(tribes)} tribes; names and descriptions were written by Claude from each tribe's statistics and are shown below as the customer sees them in the app.") + \
             f'<div class="tribes">{tr}</div>' + metric_table(c) + \
-            (f"<p>We chose the number of tribes by evidence, not taste:</p>{dict_table(ev)}" if isinstance(ev, list) and ev else "") + \
+            (f"<p>We limited the number of tribes to 5 to 8 for storytelling, and k={c['metrics'][0]['label'].split('k=')[1].rstrip(')')} scored best in that range. "
+             f"k=4 scores higher on silhouette (table below) but was outside that range: the choice of range was ours, not the data's. For scale: k-means on data with no clusters at all "
+             f"(a Gaussian with the same covariance) already gives a silhouette of {fnum(c['metrics'][0]['baseline'])}.</p>{dict_table(ev)}" if isinstance(ev, list) and ev else "") + \
             (f"<p>The honest reading: behaviour in this dataset is a continuum. {pc(pfm.get('below50', 0))} of customers fit their main tribe at under 50%, so the app always shows a <b>mix</b> (for example 35% Evening Socialite, 32% Buffer Builder) and calls the tribes a simplification.</p>" if pfm else "") + caveats(c)
         MS.append(("m-tribes", "Money Map", section("m-tribes", "Model 1 · What kind of spender am I?", f"Money Map: {n0(len(mmap['ids']))} customers on one picture", body)))
     except Exception as e:
@@ -666,9 +677,20 @@ if c:
         if bt:
             extra += chart({'type': 'hbars', 'rows': [{'label': k, 'vals': [v.get('model'), v.get('global_amount'), v.get('isolation_forest')]} for k, v in bt.items()],
                             'series': [{'name': 'Personal score (used in the app)', 'color': C['g7']}, {'name': 'Global amount percentile', 'color': C['grey']}, {'name': 'Isolation Forest', 'color': C['blue']}], 'fmt': 'dec'},
-                           'ROC AUC by type of injected anomaly. The personal score beats an amount-only rule on unusual hours and categories, which that rule cannot see by construction. The Isolation Forest is better on both of those and worse on amount spikes.')
+                           'ROC AUC by type of injected anomaly. The personal score beats an amount-only rule on unusual hours and categories, which that rule cannot see by construction; on amount spikes, the one type that resembles real events, it does not beat the non-personal amount rule. The Isolation Forest is better on hours and categories and worse on amount spikes.')
         if a:
-            extra += f"<p>Across {n0(a['n'])} customers the model flags {n0(a['flagged'])} purchases in the last 12 months, {n0(a['suggested'])} of them are proposed for the Surprise musts basket. A flag means &quot;in the top 5% of unusualness for this customer&quot;, so most active customers have one in any given month ({pc(a['recent'] / a['n'])} in the last 30 days): that share follows from the cut-off and is not a finding.</p><p>We kept the simple personal score, although the Isolation Forest scores slightly higher overall, because every flag comes with a plain reason the customer can check (&quot;6x your usual Home &amp; tech purchase&quot;).</p>" + \
+            fl = (c.get("validation") or {}).get("flags") or {}
+            if fl:
+                extra += (f"<p>In the main cohort {n0(fl['flagged'])} of {n0(fl['purchases'])} purchases in the last 12 months score 0.95 or more. "
+                          f"The cut-off is a percentile against one pooled reference of purchases from all customers, not against each customer's own, "
+                          f"so the share flagged differs by person: {pc(fl['shareP10'], 1)} of a customer's purchases at the 10th percentile, "
+                          f"{pc(fl['shareP50'], 1)} at the median and {pc(fl['shareP90'], 1)} at the 90th. ")
+            else:
+                extra += "<p>"
+            extra += (f"The app lists at most 30 per customer, and only purchases of a material size: {n0(a['flagged'])} across {n0(a['n'])} customers, "
+                      f"{n0(a['suggested'])} of them proposed for the Surprise musts basket. Most active customers have a flag in any given month "
+                      f"({pc(a['recent'] / a['n'])} in the last 30 days): that follows from the cut-off and is not a finding.</p>"
+                      "<p>We kept the simple personal score, although the Isolation Forest scores slightly higher overall, because every flag comes with a plain reason the customer can check (&quot;6x your usual Home &amp; tech purchase&quot;).</p>") + \
                 chart({'type': 'hbars', 'rows': [{'label': k, 'vals': [n]} for k, n in a['cats']], 'series': [{'name': 'Flagged purchases', 'color': C['g7']}], 'fmt': 'num'}, 'Flagged purchases by category.')
         body = card_head(c) + extra + metric_table(c) + caveats(c)
         MS.append(("m-anomalies", "Unusual for you", section("m-anomalies", "Model 3 · Did anything odd happen?", "Unusual for you: a personal normal for every customer", body)))
@@ -682,20 +704,31 @@ if c:
         v = c.get("validation") or {}
         extra = ""
         if v:
-            blocks = v.get('fp_rate_series_blocks', v.get('fp_rate_series'))
-            series = [{'name': 'Real data', 'color': C['g7']}, {'name': f"{v.get('block_weeks', 4)}-week blocks shuffled", 'color': C['amber']}]
-            rows = [{'label': 'Weekly series flagged', 'vals': [v.get('detection_rate_series'), blocks]}, {'label': 'Customers with at least one habit', 'vals': [v.get('detection_rate_customers'), v.get('fp_rate_customers')]}]
+            bl = v.get('byBlockLength') or {}
+            ks = sorted(bl, key=int)
+            cols = [C['amber'], C['blue'], C['g9']]
+            series = [{'name': 'Real data', 'color': C['g7']}] + [{'name': f"{k}-week blocks shuffled", 'color': cols[i % 3]} for i, k in enumerate(ks)]
+            rows = [{'label': 'Weekly series flagged', 'vals': [v.get('detection_rate_series')] + [bl[k]['series'] for k in ks]},
+                    {'label': 'Customers with at least one habit', 'vals': [v.get('detection_rate_customers')] + [bl[k]['customers'] for k in ks]}]
             if v.get('fp_rate_series_weeks') is not None:
                 series.append({'name': 'Single weeks shuffled', 'color': C['grey']})
                 rows[0]['vals'].append(v.get('fp_rate_series_weeks')); rows[1]['vals'].append(v.get('fp_rate_customers_weeks'))
             extra += chart({'type': 'hbars', 'rows': rows, 'series': series, 'fmt': 'pct1'},
-                           'The detector on real series against the same detector on two shuffled copies, where no sustained change exists by construction.')
-            cr_ = v.get('chance_share_range')
-            if cr_:
-                extra += f"<p>How many flags are noise depends on what counts as \"no change\". Shuffling single weeks destroys all structure and gives {pc(cr_[0])}; shuffling {v.get('block_weeks', 4)}-week blocks keeps short runs such as one busy month and gives {pc(cr_[1])}. The second is conservative, because a real shift survives inside its blocks, so the truth lies between them. The threshold was set on the stricter one after an independent check showed the first was too easy.</p>"
+                           'The detector on real series against the same detector on shuffled copies, where no sustained change exists by construction. Longer shuffled blocks keep more of the real structure and flag more.')
+            if len(ks) >= 3:
+                b4, b8, b13 = (bl[k] for k in ks[:3])
+                ms = v.get('monthStartShare') or {}
+                extra += (f"<p>How many flags are noise depends on what counts as \"no change\", and this test does not settle it. With {ks[0]}-week blocks "
+                          f"shuffled, the null the threshold was set on, about {pc(b4['chanceShare'])} of flagged shifts could be chance; with {ks[1]}-week blocks "
+                          f"about {pc(b8['chanceShare'])}; with {ks[2]}-week blocks {pc(b13['chanceShare'])}. Shuffling single weeks gives {pc(v['chance_share_range'][0])}, "
+                          f"but that null is too easy. Per customer, even the {ks[0]}-week null flags {pc(b4['customers'])} of customers against {pc(v['detection_rate_customers'])} "
+                          f"on real data, so about {round(10 * min(1, b4['customerChance']))} in 10 customers with a flag could have one by chance. "
+                          + (f"There is real structure, though: {pc(ms['real'])} of real change points fall in a week containing the 1st of a month, against "
+                             f"{pc(ms['weeks'])} of the weeks searched and {pc(ms['blockNull'])} on the shuffled copy. That is why the model is experimental, "
+                             "and why the coach asks rather than tells.</p>" if ms else "That is why the model is experimental.</p>"))
         if h:
             lab = {"new_habit": "New habit (holding)", "forming": "Forming", "slipping": "Slipping"}
-            extra += f"<p>{n0(h['withHabit'])} of {n0(h['n'])} customers ({pc(h['withHabit'] / h['n'])}) have at least one sustained shift in the last year, {n0(h['total'])} shifts in total.</p><div class='g2'>" + \
+            extra += f"<p>{n0(h['withHabit'])} of the {n0(h['n'])} main-cohort customers ({pc(h['withHabit'] / h['n'])}) have at least one flagged shift in the last year. The app shows at most one per category, {n0(h['total'])} in total.</p><div class='g2'>" + \
                 chart({'type': 'cols', 'x': [lab.get(k, k) for k in h['status']], 'y': list(h['status'].values()), 'fmt': 'num', 'labels': True, 'yTitle': 'Detected shifts'}, 'Shifts by status.') + \
                 chart({'type': 'hbars', 'rows': [{'label': cname, 'vals': [d, u]} for cname, d, u in h['cats']], 'series': [{'name': 'Spending went down', 'color': C['g7']}, {'name': 'Went up', 'color': C['amber']}], 'fmt': 'num'}, 'Shifts by category and direction.') + "</div>"
         body = card_head(c) + extra + metric_table(c) + caveats(c)

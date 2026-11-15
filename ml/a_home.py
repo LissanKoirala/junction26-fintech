@@ -45,12 +45,15 @@ y = x["y"].to_numpy()
 lr = make_pipeline(StandardScaler(), LogisticRegression(C=0.5, max_iter=2000))
 tree = DecisionTreeClassifier(max_depth=2, min_samples_leaf=15, random_state=0)
 rk = RepeatedStratifiedKFold(n_splits=5, n_repeats=20, random_state=0)
-aucs, accs, taucs, taccs = [], [], [], []
+aucs, accs, taucs, taccs, baucs = [], [], [], [], []
+one = make_pipeline(StandardScaler(), LogisticRegression(C=0.5, max_iter=2000))   # single-feature baseline: buffer_months only
 for tr, te in rk.split(X, y):
     p = lr.fit(X[tr], y[tr]).predict_proba(X[te])[:, 1]; aucs.append(roc_auc_score(y[te], p)); accs.append(accuracy_score(y[te], p >= 0.5))
     pt = tree.fit(X[tr], y[tr]).predict_proba(X[te])[:, 1]; taucs.append(roc_auc_score(y[te], pt)); taccs.append(accuracy_score(y[te], pt >= 0.5))
+    pb = one.fit(X[tr][:, [4]], y[tr]).predict_proba(X[te][:, [4]])[:, 1]; baucs.append(roc_auc_score(y[te], pb))
 cv = {"lr_auc": float(np.mean(aucs)), "lr_auc_sd": float(np.std(aucs)), "lr_acc": float(np.mean(accs)),
-      "tree_auc": float(np.mean(taucs)), "tree_acc": float(np.mean(taccs)), "majority_acc": float(max(y.mean(), 1 - y.mean()))}
+      "tree_auc": float(np.mean(taucs)), "tree_acc": float(np.mean(taccs)), "majority_acc": float(max(y.mean(), 1 - y.mean())),
+      "buffer_only_auc": float(np.mean(baucs)), "buffer_only_auc_sd": float(np.std(baucs))}
 # ablation: application terms only vs transaction behaviour only
 for name, cols in [("terms_only", [0, 1, 2]), ("behaviour_only", [3, 4, 5, 6])]:
     p = cross_val_predict(make_pipeline(StandardScaler(), LogisticRegression(C=0.5, max_iter=2000)), X[:, cols], y,
@@ -141,12 +144,18 @@ write_json(os.path.join(GLOBAL_DIR, "modelcard-home.json"), {
     "trainedOn": f"200 mortgage applications (150 approved, 50 rejected; rejections: collateral 34, income 8, equity 6, debt 2), applicant features from {YEAR1[0]}..{YEAR1[1]}",
     "split": "Repeated stratified 5-fold CV (20 repeats). Applications are dated Jan-Aug 2026 and features end 2025-09-30, so no look-ahead.",
     "metrics": [
+        # strongest simple baseline first (the overview and the chat quote metrics[0])
+        {"label": "CV ROC AUC (logistic)", "model": cv["lr_auc"], "baseline": cv["buffer_only_auc"], "baselineName": "one feature: buffer (months of spending on the account)", "unit": "", "better": "higher"},
         {"label": "CV ROC AUC (logistic)", "model": cv["lr_auc"], "baseline": 0.5, "baselineName": "no-skill", "unit": "", "better": "higher"},
         {"label": "CV accuracy (logistic)", "model": cv["lr_acc"], "baseline": cv["majority_acc"], "baselineName": "always 'approved'", "unit": "share", "better": "higher"},
         {"label": "CV ROC AUC (depth-2 tree)", "model": cv["tree_auc"], "baseline": 0.5, "baselineName": "no-skill", "unit": "", "better": "higher"},
     ],
     "verdict": "experimental" if cv["lr_acc"] > cv["majority_acc"] else "not_better_than_baseline",
     "caveats": [CAVEAT, f"CV AUC standard deviation across folds is {cv['lr_auc_sd']:.2f}: with n=200 the numbers are noisy.",
+                f"The buffer alone (one feature, same folds) reaches CV AUC {cv['buffer_only_auc']:.2f} against {cv['lr_auc']:.2f} for all seven "
+                f"features; the difference is smaller than the fold-to-fold spread ({cv['lr_auc_sd']:.2f}).",
+                "Not verified: whether the application terms (the final_* fields: loan-to-value, collateral, loan size) were recorded after the "
+                "decision and so partly encode it. If they do, the terms-only AUC overstates what is knowable before applying.",
                 "The approval probability for a hypothetical application assumes the collateral cover typical of similar approved applicants, "
                 "and is left empty (null) when any input falls outside the 5th-95th percentile of the 200 applications.",
                 f"Some coefficients are counter-intuitive (e.g. buffer {coefs['buffer_months']:+.2f}, days below zero {coefs['below_zero_share']:+.2f} in log-odds per SD): "

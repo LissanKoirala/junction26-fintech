@@ -49,7 +49,7 @@ describe("validAmountCents", () => {
 describe("intentForm", () => {
   it("sends only the amount and fixed demo fields", () => {
     const f = intentForm(1299);
-    expect([...f.keys()].sort()).toEqual(["amount", "currency", "description", "metadata[demo]", "payment_method_types[]"].sort());
+    expect([...f.keys()].sort()).toEqual(["amount", "automatic_payment_methods[allow_redirects]", "automatic_payment_methods[enabled]", "currency", "description", "metadata[demo]"].sort());
     expect(f.get("amount")).toBe("1299");
     expect(f.get("currency")).toBe("eur");
     expect(f.get("description")).toBe(DEMO_DESCRIPTION);
