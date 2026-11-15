@@ -1,0 +1,294 @@
+{
+  "clips": [
+    {
+      "file": "today.mp4",
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "frames": 378,
+      "seconds": 12.6,
+      "cut": [],
+      "events": [
+        {
+          "t": 1.87,
+          "label": "vara-open"
+        }
+      ]
+    },
+    {
+      "file": "chat.mp4",
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "frames": 607,
+      "seconds": 20.233,
+      "cut": [
+        {
+          "at": 5.56,
+          "removed": 4.42,
+          "where": "waiting for the first words of the answer"
+        }
+      ],
+      "events": [
+        {
+          "t": 1.99,
+          "label": "typing-start"
+        },
+        {
+          "t": 4.75,
+          "label": "sent"
+        },
+        {
+          "t": 6.17,
+          "label": "answer-first-card"
+        },
+        {
+          "t": 6.17,
+          "label": "answer-complete"
+        },
+        {
+          "t": 16.14,
+          "label": "how-open"
+        }
+      ]
+    },
+    {
+      "file": "whatif.mp4",
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "frames": 376,
+      "seconds": 12.533,
+      "cut": [],
+      "events": [
+        {
+          "t": 3.14,
+          "label": "changed"
+        },
+        {
+          "t": 8.37,
+          "label": "changed-2"
+        }
+      ]
+    },
+    {
+      "file": "checkin.mp4",
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "frames": 403,
+      "seconds": 13.433,
+      "cut": [],
+      "events": [
+        {
+          "t": 2.12,
+          "label": "slide-2"
+        },
+        {
+          "t": 4.11,
+          "label": "slide-3"
+        },
+        {
+          "t": 6.22,
+          "label": "slide-4"
+        },
+        {
+          "t": 8.31,
+          "label": "slide-5"
+        },
+        {
+          "t": 10.25,
+          "label": "slide-6"
+        }
+      ]
+    },
+    {
+      "file": "finnish.mp4",
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "frames": 260,
+      "seconds": 8.667,
+      "cut": [],
+      "events": [
+        {
+          "t": 2.26,
+          "label": "switched"
+        },
+        {
+          "t": 5.07,
+          "label": "chat-tab"
+        }
+      ]
+    },
+    {
+      "file": "crave.mp4",
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "frames": 1359,
+      "seconds": 45.3,
+      "cut": [],
+      "events": [
+        {
+          "t": 3.17,
+          "label": "craving"
+        },
+        {
+          "t": 6.14,
+          "label": "open-shop"
+        },
+        {
+          "t": 7.92,
+          "label": "shop-visible"
+        },
+        {
+          "t": 13.2,
+          "label": "product-open"
+        },
+        {
+          "t": 14.65,
+          "label": "added"
+        },
+        {
+          "t": 16.26,
+          "label": "basket"
+        },
+        {
+          "t": 17.97,
+          "label": "checkout"
+        },
+        {
+          "t": 21.96,
+          "label": "sheet-open"
+        },
+        {
+          "t": 24.81,
+          "label": "pay-tap"
+        },
+        {
+          "t": 25.17,
+          "label": "scan"
+        },
+        {
+          "t": 26.63,
+          "label": "tick"
+        },
+        {
+          "t": 27.94,
+          "label": "reveal"
+        },
+        {
+          "t": 31.13,
+          "label": "twist"
+        },
+        {
+          "t": 32.43,
+          "label": "coins"
+        },
+        {
+          "t": 36.78,
+          "label": "inbox"
+        },
+        {
+          "t": 40.79,
+          "label": "pot"
+        }
+      ]
+    },
+    {
+      "file": "models.mp4",
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "frames": 450,
+      "seconds": 15,
+      "cut": [],
+      "events": [
+        {
+          "t": 2.5,
+          "label": "models-open"
+        },
+        {
+          "t": 11.68,
+          "label": "card-open"
+        }
+      ]
+    },
+    {
+      "file": "more.mp4",
+      "width": 780,
+      "height": 1688,
+      "fps": 30,
+      "frames": 554,
+      "seconds": 18.467,
+      "cut": [],
+      "events": [
+        {
+          "t": 0,
+          "label": "baskets"
+        },
+        {
+          "t": 3.83,
+          "label": "last-month"
+        },
+        {
+          "t": 4.84,
+          "label": "goal"
+        },
+        {
+          "t": 10.95,
+          "label": "saastaja"
+        },
+        {
+          "t": 12.05,
+          "label": "connect"
+        }
+      ]
+    },
+    {
+      "file": "insights.mp4",
+      "width": 1600,
+      "height": 900,
+      "fps": 30,
+      "frames": 471,
+      "seconds": 15.7,
+      "cut": [],
+      "events": [
+        {
+          "t": 1.81,
+          "label": "findings"
+        },
+        {
+          "t": 8.36,
+          "label": "charts"
+        },
+        {
+          "t": 9.59,
+          "label": "models-link"
+        },
+        {
+          "t": 11.79,
+          "label": "model-table"
+        }
+      ]
+    }
+  ],
+  "sounds": [
+    {
+      "file": "chime.wav",
+      "seconds": 0.75,
+      "what": "pay chime (variant a, 'Bright double ding'): plays on the frame the tick appears on the pay sheet"
+    },
+    {
+      "file": "pop.wav",
+      "seconds": 0.2,
+      "what": "added to basket"
+    },
+    {
+      "file": "coins.wav",
+      "seconds": 0.35,
+      "what": "coins: the money lands in the Crave pot (reveal screen, 1.3 s after the twist)"
+    }
+  ]
+}

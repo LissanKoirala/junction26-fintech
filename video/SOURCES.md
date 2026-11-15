@@ -15,7 +15,7 @@ All figures describe the synthetic dataset provided for the Junction 2026 S-Pank
 | 03 | The deepest dip in two years is the size of 5.9 typical purchases (median overdrawn customer) | Same section |
 | 03 | A 5% trim kept as a cushion: 72% fewer days below zero; kept only until the next payday: 15% | Insights: "A small trim only counts if the money is kept" |
 | 04 | Safe to spend until Sunday 37 €; 64 € a week until payday on 15 Oct; 137 € in total | The app's Today screen for the demo customer, data as of 30 September 2026 |
-| 08, 09 | Shop "Hallo Stride", product at 89,90 €, "137 € is free until payday, so this fits" | The live Crave flow for the craving "new sneakers" (invented shop and brand) |
+| 08, 09 | Shop "Hallo Stride", product "Court Low Leather" at 119,95 €, which fits the 137 € free until payday | The live Crave flow for the craving "new sneakers" (invented shop and brand), as recorded |
 | 10 | Crystal ball: 14-day error 340 € vs 373 € (8.7% better) | Model card `forecast`; baseline: own 182-day average × days × a fitted ratio |
 | 10 | Early warning: PR AUC 0.800 vs 0.768; ROC AUC 0.967 vs 0.963 | Model card `risk`; baseline: logistic regression on the same features |
 | 10 | Money Map: silhouette 0.114 vs 0.071 | Model card `tribes`; baseline: k-means on a Gaussian with the same covariance |

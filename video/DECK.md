@@ -39,7 +39,7 @@ integration potential). Motto, from the team: **"Helping you save money, a cravi
   if you draw a person, make it a simple faceless figure or just use her initial in a disc.
 - Live recordings: `<Phone width={…}><LiveClip src="today.mp4" at={s(1)} to={…} /></Phone>`. A clip shows its
   first frame until `at`, plays, then holds its last frame. Take all times from `src/timeline.json` (import it;
-  do not hard-code event times): `clipFrame(at, t)` gives the slide frame at which source second `t` shows.
+  do not hard-code event times; its shape is `{ clips: [{ file, seconds, cut, events: [{ t, label }] }], sounds }`): `clipFrame(at, t)` gives the slide frame at which source second `t` shows.
   Recordings have no sound. Phone recordings are 780 × 1688; show phones 360–430 px wide so the UI is readable.
 - Check your work by rendering stills on the Azure VM (see "How to render") and looking at them. A slide is
   done when its stills at the key moments and its final frame are clean: no overlap, no clipped text, nothing
@@ -64,9 +64,9 @@ Dataset (synthetic, provided for the challenge; figures from our insights site, 
 Demo customer (synthetic; "Aino" is a fictional name; age 21; data as of 30 September 2026):
 - Today screen: "Safe to spend until Sunday 37 €", "64 € a week until payday on 15 Oct · 137 € in total",
   status "A bit tight".
-- Crave demo: craving "new sneakers" → invented shop "Hallo Stride" → product "VELLAN Aero Glide 2", 89,90 €.
-  The checkout says: "Checked against your safe-to-spend: 137 € is free until payday, so this fits."
-  (Use the amounts actually visible in the recording if they differ.)
+- Crave demo, as recorded in `crave.mp4`: craving "new sneakers" → invented shop "Hallo Stride" → product
+  "Court Low Leather" (invented brand SOLVIK), 119,95 € → the pot counts up to 119,95 €. 137 € was free until
+  payday, so the whole amount fits. If you quote an amount, quote 119,95 €.
 
 Product:
 - Chat: Claude (Opus 5.5, through the Runware API) with tool calls into a deterministic engine written in
@@ -169,11 +169,13 @@ Light or tinted slide. One large phone (about 430 px wide, centred or left of ce
 start to finish. Beside it a vertical list of the steps ("The craving", "A generated shop", "Basket",
 "Checkout", "Pay", "Nothing ships: money to the Crave pot", "Order emails, in the app"), each lighting up
 when its event time in `timeline.json` is reached (labels: `shop-visible`, `added`/`basket`, `checkout`,
-`sheet-open`, `tick`, `reveal`, `inbox`, `pot`). The app's own pay chime plays exactly at the `tick` event:
-`<Sound src="chime.m4a" at={clipFrame(at, tickTime)} />` (and `pop.m4a` at `added` if it exists; the audio
-files in `public/audio` tell you what exists). Keep quiet around the chime: no narration within 2 s of it.
-The slide length = clip length + 2.5 s of hold; change `seconds` for `s08-crave-live` in `src/deck.ts`
-(the only line of that file you may edit). Badge: live.
+`sheet-open`, `tick`, `reveal`, `inbox`, `pot`). The app's own sounds play where the app plays them:
+`<Sound src="chime.m4a" at={clipFrame(at, tickTime)} />` at the `tick` event (the pay chime), `pop.m4a` at
+`added` (volume about 0.6) and `coins.m4a` at `coins` (volume about 0.7). Keep quiet around the chime: no
+narration within 2 s of it; start `crave-live-b` about 1 s after the `coins` event. The recording is 45.3 s:
+slide length = 1 s lead + clip + about 2.5 s of hold, a whole number of seconds; change `seconds` for
+`s08-crave-live` in `src/deck.ts` (the only line of that file you may edit). Extra events in the timeline you
+can use for the step list: `craving`, `open-shop`, `product-open`, `twist`. Badge: live.
 
 **09 · s09-crave-honest · 24 s · Crave.tsx `S09CraveHonest`** — narration `crave-honest` (19.6 s): "Crave mode is
 honest by design. You opt in, and every screen says nothing ships. It never sets aside more than is safe to
