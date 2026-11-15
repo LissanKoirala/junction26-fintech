@@ -25,16 +25,18 @@ const len = (file: string) => clip(file).seconds;
 /** The live badge, saying so when waiting time was cut from the recording. */
 const liveText = (file: string) => clip(file).cut.length ? "Live app recording · synthetic data · waiting time shortened" : undefined;
 
-/* ============================================================ 04 · Meet Vara (18 s) */
+/* ============================================================ 04 · Meet Vara (16 s) */
 // "So we built Vara,(0.8) a personal economic trainer(2.0) inside S-mobiili.(3.2)
 //  It starts with one number:(5.0) what's safe to spend,(6.4) after rent, bills and a cushion.(8.9–10.3)"
 // today.mp4 from 1.0 s: the S-mobiili home shell, Vara opens (vara-open), the Today cards scroll, back to the top (ends 13.6 s).
+// The demo video opens on this slide with its own line (`audio="n-meet-demo.m4a"`, narration `meet-demo`:
+// "This is Vara, …"; "after rent, bills and a cushion" starts at 8.8 s there, so the same entrance times hold).
 const T_AT = s(1.0);
-export const S04Meet: React.FC = () => {
+export const S04Meet: React.FC<{ audio?: string }> = ({ audio = "n-meet.m4a" }) => {
   const open = clipFrame(T_AT, ev("today.mp4", "vara-open"));
   const W = 420, top = (1000 - phoneHeight(W)) / 2 + 10;
   return <Slide n={4}>
-    <Sound src="n-meet.m4a" at={s(0.8)} />
+    <Sound src={audio} at={s(0.8)} />
     <div style={{ position: "absolute", left: 96, top: 150, width: 1040 }}>
       <In delay={s(0.3)} from="scale" style={{ display: "flex", alignItems: "center", gap: 18 }}>
         <Sprout size={64} />
@@ -54,13 +56,15 @@ export const S04Meet: React.FC = () => {
     <In delay={s(1.2)} style={{ position: "absolute", left: 96, top: 916 }}><Badge kind="live" /></In>
   </Slide>;
 };
+/** Slide 04 for the demo video: identical, with the demo's opening line. Not one of the fourteen. */
+export const S04MeetDemo: React.FC = () => <S04Meet audio="n-meet-demo.m4a" />;
 
-/* ============================================================ 05 · Chat with your money (30 s) */
+/* ============================================================ 05 · Chat with your money (23 s) */
 // "Ask it anything,(0.8) in plain words.(1.9) Answers arrive as cards,(3.0) built from your own transactions,(4.9)
 //  and every number shows how it was worked out.(6.9) The language model never does the arithmetic.(9.4)
 //  An engine does,(12.2) and a guard checks every figure(13.6) before it reaches you.(14.7–16.7)"
 // chat.mp4 from source 1.0 s, at 1.0 s: typing (typing-start), sent, answer cards (answer-first-card), scroll,
-// "How I got this" opens (how-open); ends 20.2 s, holds to 30 s.
+// "How I got this" opens (how-open); ends 20.3 s, holds to 23 s.
 const CH_AT = s(1.0), CH_FROM = 1.0;
 const chatAt = (label: string) => clipFrame(CH_AT, ev("chat.mp4", label), CH_FROM);
 const pipeline = [
@@ -115,7 +119,7 @@ const PipeNode: React.FC<{ x: number; w: number; gap: number; first: boolean; ic
   </>;
 };
 
-/* ============================================================ 06 · A coach that comes to you (24 s) */
+/* ============================================================ 06 · A coach that comes to you (20 s) */
 // "What-if lets you try a decision before you make it.(0.8–3.2) Every week,(3.6) Vara checks in first,(4.4)
 //  with the story of your week.(6.0–7.1) And it works in English(7.5) and in Finnish.(8.7–9.6)"
 // Each clip starts with its sentence and plays out in full: what-if 0.8–13.3 s, check-in 3.6–17.0 s, Finnish 7.5–16.2 s.
@@ -154,7 +158,7 @@ export const S06Coach: React.FC = () => {
   </Slide>;
 };
 
-/* ============================================================ 11 · For the judges (18 s) */
+/* ============================================================ 11 · For the judges (16 s) */
 // "It's all written up for the judges(0.8) on a separate insights site:(2.9) eleven findings,(4.3)
 //  every model card,(5.6) and the limits of what this data can tell.(6.8–9.1)"
 // insights.mp4 at 1.2× from 0.8 s: header, findings, charts, the models link, the model table (ends 13.9 s).
@@ -196,7 +200,7 @@ const Chip: React.FC<{ icon: string; text: string; d: number; ring?: number }> =
   </In>;
 };
 
-/* ============================================================ 12 · Built to fit S-mobiili (22 s) */
+/* ============================================================ 12 · Built to fit S-mobiili (19 s) */
 // "Vara is built to fit S-mobiili.(0.8) It lives inside the app's shell,(3.3) hands savings goals to Säästäjä,(5.3)
 //  and can read other banks through an open-banking mock.(7.3) One engine,(11.1) one guarded chat endpoint,(11.9)
 //  two languages.(13.3) And it's live today.(14.5–15.9)"

@@ -2,7 +2,7 @@ import React from "react";
 import { Accent, Badge, Icon, In, s, Slide, Sound, Title, useIn, useProgress } from "../kit";
 import { C } from "../theme";
 
-/* ============================================================ 10 · Eight models (26 s)
+/* ============================================================ 10 · Eight models (25 s)
  * Phrase times from the pauses measured in the narration file, plus 0.8 s:
  * "Behind the coach are eight machine-learning models trained on the challenge data,(0.8–4.9)
  *  from a balance forecast(5.4) and an overdraft early warning(7.2) to a small transformer that reads account history like text.(8.9–11.6)

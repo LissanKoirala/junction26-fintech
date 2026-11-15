@@ -28,6 +28,13 @@
     "seconds": 9.6
   },
   {
+    "id": "meet-demo",
+    "slide": 4,
+    "text": "This is Vara, a personal economic trainer inside S-mobiili. It starts with one number: what's safe to spend, after rent, bills and a cushion.",
+    "file": "n-meet-demo.m4a",
+    "seconds": 9.4
+  },
+  {
     "id": "chat",
     "slide": 5,
     "text": "Ask it anything, in plain words. Answers arrive as cards, built from your own transactions, and every number shows how it was worked out. The language model never does the arithmetic. An engine does, and a guard checks every figure before it reaches you.",

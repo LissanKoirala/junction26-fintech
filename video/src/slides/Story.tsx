@@ -71,7 +71,7 @@ const Underlined: React.FC<{ at: number; children: React.ReactNode }> = ({ at, c
     <span style={{ position: "absolute", left: 0, bottom: -4, width: `${100 * p}%`, height: 6, borderRadius: 6, background: C.mint }} /></span>;
 };
 
-/* ============================================================ 02 · The data (24 s) */
+/* ============================================================ 02 · The data (23 s) */
 // "She's not alone.(0.8) In the challenge data,(2.0) three point six million transactions(3.6) from five thousand one hundred
 //  customers,(5.6) seven in ten dipped below zero(8.3) at least once in two years.(10.5) Among eighteen to twenty-four-year-olds,(13.3)
 //  it's eight in ten.(15.3) Almost always in the last days before payday.(16.6)"
@@ -235,7 +235,7 @@ const TrimBar: React.FC<{ label: string; v: number; color: string; d: number }> 
   </In>;
 };
 
-/* ============================================================ 13 · The five criteria (20 s) */
+/* ============================================================ 13 · The five criteria (18 s) */
 // "Five criteria.(0.8) Financial literacy: every answer shows its working.(2.3) Original AI: a shop that sells nothing.(5.5)
 //  A clear mobile experience, in two languages.(8.7) Feasible: it's running now.(11.9) And made for S-mobiili.(14.1)"
 const criteria = [

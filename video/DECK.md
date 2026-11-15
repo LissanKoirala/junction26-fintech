@@ -1,7 +1,8 @@
 # Vara pitch deck: slide spec
 
 Fourteen slides, each its own Remotion composition (1920 × 1080, 30 fps), rendered to one MP4 per slide and
-joined into one full video. Modelled on the Edge-Care deck (`/home/lissan/Desktop/EdgeCare-Pitch`, read its
+joined into the pitch video (`vara-pitch.mp4`, all fourteen, under 5:00) and the demo video (`vara-demo.mp4`:
+d04-meet, 05, 07, 08, 14, under 2:00). Modelled on the Edge-Care deck (`/home/lissan/Desktop/EdgeCare-Pitch`, read its
 `src/slides/*.tsx` for the level of craft expected): calm, editorial, entrance-only motion, a narrator on
 every slide, live product recordings in device frames.
 
@@ -108,7 +109,7 @@ can **afford**." Right: an illustration, not the product: a simple faceless figu
 small facts arriving with the narration ("21 years old", "Payday in 15 days", "Wants: new sneakers" with a
 drawn sneaker or bag icon). Badge: illustration. Mention "Aino is a fictional customer · synthetic data".
 
-**02 · s02-data · 24 s · Story.tsx `S02Data`** — narration `data` (19.2 s): "She's not alone. In the challenge
+**02 · s02-data · 23 s · Story.tsx `S02Data`** — narration `data` (19.2 s): "She's not alone. In the challenge
 data, three point six million transactions from five thousand one hundred customers, seven in ten dipped
 below zero at least once in two years. Among eighteen to twenty-four-year-olds, it's eight in ten. Almost
 always in the last days before payday."
@@ -128,14 +129,17 @@ tokens and one almost full). Then a two-bar comparison: "A 5% trim, kept as a cu
 zero" vs "kept only until payday: 15%". Closing line arriving last: "Skipping a purchase is not enough. The
 money has to stay." Badge: data. Sources as slide 02.
 
-**04 · s04-meet · 18 s · Product.tsx `S04Meet`** — narration `meet` (9.6 s): "So we built Vara, a personal
+**04 · s04-meet · 16 s · Product.tsx `S04Meet`** — narration `meet` (9.6 s): "So we built Vara, a personal
 economic trainer inside S-mobiili. It starts with one number: what's safe to spend, after rent, bills and a
 cushion."
 Light slide. Left: Sprout mark, eyebrow "Meet Vara", headline "One number first: what is **safe to spend**."
 Three short points arriving with the narration (inside S-mobiili · after rent, bills and a cushion · until
 payday, week by week). Right: phone with `today.mp4` (home shell → Vara → Today). Badge: live.
+Demo variant **d04-meet** (`S04MeetDemo`, not one of the fourteen; same slide, footer still "04 / 14"): opens
+the demo video with narration `meet-demo` (9.4 s): "This is Vara, a personal economic trainer inside
+S-mobiili. It starts with one number: what's safe to spend, after rent, bills and a cushion."
 
-**05 · s05-chat · 30 s · Product.tsx `S05Chat`** — narration `chat` (16.0 s): "Ask it anything, in plain words.
+**05 · s05-chat · 23 s · Product.tsx `S05Chat`** — narration `chat` (16.0 s): "Ask it anything, in plain words.
 Answers arrive as cards, built from your own transactions, and every number shows how it was worked out. The
 language model never does the arithmetic. An engine does, and a guard checks every figure before it reaches
 you."
@@ -147,7 +151,7 @@ figure → Card". Mention push-to-talk voice as a small point. Badge: live (if t
 time cut, the badge text must be "Live app recording · synthetic data · waiting time shortened": the
 timeline's `cut` list tells you).
 
-**06 · s06-coach · 24 s · Product.tsx `S06Coach`** — narration `coach` (8.9 s): "What-if lets you try a decision
+**06 · s06-coach · 20 s · Product.tsx `S06Coach`** — narration `coach` (8.9 s): "What-if lets you try a decision
 before you make it. Every week, Vara checks in first, with the story of your week. And it works in English
 and in Finnish."
 Light slide (tinted background `C.screen` is fine). Three phones side by side, each with a label above:
@@ -190,7 +194,7 @@ charged). Right: the two pay sheets side by side, cropped to the sheet so their 
 `shots/pay-sim.png` (label "Simulated pay sheet, synthesised chime") and `shots/pay-wallet.png` (label
 "Wallet button from Stripe · test mode"). Badge: still.
 
-**10 · s10-models · 26 s · Models.tsx `S10Models`** — narration `models` (21.7 s): "Behind the coach are eight
+**10 · s10-models · 25 s · Models.tsx `S10Models`** — narration `models` (21.7 s): "Behind the coach are eight
 machine-learning models trained on the challenge data, from a balance forecast and an overdraft early
 warning to a small transformer that reads account history like text. We tested each one against the
 strongest simple baseline we could find. Two clearly win, and ship. Six are labelled experimental, and the
@@ -203,7 +207,7 @@ two shipped rows get a highlight; at "Six are labelled experimental…" the chip
 leave the recording out and use `shots/models.png`. Badge: model.
 Sources: "Model cards in the app and on /insights/ · each re-checked independently".
 
-**11 · s11-insights · 18 s · Product.tsx `S11Insights`** — narration `insights` (8.9 s): "It's all written up for
+**11 · s11-insights · 16 s · Product.tsx `S11Insights`** — narration `insights` (8.5 s): "It's all written up for
 the judges on a separate insights site: eleven findings, every model card, and the limits of what this data
 can tell."
 Light slide. `<Browser width≈1180>` with `insights.mp4` playing. Beside or under it: eyebrow "For the judges",
@@ -211,7 +215,7 @@ headline "Every figure, **written up**.", three chips arriving with the narratio
 "Eight model cards", "What this data cannot tell". Show the address `…/insights/`. Badge: live
 ("Live site recording · synthetic data").
 
-**12 · s12-fit · 22 s · Product.tsx `S12Fit`** — narration `fit` (15.3 s): "Vara is built to fit S-mobiili. It
+**12 · s12-fit · 19 s · Product.tsx `S12Fit`** — narration `fit` (15.3 s): "Vara is built to fit S-mobiili. It
 lives inside the app's shell, hands savings goals to Säästäjä, and can read other banks through an
 open-banking mock. One engine, one guarded chat endpoint, two languages. And it's live today."
 Light slide. Left: phone with `more.mp4` (baskets → goal with Säästäjä → connect a bank). Right: eyebrow
@@ -220,7 +224,7 @@ arriving with the narration: "S-mobiili shell" · "Säästäjä hand-off (mock)"
 then "One engine · one guarded, rate-limited chat endpoint · English and Finnish" then "Live today" with the
 address. Badge: live.
 
-**13 · s13-criteria · 20 s · Story.tsx `S13Criteria`** — narration `criteria` (14.9 s): "Five criteria. Financial
+**13 · s13-criteria · 18 s · Story.tsx `S13Criteria`** — narration `criteria` (14.9 s): "Five criteria. Financial
 literacy: every answer shows its working. Original AI: a shop that sells nothing. A clear mobile experience,
 in two languages. Feasible: it's running now. And made for S-mobiili."
 Light slide. Eyebrow "The five criteria". Headline "What we were asked for, and what we built." Five rows or

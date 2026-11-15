@@ -109,7 +109,7 @@ const StruckBox: React.FC<{ at: number }> = ({ at }) => {
   </div>;
 };
 
-/* ============================================================ 08 · Crave mode, live (49 s)
+/* ============================================================ 08 · Crave mode, live (46 s)
  * crave.mp4 plays start to finish at normal speed from 1 s. Every time comes from timeline.json.
  * Narration a "Here it is, live.(1.4) New sneakers.(2.9)" leads into the craving; narration b starts 1 s after
  * the coins land, well clear of the pay chime. */
