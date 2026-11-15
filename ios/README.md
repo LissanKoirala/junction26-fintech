@@ -9,9 +9,9 @@ Only `ios/` is added. No existing source, backend, dependency manifest, deployme
 1. Open `Vara.xcodeproj` in Xcode. The generated project is included; XcodeGen is not required to open or build it.
 2. Select the **Vara** scheme and an **iPhone 15 Pro Max** simulator.
 3. Run. The app uses the existing deployment at <https://vara-junction26.swedencentral.cloudapp.azure.com> immediately. No Node server, dataset, API key, or separate backend is needed on the Mac.
-4. For a physical iPhone, choose your development team in the Vara target's Signing & Capabilities settings and run on the device. No team or signing credentials are committed.
+4. For a physical iPhone, the Vara target uses the selected development team `76VMG5HC38`. Choose your own team in Signing & Capabilities if needed, then run on the device. Signing credentials are managed by Xcode and are not committed.
 
-The installed toolchain used here is Xcode 27.2 with the iOS 27.2 SDK and simulator. A connected **physical iPhone 15 Pro Max running iOS 27.2.1** was also found. A signed Debug build was installed on it using the Mac's existing development identity (passed as a command-line override, not stored in the project). Xcode could not launch the physical-device tests because the phone was locked; that waiting run was stopped. Unlock the phone before running device tests. The deployment minimum is iOS 17.0. See the validation report for the current device-test status.
+The installed toolchain used here is Xcode 27.2 with the iOS 27.2 SDK and simulator. A connected **physical iPhone 15 Pro Max running iOS 27.2.1** was also found. A signed Debug build was installed on it using the Mac's existing development identity. The selected team is recorded in the Xcode project and generator settings. Xcode could not launch the physical-device tests because the phone was locked; that waiting run was stopped. Unlock the phone before running device tests. The deployment minimum is iOS 17.0. See the validation report for the current device-test status.
 
 If the active developer directory points to Command Line Tools, these commands select Xcode for this process without changing the Mac's global setting:
 

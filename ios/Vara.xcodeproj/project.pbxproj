@@ -37,7 +37,7 @@
 
 /* Begin PBXFileReference section */
 		18703DD6C7F1A92276B19208 /* VaraTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = VaraTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		253CA6E846D493141E1E254B /* Vara.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Vara.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		253CA6E846D493141E1E254B /* Vara.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Vara.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2771BC23CD7808BB08732432 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2AC178670BE0ED2AA8E2D0B9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		45B714068899566A008FFFD5 /* Phone.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Phone.css; sourceTree = "<group>"; };
@@ -182,7 +182,6 @@
 						TestTargetID = 775D42F0198A9B87172815B7;
 					};
 					775D42F0198A9B87172815B7 = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 					9567DB80229E6858B03A387D = {
@@ -420,6 +419,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 76VMG5HC38;
 				INFOPLIST_FILE = Vara/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -456,6 +456,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 76VMG5HC38;
 				INFOPLIST_FILE = Vara/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
