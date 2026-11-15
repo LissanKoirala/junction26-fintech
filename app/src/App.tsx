@@ -16,6 +16,7 @@ const CheckInStories = lazy(() => import("@/features/checkin/CheckInStories"));
 const GoalFlow = lazy(() => import("@/features/goal/GoalFlow"));
 const ConnectBank = lazy(() => import("@/features/connect/ConnectBank"));
 const CraveFlow = lazy(() => import("@/features/crave/CraveFlow"));
+const ShoppingLabFlow = lazy(() => import("@/features/crave/ShoppingLabFlow"));
 
 const TABS: TabKey[] = ["koti", "etukortti", "maksu", "pankki", "mina"];
 const SECTIONS: VaraSection[] = ["today", "chat", "whatif", "you"];
@@ -44,7 +45,8 @@ export default function App() {
     const flow =
       b === "baskets" ? <BasketsExplorer /> : b === "checkin" ? <CheckInStories /> : b === "goal" ? <GoalFlow /> : b === "connect" ? <ConnectBank /> : null;
     content = flow ? <Suspense fallback={<FlowFallback />}>{flow}</Suspense> : <Shell tab="koti" />;
-  } else if (a === "crave") content = <Suspense fallback={<FlowFallback />}><CraveFlow /></Suspense>;
+  } else if ((a === "crave" && b === "lab") || a === "shopping-lab") content = <Suspense fallback={<FlowFallback />}><ShoppingLabFlow /></Suspense>;
+  else if (a === "crave") content = <Suspense fallback={<FlowFallback />}><CraveFlow /></Suspense>;
   else content = <Shell tab={TABS.includes(a as TabKey) ? (a as TabKey) : "koti"} />;
 
   return (
