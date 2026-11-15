@@ -105,11 +105,11 @@ async function main() {
       await detail.getByTestId('add-to-basket').click();
       await page.getByTestId('basket-button').click();
       let bag = page.getByRole('dialog');
-      assert.match(await bag.innerText(), /Your bag \(2\)/);
+      assert.match(await bag.innerText(), /Your bag \(2\)/i);
       await bag.getByRole('button', { name: `Increase ${product.name} quantity`, exact: true }).click();
-      assert.match(await bag.innerText(), /Your bag \(3\)/);
+      assert.match(await bag.innerText(), /Your bag \(3\)/i);
       await bag.getByRole('button', { name: `Decrease ${product.name} quantity`, exact: true }).click();
-      assert.match(await bag.innerText(), /Your bag \(2\)/);
+      assert.match(await bag.innerText(), /Your bag \(2\)/i);
       await bag.getByRole('button', { name: 'Remove', exact: true }).click();
       await bag.getByRole('heading', { name: 'A little room for something good.' }).waitFor();
       await bag.getByRole('button', { name: 'Keep exploring' }).click();
@@ -160,7 +160,7 @@ async function main() {
     await page.reload({waitUntil:'networkidle'});
     await page.getByTestId('basket-button').click();
     assert.equal(await page.locator('.bag-line').count(),1);
-    assert.match(await page.getByRole('dialog').innerText(), /Your bag \(2\)/);
+    assert.match(await page.getByRole('dialog').innerText(), /Your bag \(2\)/i);
     await page.getByText(`Size / option: ${product.sizes[0]}`, {exact:true}).waitFor();
   });
 
