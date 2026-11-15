@@ -2,7 +2,7 @@
  * src/timeline.json (events); figures only from DECK.md / SOURCES.md. */
 import React from "react";
 import { CravePill } from "../kit";
-import { chatIsGemini, Eo } from "./acts";
+import { chatIsGemini, Eo, v1IsGemini } from "./acts";
 import { clip, sentence, word, wordEnd } from "./data";
 import { HuntAndPay, Parcel, payGeometry, ThrillCut, ThrillCuts, ThrillOpen, thrillSounds, Twist, twistSounds, twistTimes } from "./twist";
 import { pitchPlan } from "./timeline";
@@ -260,7 +260,9 @@ const Coach: React.FC = () => <Act plan={plan} from="p9" to="p9" sounds={c => <>
   const today: Seg[] = [{ from: n(1), to: n(2), a: 0.4, b: vo + 4.5, maxRate: 2.5 }];
   const chat: Seg[] = [
     { from: n(2), to: n(3), a: ev1("chat.mp4", "typing-start") - 0.3, b: ev1("chat.mp4", "sent") + 0.2, maxRate: 2.5 },
-    { from: n(3), to: n(4), a: ev1("chat.mp4", "sent") + 0.2, b: ev1("chat.mp4", "how-open") + 1, maxRate: 3 },
+    // the answer and its "Shop it in Crave mode" card near real speed, then on to "How I got this" for "every number shows its working"
+    { from: n(3), to: c.w("p9", "every number") - 0.05, a: ev1("chat.mp4", "sent") + 0.2, b: ev1("chat.mp4", "answer-complete") + 2.3, maxRate: 1.6 },
+    { from: c.w("p9", "every number") - 0.05, to: n(4), a: ev1("chat.mp4", "answer-complete") + 2.3, b: ev1("chat.mp4", "how-open") + 1, maxRate: 3 },
     { from: n(4), to: n(6), a: ev1("chat.mp4", "how-open") + 1, b: len1("chat.mp4"), anchor: "start", maxRate: 1.5 },
   ];
   const whatif: Seg[] = [{ from: n(6), to: n(7), a: ev1("whatif.mp4", "changed") - 1, b: ev1("whatif.mp4", "changed-2") + 1, maxRate: 3 }];
@@ -275,7 +277,7 @@ const Coach: React.FC = () => <Act plan={plan} from="p9" to="p9" sounds={c => <>
   return <>
     <Win from={0} to={n(1)}>
       <At x={960} y={300} center w={1800}><Say at={0} size={140} from="scale">Crave mode sits on<br />a <Mint>full coach.</Mint></Say></At>
-      <CreditBadge which="coach" at={c.w("p9", "built on Gemini") - 0.05} y={660} center />
+      <CreditBadge which="gemini" at={c.w("p9", "built on Gemini") - 0.05} y={660} center />
     </Win>
     {shot("today.mp4", today, n(1), n(2), <At x={L.x} y={260} w={L.w}>
       <Say at={n(1)} out={c.w("p9", "one number") - 0.05} size={110}>Inside<br /><Mint>S-mobiili.</Mint></Say>
@@ -295,9 +297,10 @@ const Coach: React.FC = () => <Act plan={plan} from="p9" to="p9" sounds={c => <>
         { at: c.w("p9", "a guard") - 0.05, text: <>Guard <Mint>checks.</Mint></> },
       ]} /></Win>
       {chatIsGemini() ? <CreditBadge which="coach" at={n(2)} y={720} /> : null}
-    </>, ["Waiting time shortened"])}
+    </>)}
     {shot("whatif.mp4", whatif, n(6), n(7), <At x={L.x} y={360} w={L.w}><Say at={n(6)} size={130}>What if?<br /><Mint>Try it first.</Mint></Say></At>)}
-    {shot("checkin.mp4", checkin, n(7), n(8), <At x={L.x} y={360} w={L.w}><Say at={n(7)} size={120}>The story of<br /><Mint>your week.</Mint></Say></At>)}
+    {shot("checkin.mp4", checkin, n(7), n(8), <><At x={L.x} y={360} w={L.w}><Say at={n(7)} size={120}>The story of<br /><Mint>your week.</Mint></Say></At>
+      {v1IsGemini("checkin.mp4") ? <CreditBadge which="checkin" at={n(7) + 0.2} y={720} /> : null}</>)}
     {shot("finnish.mp4", fin, n(8), c.end("p9"), <At x={L.x} y={360} w={L.w}><Say at={n(8)} size={130}>English.<br /><Mint>Suomi.</Mint></Say></At>)}
   </>;
 }}</Act>;
@@ -313,9 +316,14 @@ const ModelScreen: React.FC<{ at: number; name: string; value: string; base: str
 const Models: React.FC = () => <Act plan={plan} from="p10" to="p10" sounds={c => <>
   <Sfx name="whoosh" at={0} volume={0.4} />
   {modelCuts(c).slice(1).map((t, i) => <Sfx key={i} name="whoosh" at={t - 0.1} volume={0.35} />)}
+  {/* the three picture-only holds: a soft hit as each visual's figure lands, so none is dead air */}
+  {["two futures", "her balance to payday", "below zero"].map((p, i) => <Sfx key={`h${i}`} name="tick" at={c.we("p10", p) + 0.35} volume={0.5} />)}
 </>}>{c => {
   const [t0, map, look, fc, warn, tested, two, six] = modelCuts(c), end = c.end("p10");
-  const models: Seg[] = [{ from: six, to: end, a: ev1("models.mp4", "card-open") - Math.max(1, end - six) + 0.5, b: ev1("models.mp4", "card-open") + 1.5, maxRate: 2 }];
+  // the Money Map and Two Futures cards, both marked "Experimental" (they follow the cards list; the Crystal ball card,
+  // marked "Ships", comes after them and is not shown here)
+  const mo = ev1("models.mp4", "models-open");
+  const models: Seg[] = [{ from: six, to: end, a: mo + 1.8, b: mo + 5.0, anchor: "hold", maxRate: 1.2 }];
   const ML = "Model results · each tested against a simple baseline";
   return <>
     <Win from={t0} to={map}><At x={960} y={200} center w={1800}>

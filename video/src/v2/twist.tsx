@@ -155,7 +155,7 @@ export const HuntAndPay: React.FC<{ c: Clock; id: string; g: PayGeo; dblWord: st
     <Win from={g.fits} to={g.payFrom}><Whip at={g.fits}><PhoneTake clipId={RUN} segs={g.hunt} x={PX} /></Whip></Win>
     <Win from={0} to={g.payFrom}><TakeLabels clipId={RUN} segs={g.hunt} extra={[SIM_LABEL]} /></Win>
     <Win from={g.fits} to={dbl}><FitsText at={g.fits} fitsAt={c.has(id, "so it fits") ? c.w(id, "so it fits") : undefined} /></Win>
-    <Win from={dbl} to={c.voEnd(id) + 0.3}><At x={L.x} y={380} w={L.w}><Say at={dbl} size={140}>{dblText}</Say></At></Win>
+    <Win from={dbl} to={c.voEnd(id) + 0.02}><At x={L.x} y={380} w={L.w}><Say at={dbl} size={140}>{dblText}</Say></At></Win>
     <Win from={g.payFrom} to={g.emailAt}>
       <PayPhone segs={g.pay} sheetAt={g.sheetAt} centreAt={c.voEnd(id)} unzoomAt={g.revealAt} />
       <Labels items={[WALLET_LABEL, LIVE_LABEL]} />

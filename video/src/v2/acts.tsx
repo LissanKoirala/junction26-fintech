@@ -103,7 +103,9 @@ export const buildLaps = () => {
 export const chatIsGemini = () => (credits as unknown as { coach: { footage_is_gemini?: boolean } }).coach.footage_is_gemini === true ||
   String((v1clip("chat.mp4") as unknown as { model?: string }).model ?? "").toLowerCase().startsWith("gemini");
 /** The model credit (credits.json): plain type, no logo. "Built live by Gemini" over its feature. */
-export type CreditKey = "build" | "coach";
+export type CreditKey = "build" | "coach" | "checkin" | "gemini";
+/** Whether a version 1 clip (public/live) was recorded with Gemini (timeline.json `model`). */
+export const v1IsGemini = (file: string) => String((v1clip(file) as unknown as { model?: string }).model ?? "").toLowerCase().startsWith("gemini");
 export const CreditBadge: React.FC<{ which: CreditKey; at: number; x?: number; y?: number; pulseAt?: number; center?: boolean }> = ({ which, at, x = L.x, y = 36, pulseAt, center }) => {
   const k = useSpring(at, 13, 0.55);
   const t = useT();
@@ -114,7 +116,7 @@ export const CreditBadge: React.FC<{ which: CreditKey; at: number; x?: number; y
   return <div style={{ position: "absolute", left: center ? 960 : x, top: y, opacity: clamp(k * 2), transform: `${center ? "translateX(-50%) " : ""}translateY(${(1 - k) * -30}px) scale(${pulse})`, transformOrigin: "left center",
     padding: "16px 34px 20px", borderRadius: 30, border: `4px solid ${C.mint}`, background: "rgba(0,30,16,.6)", maxWidth: L.w, whiteSpace: "nowrap" }}>
     <div style={{ fontSize: 66, fontWeight: 800, letterSpacing: -1.6, lineHeight: 1.05 }}>{cr.lead ? <>{cr.lead} </> : null}<span style={{ color: C.mint }}>{cr.model}</span></div>
-    <div style={{ fontSize: 42, fontWeight: 600, color: C.heroMeta, marginTop: 6 }}>{cr.feature}</div>
+    {cr.feature ? <div style={{ fontSize: 42, fontWeight: 600, color: C.heroMeta, marginTop: 6 }}>{cr.feature}</div> : null}
     {cr.id ? <div style={{ fontSize: 28, fontWeight: 600, color: C.heroMeta, opacity: 0.8, marginTop: 4 }}>{cr.id}</div> : null}
   </div>;
 };

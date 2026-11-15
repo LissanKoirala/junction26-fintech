@@ -106,12 +106,16 @@ const Coach: React.FC = () => <Act plan={plan} from="d7" to="d7" sounds={c => <>
 </>}>{c => {
   const w = (s: string) => c.w("d7", s) - 0.05;
   const ask = w("Ask it anything"), never = w("Gemini never"), ml = c.w("d7", "And eight machine-learning") - 0.3, fc = c.w("d7", "forecast her balance") - 0.2;
-  // from the Vara page on: the home shell before it has the old bottom navigation (re-recorded in phase 2)
-  const today: Seg[] = [{ from: 0, to: ask, a: Eo1("today.mp4", "vara-open") + 0.4, b: Eo1("today.mp4", "vara-open") + 3, anchor: "hold", maxRate: 3 }];
-  const chatEnd = clip("v1:chat.mp4").seconds;
+  // the S-mobiili home shell, then into Vara
+  const today: Seg[] = [{ from: 0, to: ask, a: 0.2, b: Eo1("today.mp4", "vara-open") + 2.6, anchor: "hold", maxRate: 2 }];
+  const chatEnd = clip("v1:chat.mp4").seconds, card = Eo1("chat.mp4", "answer-complete");
+  // the question and the answer quickly; then the answer and its "Shop it in Crave mode" card near real speed (the
+  // coach itself points to Crave mode); then "How I got this" under "Gemini never does the maths"
+  const mid = ask + Math.min(2.2, (never - ask) * 0.5);
   const chat: Seg[] = [
-    { from: ask, to: never, a: Eo1("chat.mp4", "typing-start") - 0.3, b: Eo1("chat.mp4", "how-open") + 0.8, maxRate: 4 },
-    { from: never, to: ml, a: Eo1("chat.mp4", "how-open") + 0.8, b: chatEnd, anchor: "start", maxRate: 1.5 },
+    { from: ask, to: mid, a: Eo1("chat.mp4", "typing-start") - 0.3, b: card, maxRate: 3 },
+    { from: mid, to: never, a: card, b: card + 2.3, maxRate: 1.3 },
+    { from: never, to: ml, a: card + 2.3, b: chatEnd, anchor: "start", maxRate: 2 },
   ];
   return <>
     <Win from={0} to={ask}>
@@ -131,10 +135,11 @@ const Coach: React.FC = () => <Act plan={plan} from="d7" to="d7" sounds={c => <>
         { at: never, text: <>Gemini: <Mint>no maths.</Mint></> }, { at: w("An engine"), text: <>Engine <Mint>computes.</Mint></> },
         { at: w("a guard"), text: <>Guard <Mint>checks.</Mint></> },
       ]} /></Win>
-      <TakeLabels clipId="v1:chat.mp4" segs={chat} extra={["Waiting time shortened"]} />
+      <TakeLabels clipId="v1:chat.mp4" segs={chat} />
     </Win>
     {/* over the chat footage only when that chat was answered by Gemini */}
-    <Win from={0} to={chatIsGemini() ? ml : ask}><CreditBadge which="coach" at={w("built on Gemini")} y={720} /></Win>
+    <Win from={0} to={ask}><CreditBadge which="gemini" at={w("built on Gemini")} y={720} /></Win>
+    {chatIsGemini() ? <Win from={ask} to={ml}><CreditBadge which="coach" at={ask} y={720} /></Win> : null}
     {/* the models: VIZ's map of the customers, then a flash of the forecast (each starts a little early: they fade in) */}
     <MlSlot kind="map" from={ml} to={fc} />
     <MlSlot kind="forecast" from={fc} to={c.end("d7")} skip={1.0} />

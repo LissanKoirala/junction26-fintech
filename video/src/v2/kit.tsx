@@ -88,7 +88,7 @@ export const AppSound: React.FC<{ src: "chime" | "pop" | "coins"; at: number; vo
 
 /* ------------------------------------------------------------ takes: footage at a stated speed */
 export type Seg = { from: number; to: number; a: number; b: number; anchor?: "start" | "end" | "hold"; maxRate?: number };
-export type RSeg = { from: number; to: number; a: number; rate: number };
+export type RSeg = { from: number; to: number; a: number; rate: number; jump?: boolean };
 /** Fits every segment, then splits any "hold" segment that is longer than its footage into a freeze on its first
  *  frame followed by real-speed play that ends exactly on b (so a sequence of segments stays continuous). */
 /** Source ranges a take must never show (footage.json `avoid`: e.g. a look-alike of a real trademark). */
@@ -105,7 +105,7 @@ const skipAvoid = (r: RSeg[], avoid: [number, number][]): RSeg[] => avoid.reduce
   if (srcEnd <= s - 0.04 || g.a >= e) return [g];
   if (g.a >= s - 0.04) return [{ ...g, a: e + 0.05 }];                    // starts inside: start after the range
   const cut = g.from + (s - 0.1 - g.a) / g.rate;                          // plays up to the range, then cuts past it
-  return [{ ...g, to: cut }, { from: cut, to: g.to, a: e + 0.05, rate: g.rate }];
+  return [{ ...g, to: cut }, { from: cut, to: g.to, a: e + 0.05, rate: g.rate, jump: true }];
 }), r);
 export const resolveAll = (segs: Seg[], len: number, avoid: [number, number][] = []): RSeg[] => skipAvoid(resolveRaw(segs, len), avoid);
 const resolveRaw = (segs: Seg[], len: number): RSeg[] => segs.flatMap(s => {
@@ -138,14 +138,39 @@ export const srcAt = (r: RSeg[], t: number) => { const s = segAt(r, t); return s
 export const speedLabel = (rate: number) => rate > 1.05 ? `×${rate < 10 ? rate.toFixed(1).replace(/\.0$/, "") : Math.round(rate)} speed` : null;
 
 /** The footage only (fills its parent). */
+/** Bands of the hero take's screen kept soft so the twist is not given away before "PLOT TWIST": the Crave intro's
+ *  explainer rows (until she sends the craving) and the checkout's "Where this money goes" card. Source seconds come
+ *  from the take's events; the bands are fractions of the screen height. The typing, the chips, the button, the
+ *  order summary and the Pay button stay sharp. */
+const veilsOf = (c: Clip): { a: number; b: number; top: number; bottom: number }[] => {
+  if (c.file !== "v2/live/crave-run.mp4") return [];
+  const e = (l: string) => c.events?.find(k => k.label === l)?.t;
+  const out = [];
+  const sub = e("submitted"), co = e("checkout"), sheet = e("sheet-open");
+  if (sub !== undefined) out.push({ a: 0, b: sub + 0.05, top: 0.068, bottom: 0.45 });
+  if (co !== undefined && sheet !== undefined) out.push({ a: co - 0.4, b: sheet + 0.7, top: 0.585, bottom: 0.935 });
+  return out;
+};
 export const TakeVideo: React.FC<{ c: Clip; r: RSeg[]; offset?: number }> = ({ c, r, offset = 0 }) => {
   const t = useT();
   let src = srcAt(r, t) + offset;
   for (const [s, e] of avoidOf(c)) if (src >= s - 0.04 && src <= e) src = s - 0.1;   // last guard: never a frame inside an avoided range
   const fr = Math.max(0, Math.min(Math.floor(c.seconds * FPS) - 1, Math.floor(src * FPS)));
+  // a cut across an avoided range reads as an edit (a short whip blur), not as the scroll jumping back
+  const sg = r.find(k => t >= k.from && t < k.to);
+  const jt = sg?.jump ? t - sg.from : 99;
+  const whip = jt < 0.16 ? (1 - jt / 0.16) * 7 : 0;
+  const vs: React.CSSProperties = { width: "100%", height: "100%", objectFit: "cover", display: "block" };
+  const veil = veilsOf(c).find(v => src >= v.a && src <= v.b);
   // The source frame goes in trimBefore with the timeline frozen at 0: Remotion clamps a frozen frame to what is left
   // of the composition after the enclosing Sequence starts, which froze late source frames in late acts.
-  return <Freeze frame={0}><OffthreadVideo src={staticFile(c.file)} trimBefore={fr} muted style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /></Freeze>;
+  return <>
+    <Freeze frame={0}><OffthreadVideo src={staticFile(c.file)} trimBefore={fr} muted style={{ ...vs, filter: whip ? `blur(${whip}px)` : undefined }} /></Freeze>
+    {veil ? <div style={{ position: "absolute", inset: 0, overflow: "hidden",
+      WebkitMaskImage: `linear-gradient(to bottom, transparent ${(veil.top - 0.012) * 100}%, #000 ${(veil.top + 0.012) * 100}%, #000 ${(veil.bottom - 0.012) * 100}%, transparent ${(veil.bottom + 0.012) * 100}%)` }}>
+      <Freeze frame={0}><OffthreadVideo src={staticFile(c.file)} trimBefore={fr} muted style={{ ...vs, filter: "blur(9px) saturate(.9)", transform: "scale(1.02)" }} /></Freeze>
+    </div> : null}
+  </>;
 };
 
 /** Phone frame around a 390 × 844 screen (same proportions as the recordings). */
@@ -179,9 +204,12 @@ export const PhoneTake: React.FC<{ clipId: string; segs: Seg[]; x?: number; widt
   };
 /** The labels a take needs at this moment: live footage, and its speed when it is not real time. */
 export const TakeLabels: React.FC<{ clipId: string; segs: Seg[]; extra?: (string | false | null | undefined)[] }> = ({ clipId, segs, extra = [] }) => {
-  const r = resolve(segs, clip(clipId).seconds, avoidOf(clip(clipId)));
-  const t = useT();
-  return <Labels items={[...extra, LIVE_LABEL, speedLabel(segAt(r, t).rate)]} />;
+  const c = clip(clipId), r = resolve(segs, c.seconds, avoidOf(c));
+  const t = useT(), s = segAt(r, t);
+  // "Waiting time shortened" only while the stretch on screen crosses a cut the recording itself made (timeline.json `cut`)
+  const cuts = (c as unknown as { cut?: { at: number }[] }).cut ?? [];
+  const shortened = cuts.some(k => k.at >= s.a - 0.05 && k.at <= s.a + (s.to - s.from) * s.rate + 0.05);
+  return <Labels items={[...extra, shortened ? "Waiting time shortened" : null, LIVE_LABEL, speedLabel(s.rate)]} />;
 };
 /** The app's own sounds on their events, for whatever part of the take a set of segments shows. */
 const APP_SOUNDS: { label: string; src: "chime" | "pop" | "coins"; volume: number }[] = [
