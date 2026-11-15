@@ -35,5 +35,6 @@ still frame. `vara-pitch.mp4` is all fourteen joined (5 min 18 s). `vara-pitch-s
 `scripts/record-app.mjs` drives the live prototype in a phone-sized browser and captures it frame by frame;
 `src/timeline.json` holds the time of every tap and screen change, and the slides take their timing from it.
 The demo customer is synthetic ("Aino" is a fictional name), the date is fixed at 30 September 2026, and
-nothing was edited inside the recordings except one cut of 4.4 seconds of waiting for the answer on slide 05,
-which its badge states.
+the recordings play as captured, with three exceptions: 4.4 seconds of waiting for the answer are cut on
+slide 05 (its badge says so), the insights site on slide 11 plays at 1.2× speed, and slide 12 starts its
+recording at the savings goal, skipping the baskets screen before it.
