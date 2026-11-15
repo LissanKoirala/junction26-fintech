@@ -142,6 +142,12 @@ Rules that came out of it:
   animated chart is nearly empty.
 - **Keep small labels apart.** Source labels, the concept footer and a visual's caption must never
   touch; drop the least important while a visual is up.
+- **The product's own screens can spoil the story.** Our app honestly says "Nothing ships" on its
+  intro and checkout screens, which gave the twist away a minute early in readable text. The
+  independent reviewer caught it. The fix was a soft blur over those rows, keyed to the take's
+  events and applied once in the phone-video layer, with the parts the viewer must read kept sharp.
+- **A credit names what is on screen at that moment.** "Function calling" belongs over the chat,
+  not over a title card; a card marked "Ships" must not sit beside the words "6 experimental".
 - **Known trap in Remotion:** footage that should freeze late in a scene can run on into later
   source frames. Ours ran from the inbox into the app's own reveal screen and gave the twist away.
   Hold frames explicitly and check the frame before every reveal.
