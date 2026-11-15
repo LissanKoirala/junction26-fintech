@@ -88,6 +88,6 @@ made for S-mobiili."
 - Vara is a Junction 2026 concept, not an official S-Pankki product; every slide's footer says so.
 - All money movement is simulated. Stripe runs in test mode only and the app refuses live keys.
 - Every figure on the slides is traced in `SOURCES.md`.
-- Not in the video: the Shopping Lab storefront experiment (linked from the Crave intro in the app), voice
-  input, peer benchmarks, and the individual model screens on the You tab.
+- Not shown in the video: the Shopping Lab storefront experiment (linked from the Crave intro in the app),
+  the baskets explorer, peer benchmarks, voice input in use, and the individual model screens on the You tab.
 - The closing slide carries no team names.
