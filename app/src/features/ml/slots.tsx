@@ -33,7 +33,7 @@ export function EarlyWarningSlot({ customer, ask }: TodaySlotProps) {
   const horizon = riskOn ? `in the next ${r!.horizonDays} days` : `before payday on ${dateShort(f!.nextPayday.date)}`;
   let reason: string | null = null;
   const up = r?.drivers.find((d) => d.direction === "raises");
-  if (riskOn && up) reason = `${up.label}: ${up.display}`;
+  if (riskOn && up) reason = up.label.replace(/\s/g, "").includes(up.display.replace(/\s/g, "")) ? up.label : `${up.label}: ${up.display}`;
   else if (f) {
     const big = f.fixedEvents
       .filter((e) => e.amount < 0 && e.date < f.nextPayday.date)

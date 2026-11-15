@@ -129,6 +129,9 @@ user = ("Here are spender tribes found by clustering bank customers' last 12 mon
         "description (2-3 sentences, non-judgemental, describe the behaviour pattern concretely), strengths (2 short items), "
         "watchOuts (2 short items, gentle). Return ONLY a JSON array.\n\n" + json.dumps(summary, ensure_ascii=False))
 key = hashlib.sha256((SYSTEM + user).encode()).hexdigest()[:16]
+# The cached texts were edited by hand after generation so that they describe the tribe ("People in this tribe ...")
+# and never the reader ("You ..."): a tribe average such as rent share can differ a lot from one member's own figure.
+# If the cache is lost and this step calls the model again, check the new texts for the same thing.
 cache_path = os.path.join(CACHE_DIR, "tribe_names.json")
 cache = json.load(open(cache_path)) if os.path.exists(cache_path) else {}
 if key in cache:

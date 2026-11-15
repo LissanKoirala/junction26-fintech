@@ -61,12 +61,12 @@ export function PersonalitySection() {
       <div id="you-personality" className="scroll-mt-2">
         <PersonalityHero profile={p} tribes={tribes} />
       </div>
-      <MlCard icon={Fingerprint} eyebrow={main ? `About the ${main.name} tribe` : undefined} title="What this says about you" ask="What kind of spender am I?" model="tribes">
+      <MlCard icon={Fingerprint} eyebrow={main ? `About the ${main.name} tribe` : undefined} title="What this tribe is like" ask="What kind of spender am I?" model="tribes">
         {p.hasSalarySweep && <Caveat className="mb-3 mt-0">Most of your salary moves to another account right after payday, so this is based on the part of your money we can see here.</Caveat>}
         {p.cohort === "tail" && <Caveat className="mb-3 mt-0">Your income pattern is unusual, so you were placed on the map after it was built. Read this loosely.</Caveat>}
         {main && <TribeStory tribe={main} />}
         <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-ink-muted">What sets you apart from people aged {p.ageBand}</p>
-        <Highlights profile={p} />
+        <Highlights profile={p} limit={4} />
       </MlCard>
     </>
   );
@@ -162,12 +162,12 @@ export function RiskSection() {
   const rl = useMl("risk", c?.id);
   const title = "Early warning";
   if (!isReady(rl))
-    return <Shell id="risk" icon={BellRing} title={title} eyebrow="Overdraft risk, next 14 days">{gate(rl, { name: "The early-warning model" })}</Shell>;
+    return <Shell id="risk" icon={BellRing} title={title} eyebrow="Overdraft risk, next 14 days">{gate(rl, { name: "The early-warning model", tail: c?.cohort === "tail", tailReason: "It was trained on customers with a regular monthly salary, and your income pattern is irregular. The Crystal ball above still works for you." })}</Shell>;
   const r = rl.data;
   const w = RISK_WORDS[r.level];
   return (
     <MlCard id="risk" icon={BellRing} eyebrow={`Overdraft risk, next ${r.horizonDays} days`} title={title} right={<RiskBadge r={r} />} ask="Why might I go below zero?" model="risk">
-      <p className="text-xl font-bold leading-snug text-ink">{w.line}</p>
+      <p className="text-lg font-bold leading-snug text-ink">{w.line}</p>
       <Meaning className="mt-1 text-sm text-ink-strong">{riskMeaning(r)}</Meaning>
       <div className="mt-3">
         <RiskDrivers r={r} />
@@ -242,7 +242,7 @@ export function FuturesSection() {
     );
   const t = tl.data;
   return (
-    <MlCard id="futures" icon={Sparkles} eyebrow="TransactionGPT · a model that writes transactions" title={title} right={<ExperimentBadge />} ask="What might my next two weeks look like?" model="txgpt">
+    <MlCard id="futures" icon={Sparkles} eyebrow="TransactionGPT" title={title} right={<ExperimentBadge />} ask="What might my next two weeks look like?" model="txgpt">
       <p className="mb-2 text-sm text-ink-strong">A small language model trained on transaction sequences imagined your next 14 days many times. Here are a thrifty, a typical and a spendy version.</p>
       <FuturesView t={t} />
       <Caveat>An experiment: sampled stories, not a forecast. The Crystal ball above is the tested forecast.</Caveat>

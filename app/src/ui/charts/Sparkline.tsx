@@ -126,10 +126,10 @@ export function BarStrip({
           );
         })}
       </svg>
-      {hover != null && (
+      {hover != null && items[hover].label && (
         <div
           className="tnum pointer-events-none absolute -top-7 whitespace-nowrap rounded-sm bg-ink px-2 py-0.5 text-xs text-white shadow-low"
-          style={{ left: Math.min(Math.max(x0 + hover * (bw + gap) - 50, 0), Math.max(0, w - 150)) }}
+          style={{ left: Math.min(Math.max(x0 + hover * (bw + gap) - 80, 0), Math.max(0, w - 230)) }}
         >
           {items[hover].label} · {format(items[hover].value)}
         </div>

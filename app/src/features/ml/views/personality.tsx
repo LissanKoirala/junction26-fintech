@@ -78,9 +78,10 @@ export function TribeStory({ tribe }: { tribe: Tribe }) {
   return (
     <div>
       <p className="text-base leading-snug text-ink">{tribe.description}</p>
+      <p className="mt-2 text-sm leading-snug text-ink-muted">This describes the tribe as a whole, so a figure here can differ from yours. Your own numbers are below.</p>
       <div className="mt-3 grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
-        <ListBox icon={ThumbsUp} title="Strengths" items={tribe.strengths} />
-        <ListBox icon={Eye} title="Watch out for" items={tribe.watchOuts} />
+        <ListBox icon={ThumbsUp} title="Typical strengths" items={tribe.strengths} />
+        <ListBox icon={Eye} title="Typical watch-outs" items={tribe.watchOuts} />
       </div>
     </div>
   );
@@ -115,20 +116,27 @@ function ofHundred(p: number, dir: "high" | "low"): string {
 export function Highlights({ profile, limit }: { profile: MlProfile; limit?: number }) {
   const hs = profile.highlights.slice(0, limit ?? 6);
   return (
-    <ul className="flex flex-col gap-3.5">
-      {hs.map((h) => (
-        <li key={h.feature}>
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="min-w-0 text-sm font-semibold text-ink">{h.label}</span>
-            <span className="tnum shrink-0 text-sm font-semibold text-ink">{fmtFeature(h.value, h.unit)}</span>
-          </div>
-          <PercentileBar percentile={h.percentile} lowLabel="Lower than peers" highLabel="Higher than peers" />
-          <p className="text-xs text-ink-muted">
-            {h.direction === "high" ? "Higher" : "Lower"} than {Math.max(1, Math.round(h.direction === "high" ? h.percentile : 100 - h.percentile))} of 100 people aged {profile.ageBand}
-          </p>
-        </li>
-      ))}
-    </ul>
+    <div>
+      <div className="mb-1 flex justify-between text-[11px] font-semibold text-ink-muted" aria-hidden>
+        <span>← lower than peers</span>
+        <span>typical</span>
+        <span>higher than peers →</span>
+      </div>
+      <ul className="flex flex-col gap-3">
+        {hs.map((h) => (
+          <li key={h.feature}>
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="min-w-0 text-sm font-semibold text-ink">{h.label}</span>
+              <span className="tnum shrink-0 text-sm font-semibold text-ink">{fmtFeature(h.value, h.unit)}</span>
+            </div>
+            <PercentileBar percentile={h.percentile} bare />
+            <p className="text-xs text-ink-muted">
+              {h.direction === "high" ? "Higher" : "Lower"} than {Math.max(1, Math.round(h.direction === "high" ? h.percentile : 100 - h.percentile))} of 100 people aged {profile.ageBand}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 export { ofHundred };

@@ -140,7 +140,7 @@ export function SeeMore({ focus, label = "See more in You" }: { focus: YouSectio
 }
 
 /** Percentile among peers: track from "lower" to "higher", median tick, dot at the person's percentile. */
-export function PercentileBar({ percentile, color = "#007841", lowLabel = "Lower", highLabel = "Higher" }: { percentile: number; color?: string; lowLabel?: string; highLabel?: string }) {
+export function PercentileBar({ percentile, color = "#007841", lowLabel = "Lower", highLabel = "Higher", bare }: { percentile: number; color?: string; lowLabel?: string; highLabel?: string; bare?: boolean }) {
   const p = Math.max(0, Math.min(100, percentile));
   return (
     <div className="w-full">
@@ -150,11 +150,13 @@ export function PercentileBar({ percentile, color = "#007841", lowLabel = "Lower
         <div className="absolute top-[4px] h-3 w-px bg-icon-muted" style={{ left: "50%" }} aria-hidden />
         <div className="absolute top-[2px] h-4 w-4 -translate-x-1/2 rounded-pill border-2 border-white shadow-low" style={{ left: `${p}%`, background: color }} />
       </div>
-      <div className="flex justify-between text-[11px] leading-4 text-ink-muted">
-        <span>{lowLabel}</span>
-        <span>typical</span>
-        <span>{highLabel}</span>
-      </div>
+      {!bare && (
+        <div className="flex justify-between text-[11px] leading-4 text-ink-muted">
+          <span>{lowLabel}</span>
+          <span>typical</span>
+          <span>{highLabel}</span>
+        </div>
+      )}
     </div>
   );
 }

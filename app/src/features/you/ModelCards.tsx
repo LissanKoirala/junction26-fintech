@@ -42,7 +42,7 @@ function MetricRow({ m }: { m: ModelCard["metrics"][number] }) {
     <li className="py-2.5">
       <div className="flex items-start justify-between gap-2">
         <p className="min-w-0 text-sm font-semibold leading-snug text-ink">{m.label}</p>
-        <Badge tone={tie ? "neutral" : better ? "success" : "warning"}>{tie ? "About equal" : better ? "Model better" : "Baseline better"}</Badge>
+        <span className="shrink-0 whitespace-nowrap"><Badge tone={tie ? "neutral" : better ? "success" : "warning"}>{tie ? "About equal" : better ? "Model better" : "Baseline better"}</Badge></span>
       </div>
       <p className="text-xs text-ink-muted">{m.better === "lower" ? "Lower is better" : "Higher is better"}</p>
       <div className="mt-1.5 flex flex-col gap-1">

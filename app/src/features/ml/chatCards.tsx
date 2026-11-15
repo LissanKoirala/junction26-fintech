@@ -11,7 +11,7 @@ import { Caveat, ExperimentBadge, SeeMore } from "./ui";
 import { mixHeadline, TribeMix } from "./views/personality";
 import { TwinDifferences, TwinsChart, twinsMeaning } from "./views/twins";
 import { ChanceTile, ForecastChart, forecastMeaning, RiskBadge, RiskDrivers, riskMeaning, RiskTrend } from "./views/forecast";
-import { HabitCard, UnusualList } from "./views/habits";
+import { HabitCard, UnusualList, UnusualWeeks } from "./views/habits";
 import { FuturesView, HomeView } from "./views/home";
 import { RISK_WORDS, topHabit } from "./words";
 
@@ -65,7 +65,7 @@ export function RiskChatCard({ card }: { card: Of<"risk"> }) {
     <CardFrame icon={BellRing} eyebrow={`Next ${r.horizonDays} days`} title={card.title ?? "Early warning"} right={<RiskBadge r={r} />} explain={card.explain}>
       <p className="text-base font-semibold text-ink">{RISK_WORDS[r.level].line}</p>
       <p className="mb-3 mt-1 text-sm text-ink-strong">{riskMeaning(r)}</p>
-      <RiskDrivers r={r} limit={2} />
+      <RiskDrivers r={r} limit={2} stack />
       <div className="mt-3">
         <RiskTrend r={r} />
       </div>
@@ -84,6 +84,11 @@ export function AnomaliesChatCard({ card }: { card: Of<"anomalies"> }) {
         {a.last30Days.count ? <>, <span className="tnum font-semibold">{money(a.last30Days.total, { whole: true })}</span></> : null}.
       </p>
       <UnusualList a={a} customer={c} limit={3} compact />
+      {a.weeks.length > 0 && (
+        <div className="mt-2">
+          <UnusualWeeks a={a} />
+        </div>
+      )}
       <SeeMore focus="unusual" label="Sort them into baskets in You" />
     </CardFrame>
   );
@@ -111,7 +116,7 @@ export function HabitsChatCard({ card }: { card: Of<"habits"> }) {
 export function HomeChatCard({ card }: { card: Of<"home"> }) {
   const h = card.data;
   return (
-    <CardFrame icon={House} eyebrow="First-home readiness" title={card.title ?? "Your first home"} right={<ExperimentBadge>Illustrative</ExperimentBadge>} explain={card.explain}>
+    <CardFrame icon={House} eyebrow="From 200 mortgage applications" title={card.title ?? "Your first home"} right={<ExperimentBadge>Illustrative</ExperimentBadge>} explain={card.explain}>
       <HomeView h={h} compact />
       <Caveat>Illustrative: learned from 200 applications in this dataset. Not a credit decision.</Caveat>
       <SeeMore focus="home" label="Try the savings slider in You" />

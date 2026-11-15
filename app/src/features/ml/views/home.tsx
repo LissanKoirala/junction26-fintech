@@ -36,9 +36,9 @@ function PriceRange({ h }: { h: MlHome }) {
         <div className="absolute top-1.5 h-5 w-5 -translate-x-1/2 rounded-pill border-2 border-white bg-green-900 shadow-low" style={{ left: P(m) }} />
       </div>
       <div className="tnum relative h-4 text-xs text-ink-muted">
-        <span className="absolute -translate-x-1/2" style={{ left: P(a) }}>{money(a / 1000, { whole: true }).replace(" €", "k €")}</span>
-        <span className="absolute -translate-x-1/2 font-semibold text-ink" style={{ left: P(m) }}>{money(m / 1000, { whole: true }).replace(" €", "k €")}</span>
-        <span className="absolute -translate-x-1/2" style={{ left: P(b) }}>{money(b / 1000, { whole: true }).replace(" €", "k €")}</span>
+        <span className="absolute -translate-x-1/2" style={{ left: P(a) }}>{money(a / 1000, { whole: true }).replace(/\s€$/, "k €")}</span>
+        <span className="absolute -translate-x-1/2 font-semibold text-ink" style={{ left: P(m) }}>{money(m / 1000, { whole: true }).replace(/\s€$/, "k €")}</span>
+        <span className="absolute -translate-x-1/2" style={{ left: P(b) }}>{money(b / 1000, { whole: true }).replace(/\s€$/, "k €")}</span>
       </div>
     </div>
   );
@@ -150,11 +150,11 @@ export function FuturesView({ t, compact }: { t: MlTxGpt; compact?: boolean }) {
             options={futures.map((f) => ({ value: f.label, label: FUTURE_LABEL[f.label] }))}
           />
           <ol className="mt-3 flex flex-col">
-            {days.slice(0, 8).map((d) => (
+            {days.slice(0, 6).map((d) => (
               <li key={d.date} className="flex gap-3 border-l-2 border-green-200 pb-2.5 pl-3 last:pb-0">
                 <span className="tnum w-[70px] shrink-0 text-xs font-semibold text-ink-strong">{dateShort(d.date)}</span>
                 <span className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-                  {d.events.map((e, i) => {
+                  {d.events.slice(0, 3).map((e, i) => {
                     const I = categoryIcon(e.category);
                     return (
                       <span key={i} className="inline-flex items-center gap-1 rounded-pill bg-green-50 px-2 py-0.5 text-xs text-ink">
@@ -167,7 +167,7 @@ export function FuturesView({ t, compact }: { t: MlTxGpt; compact?: boolean }) {
                 </span>
               </li>
             ))}
-            {days.length > 8 && <li className="pl-3 text-xs text-ink-muted">+ {days.length - 8} more days with purchases</li>}
+            {days.length > 6 && <li className="pl-3 text-xs text-ink-muted">+ {days.length - 6} more days with purchases</li>}
           </ol>
         </>
       )}

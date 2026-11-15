@@ -87,7 +87,7 @@ export function riskMeaning(r: MlRisk): string {
   return `Chance of going below zero in the next ${r.horizonDays} days: ${chanceWords(r.probability)}, ${cmp} (${pct(r.baseRate)} on average).`;
 }
 
-export function RiskDrivers({ r, limit = 3 }: { r: MlRisk; limit?: number }) {
+export function RiskDrivers({ r, limit = 3, stack }: { r: MlRisk; limit?: number; stack?: boolean }) {
   const up = r.drivers.filter((d) => d.direction === "raises").slice(0, limit);
   const down = r.drivers.filter((d) => d.direction === "lowers").slice(0, limit);
   const Col = ({ title, items, upward }: { title: string; items: MlRisk["drivers"]; upward: boolean }) => (
@@ -101,7 +101,9 @@ export function RiskDrivers({ r, limit = 3 }: { r: MlRisk; limit?: number }) {
           {items.map((d) => (
             <li key={d.feature} className="text-sm leading-snug">
               <span className="text-ink">{d.label}</span>
-              <span className="tnum ml-1 font-semibold text-ink">{d.display}</span>
+              {!d.label.replace(/\s/g, "").includes(d.display.replace(/\s/g, "")) && (
+                <span className="tnum ml-1.5 inline-block rounded-pill bg-card px-1.5 text-xs font-semibold text-ink">{d.display}</span>
+              )}
             </li>
           ))}
         </ul>
@@ -111,7 +113,7 @@ export function RiskDrivers({ r, limit = 3 }: { r: MlRisk; limit?: number }) {
     </div>
   );
   return (
-    <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
+    <div className={cx("grid grid-cols-1 gap-2", !stack && "min-[380px]:grid-cols-2")}>
       <Col title="Pushing risk up" items={up} upward />
       <Col title="Keeping it down" items={down} upward={false} />
     </div>

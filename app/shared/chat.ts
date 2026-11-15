@@ -6,6 +6,7 @@ import type { BasketsResult, SafeToSpend, Scenario, WhatIfResult } from "./engin
 import type { MlAnomalies, MlHabits, MlHome, MlProfile, MlTwins, Tribe } from "./ml/typesA";
 import type { MlForecast, MlRisk, MlTxGpt } from "./ml/typesB";
 import type { BasketOverrides, Goal, Period, Tx } from "./types";
+import type { CraveSummary } from "./crave";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -20,6 +21,7 @@ export interface ChatRequest {
   overrides?: BasketOverrides;
   goal?: Goal | null;
   screen?: string; // where the chat was opened from, e.g. "today" | "whatif"
+  crave?: CraveSummary | null; // Crave mode diary summary (optional), so Vara can answer from real numbers
 }
 
 /** "How I got this": shown in a drawer under every card. Filled by the server from the tool call, not by the model. */
@@ -85,7 +87,7 @@ export type CardSpec = CardBase &
     | { kind: "concept"; term: string; definition: string; example: string } // plain-language explainer using the user's own numbers
     | {
         kind: "action";
-        action: "open_saastaja" | "set_goal" | "start_challenge" | "connect_bank" | "open_screen";
+        action: "open_saastaja" | "set_goal" | "start_challenge" | "connect_bank" | "open_screen" | "open_crave"; // open_crave: payload { craving }
         label: string;
         description?: string;
         payload?: Record<string, unknown>;

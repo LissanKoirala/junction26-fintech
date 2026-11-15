@@ -2,6 +2,7 @@
 // Persisted per customer in localStorage. Tiny external store + useSyncExternalStore, no library.
 import { useSyncExternalStore } from "react";
 import type { Challenge } from "@shared/checkin";
+import type { CraveEntry } from "@shared/crave";
 import type { Basket, BasketOverrides, Goal } from "@shared/types";
 import { DEFAULT_PERSONA } from "@shared/personas";
 
@@ -25,6 +26,19 @@ export interface CustomerPrefs {
   learned: LearnedNote[];
   goalHandedOff?: boolean;
   dismissedConnectPrompt?: boolean;
+  // Crave mode (features/crave): opt-in, the craving diary / pot, and the in-app inbox
+  craveConsent?: boolean;
+  cravings?: CraveEntry[];
+  craveInbox?: CraveEmail[];
+}
+export interface CraveEmail {
+  id: string;
+  orderId: string;
+  kind: "confirmation" | "shipped" | "delivered";
+  from: string;
+  subject: string;
+  at: number; // arrival time (real clock)
+  read?: boolean;
 }
 export interface AppState {
   customerId: string;

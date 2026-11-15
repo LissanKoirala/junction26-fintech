@@ -25,10 +25,7 @@ export function chanceWords(p: number | null | undefined): string {
   if (p == null || !Number.isFinite(p)) return "–";
   if (p <= 0.005) return "almost none";
   if (p < 0.05) return "less than 1 in 20";
-  if (p < 0.5) {
-    const n = Math.round(1 / p);
-    return `about 1 in ${n}`;
-  }
+  if (p < 0.3) return `about 1 in ${Math.round(1 / p)}`;
   if (p >= 0.95) return "very likely";
   return `about ${Math.round(p * 10)} in 10`;
 }
@@ -48,7 +45,7 @@ export function fmtFeature(v: number, unit: string): string {
 export const RISK_WORDS: Record<MlRisk["level"], { label: string; line: string; tone: "accent" | "warning" | "error" }> = {
   low: { label: "Calm", line: "Your balance looks steady for the next two weeks.", tone: "accent" },
   elevated: { label: "Worth a look", line: "There is a real chance of dipping below zero in the next two weeks.", tone: "warning" },
-  high: { label: "High", line: "Going below zero in the next two weeks is likely unless something changes.", tone: "error" },
+  high: { label: "High", line: "A high chance of dipping below zero in the next two weeks.", tone: "error" },
 };
 
 export type Habit = MlHabits["habits"][number];
