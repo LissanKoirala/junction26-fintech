@@ -704,31 +704,71 @@ def score_note(k, c):
     return ""
 
 
-overview = []
-for k in ORDER:
+SHORT = {  # short metric label, short baseline name, index of the metric shown (the card's first = strongest simple baseline)
+    "tribes": ("Silhouette, k=5", "No-cluster null"), "twins": ("MAE, months of income", "One-feature rule"),
+    "anomalies": ("ROC AUC, injected anomalies", "Isolation Forest"), "habits": ("Weekly series flagged", "13-week block shuffle"),
+    "forecast": ("MAE of 14-day spend, €", "Own 182-day average"), "risk": ("ROC AUC, test", "Logistic regression"),
+    "txgpt": ("Next-category top-1 accuracy", "LightGBM"), "home": ("CV ROC AUC", "Buffer only")}
+PRED = {"tribes": "Spending tribes (unsupervised)", "twins": "Balance a year ahead", "anomalies": "Purchases unusual for you",
+        "habits": "Lasting habit changes", "forecast": "Spend and balance to payday", "risk": "Overdraft before payday",
+        "txgpt": "Next transactions", "home": "Mortgage approval"}
+
+
+def score_flags(k, c):
+    try:
+        if k == "anomalies":
+            return '<span class="flag">Baseline wins</span>'
+        if k == "twins":
+            return '<span class="flag">Within noise</span>'
+        if k == "risk":
+            pa, pb = mv(c, 1)
+            return f'<span class="flag mut">Small ROC gain; PR AUC {pa} vs {pb}</span>'
+        if k == "txgpt":
+            fa, fb = mv(c, 3)
+            return f'<span class="flag">Spend forecast within noise ({fa} vs {fb} €)</span>'
+        if k == "habits":
+            return '<span class="flag mut">Small margin</span>'
+        if k == "tribes":
+            return '<span class="flag mut">Unsupervised</span>'
+        if k == "home":
+            return f'<span class="flag mut">{mo["n"]} applications</span>'
+    except Exception as e:
+        print("score flag failed", k, repr(e))
+    return ""
+
+
+def score_row(k):
     c = cards.get(k)
     if not c:
-        overview.append([f"<b>{TITLES[k]}</b>", esc(PREDICTS[k]), "Training while this page was built.", '<span class="badge exp">In training</span>'])
-        continue
-    x = (c.get("metrics") or [{}])[0]
+        return f'<div class="sr"><div class="nm"><b>{TITLES[k]}</b></div><div>Training while this page was built.</div><div class="vd"><span class="badge exp">In training</span></div></div>'
+    x = c["metrics"][0]
     v, cls = VERD.get(c.get("verdict"), ("?", "exp"))
-    head = (f"{esc(x.get('label', ''))}: <b>{mval(x['model'], x.get('unit'))}</b> vs {mval(x['baseline'], x.get('unit'))} <span class='mut'>({esc(x.get('baselineName', ''))})</span>"
-            + (" · on par" if x.get("onPar") else "")) if x else ""
-    overview.append([f'<a href="#m-{k}"><b>{TITLES[k]}</b></a> <span class="badge {cls} bm">{v}</span>', esc(PREDICTS[k]), head + score_note(k, c), f'<span class="badge {cls}">{v}</span>'])
+    hi = x.get("better") == "higher"
+    mx = max(abs(x["model"]), abs(x["baseline"])) or 1
+    win_m = (x["model"] > x["baseline"]) if hi else (x["model"] < x["baseline"])
+    lab, bname = SHORT[k]
+    bar = lambda name, val, col, w: (f'<div class="br"><span class="bn" title="{esc(name)}">{esc(name)}</span><span class="bt"><i style="width:{abs(val) / mx * 100:.1f}%;background:{col}"></i></span>'
+                                     f'<span class="v{" w" if w else ""}">{mval(val, x.get("unit"))}</span></div>')
+    return (f'<div class="sr"><div class="nm"><a href="#m-{k}">{TITLES[k]}</a><span class="pr">{PRED[k]}</span></div>'
+            f'<div><div class="mt"><b>{lab}</b> · {"↑ higher" if hi else "↓ lower"} wins</div>'
+            + bar("Model", x["model"], C["g7"], win_m and not x.get("onPar")) + bar(bname, x["baseline"], C["grey"], (not win_m) and not x.get("onPar"))
+            + f'</div><div class="vd"><span class="badge {cls}">{v}</span>{score_flags(k, c)}</div></div>')
+
+
 n_ships = sum(1 for c in cards.values() if c.get("verdict") == "ships")
 ships_names = [TITLES[k] for k in ORDER if (cards.get(k) or {}).get("verdict") == "ships"]
 NUMW = {1: "One", 2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six", 7: "Seven", 8: "Eight", 9: "Nine", 10: "Ten", 11: "Eleven"}
-verdict_rule = ("Each model answers a question a customer would ask and is measured against simple baselines; the table shows each against the strongest simple baseline we tried. "
+verdict_rule = ("Each model answers a question a customer would ask and is measured against simple baselines; the scorecard shows each against the strongest simple baseline we tried. "
                 "The verdicts come from a rule in each model's code: \"ships\" only when the model beats every baseline on its card by a clear margin (each card says which); "
                 "\"experimental\" when the gain is small, within noise, depends on a choice we made by hand (such as the shuffle used to test the habit detector), or the model is "
                 "unsupervised or illustrative. After an independent re-check of every number, the cards compare against stronger baselines than before and the habit detector "
                 "went from \"ships\" to \"experimental\". We kept the weak ones on the page on purpose.")
 SCORE = section("models", "Machine learning · scorecard",
-                f"{NUMW.get(n_ships, n_ships)} of {NUMW.get(len(ORDER), len(ORDER)).lower()} models clearly beat their strongest simple baseline. {NUMW.get(len(ORDER) - n_ships, '')} are experimental",
-                f'<div class="tblw"><table class="tbl score"><thead><tr><th>Model</th><th>What it predicts</th><th>Headline metric: model vs strongest simple baseline</th><th>Verdict</th></tr></thead><tbody>'
-                + "".join(f"<tr><td>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td><td class='vd'>{r[3]}</td></tr>" for r in overview) + "</tbody></table></div>"
-                + fold("How the verdicts are decided", f"<p>{verdict_rule}</p>")
-                + '<p class="note">The full model cards, with every metric and baseline, follow the findings: <a href="#model-cards">model cards</a>.</p>')
+                f"{NUMW.get(n_ships, n_ships)} of {NUMW.get(len(ORDER), len(ORDER)).lower()} models clearly beat their strongest simple baseline",
+                '<p class="note">Green: model. Grey: strongest simple baseline. Each row on its own scale.</p><div class="sc2">' + "".join(score_row(k) for k in ORDER) + "</div>"
+                + fold("Verdict rule and full baseline names", f"<p>{verdict_rule}</p>" + table(["Model", "Headline metric", "Model", "Strongest simple baseline"],
+                       [[TITLES[k], esc(cards[k]['metrics'][0]['label']), mval(cards[k]['metrics'][0]['model'], cards[k]['metrics'][0].get('unit')),
+                         f"{mval(cards[k]['metrics'][0]['baseline'], cards[k]['metrics'][0].get('unit'))} ({esc(cards[k]['metrics'][0]['baselineName'])})"] for k in ORDER if cards.get(k)])))
 body = """<p class="lede">Each card leads with its verdict and its result against the baselines; method, data and caveats are folded underneath. The one-table summary is the <a href="#models">scorecard</a>.</p>"""
 S.append(("model-cards", "Model cards", section("model-cards", "Machine learning", "Model cards: eight models, each against its baselines", body)))
 
@@ -932,42 +972,92 @@ body = f"""
 S.append(("method", "Method", section("method", "Method", "How to reproduce this", body)))
 
 # ------------------------------------------------------------------------------------------ headline layer
-FL.update({
-    "below-zero": (pc(neg_all), f"of customers went below zero at least once in two years; {pc(low_after20)} of dipping pay cycles bottom out 20 or more days after payday. Includes October 2024, when synthetic opening balances put {pc(oct24)} below zero (about {pc(later)} later)."),
-    "rhythm": (pc(burn), f"above their own daily average: everyday-extras spending in the five days after payday. In the last week before payday it runs {pc(-late)} below."),
-    "baskets": (pc(sos["mr"]["p50"]), f"of the median salary goes to fixed musts; everyday extras, the part a coach can help steer, take {pc(sos['ev']['p50'])}."),
-    "surprise": (pc(su["customersWithShock"]), f"of customers had a surprise-must month (above 15% of salary), typically {eur(su['shockSize']['p50'])}, about {pc(su['shockSizeVsSalary']['p50'])} of a month's pay."),
-    "small": (pc(th[10]["shareOfEuros"], 1), f"of purchase euros go to purchases under 10 €, which are {pc(th[10]['shareOfPurchases'], 1)} of purchases: the latte factor is small here."),
-    "trims": (pc(kept_d), f"fewer days below zero with a 5% trim of everyday extras, if the money is kept and builds up over two years; {pc(cyc_d)} if kept only until the next payday. A replay, not a prediction."),
-    "housing": (pc(hbin[-1]["everydayShareOfSalary"]), f"of salary goes to everyday extras for customers paying 55% or more on housing (against {pc(hbin[0]['everydayShareOfSalary'])} under 25%), yet their balance grew {eur(hbin[-1]['balanceChange'])} against {eur(hbin[0]['balanceChange'])} in two years."),
-    "saving": (pc(iwn["customers"] / inv["investors"]), f"of investors ({n0(iwn['customers'])} of {n0(inv['investors'])}) made an investing deposit in a month when their account went below zero."),
-    "age": (pc(age["18-24"]["everNegative"]), f"of 18–24-year-olds dipped below zero at least once; {pc(cbb['18-24']['cyclesDippingBelowZero'])} of their pay cycles include a dip, twice the rate of the 55–64 band."),
-})
+MINI = {"h": 132, "nt": 3}
+
+
+def mini(spec, title, unit=""):
+    sp = dict(MINI)
+    sp.update(spec)
+    return f'<div class="ct">{title}' + (f' <span>{unit}</span>' if unit else "") + "</div>" + chart(sp)
+
+
+hb = cb["byBand"]
+FC = {  # finding id -> (big number, one line, thumbnail)
+    "below-zero": (pc(neg_all), f"dipped below zero; {pc(low_after20)} of dips bottom out after day 20",
+                   mini({'type': 'line', 'x': [x['dsp'] for x in dsp], 'series': [{'name': 'Below zero', 'y': [x['negShare'] for x in dsp], 'color': C['g7'], 'area': True}], 'fmt': 'pct', 'every': 10},
+                        "Below zero, by day since payday", "%")),
+    "rhythm": (pc(burn), f"more everyday spending in the 5 days after payday; {pc(-late)} less in the last week",
+               mini({'type': 'cols', 'x': [x['dsp'] for x in dsp], 'y': [x['everydayIndex'] - 1 for x in dsp], 'fmt': 'pct', 'every': 10, 'hi': [0, 1, 2, 3, 4]},
+                    "Vs own daily average, by day since payday", "%")),
+    "baskets": (pc(sos["mr"]["p50"]), f"of salary to fixed musts; everyday extras {pc(sos['ev']['p50'])}",
+                mini({'type': 'cols', 'x': ['Fixed musts', 'Surprise musts', 'Everyday extras'], 'y': [sh_mr, sh_mi, sh_ev], 'fmt': 'pct', 'lab': [0, 2], 'hi': [2]},
+                     "Spending by basket", "%")),
+    "surprise": (pc(su["customersWithShock"]), f"had a surprise-must month; typically {eur(su['shockSize']['p50'])}",
+                 mini({'type': 'hbars', 'rows': [{'label': 'Customers', 'vals': [su['customersWithShock']]}, {'label': 'Months', 'vals': [su['shockMonthShare']]}], 'series': [{'name': 'Share', 'color': C['blue']}], 'fmt': 'pct', 'nolg': True},
+                      "Shock months (over 15% of salary)", "%")),
+    "small": (pc(th[10]["shareOfEuros"], 1), f"of euros go to purchases under 10 €, {pc(th[10]['shareOfPurchases'], 1)} of purchases",
+              mini({'type': 'hbars', 'rows': [{'label': 'Purchases', 'vals': [th[10]['shareOfPurchases']]}, {'label': 'Euros', 'vals': [th[10]['shareOfEuros']]}], 'series': [{'name': 'Under 10 €', 'color': C['g7']}], 'fmt': 'pct1', 'nolg': True},
+                   "Under 10 €: share of count and of money", "%")),
+    "trims": (pc(kept_d), f"fewer days below zero if a 5% trim is kept ({pc(cyc_d)} if only to payday). A replay",
+              mini({'type': 'line', 'x': [r['month'] for r in bm], 'series': [{'name': 'As it happened', 'y': [r['actual'] for r in bm], 'color': C['grey']}, {'name': '5% trim, kept', 'y': [r['kept5'] for r in bm], 'color': C['g7']}], 'fmt': 'pct', 'every': 8, 'nolg': True},
+                   "Days below zero: actual grey, trim kept green", "%")),
+    "housing": (pc(hbin[-1]["everydayShareOfSalary"]), f"of salary on extras at 55%+ housing ({pc(hbin[0]['everydayShareOfSalary'])} under 25%); balances grew less",
+                mini({'type': 'cols', 'x': hl, 'y': [x['balanceChange'] for x in hbin], 'fmt': 'eur', 'lab': [0, len(hbin) - 1]},
+                     "Two-year balance change, by housing share", "€")),
+    "saving": (pc(iwn["customers"] / inv["investors"]), "of investors deposited in a month they were below zero",
+               mini({'type': 'hbars', 'rows': [{'label': 'Investors', 'vals': [inv['investorsEverNegative']]}, {'label': 'Non-investors', 'vals': [inv['nonInvestorsEverNegative']]}], 'series': [{'name': 'Ever below zero', 'color': C['g7']}], 'fmt': 'pct', 'nolg': True},
+                    "Ever below zero", "%")),
+    "age": (pc(age["18-24"]["everNegative"]), f"of 18–24s dipped; their pay cycles dip twice as often as at 55–64",
+            mini({'type': 'hbars', 'rows': [{'label': x['band'], 'vals': [x['cyclesDippingBelowZero']]} for x in hb], 'series': [{'name': 'Pay cycles that dip', 'color': C['g7']}], 'fmt': 'pct', 'nolg': True},
+                 "Pay cycles that dip, by age", "%")),
+}
+try:
+    FC["cravings"] = (f"{cr['toCoverDeepestDip']['p50']:.1f}", f"typical purchases ({eur(cr['medianAmount']['p50'])}) equal the deepest dip",
+                      mini({'type': 'cols', 'x': alab, 'y': [abn.get(i, {'n': 0})['n'] / antot for i in range(len(ae))], 'fmt': 'pct', 'every': 2, 'color': C['amber']},
+                           "Everyday purchases by size", "%"))
+except Exception as e:
+    print("cravings card failed", repr(e))
+try:
+    _a17 = bench["groups"]["age:17-24"]["adjusted"]
+    FC["benchmarks"] = (eur(cbd["18-24"].get("Restaurants", 0)), f"a month eating out at 18–24; {eur(_a17['11.1'])} per household nationally",
+                        mini({'type': 'hbars', 'rows': [{'label': l, 'vals': [sum(cbd['18-24'].get(c, 0) for c in cs), _a17[k]]} for l, cs, k in pairs if l in ('Eating out', 'Transport', 'Groceries')],
+                              'series': [{'name': 'Dataset', 'color': C['g7']}, {'name': 'Statistics Finland', 'color': C['grey']}], 'fmt': 'eur', 'nolg': True},
+                             "Monthly, 18–24: dataset green, national grey", "€"))
+except Exception as e:
+    print("benchmarks card failed", repr(e))
 FIND_ORDER = ["below-zero", "rhythm", "baskets", "surprise", "small", "trims", "cravings", "housing", "saving", "age", "benchmarks"]
 FIND_NO = {}
 for sid, _, h in S:
     mm = re.search(r'<div class="eyebrow">Finding (\d+)</div>', h)
     if mm:
         FIND_NO[sid] = int(mm.group(1))
-flist = "".join(
-    f'<li><a href="#{sid}"><span class="fi">{FIND_NO[sid]}</span><span><span class="fn">{FL[sid][0]}</span> {FL[sid][1]}</span><span class="go">Detail</span></a></li>'
-    for sid in FIND_ORDER if sid in FL and sid in FIND_NO)
-FINDS = section("summary", "Findings · the data", f"{NUMW.get(len(FIND_NO), len(FIND_NO))} findings from {n0(m['nTx'])} transactions",
-                f'<ol class="flist">{flist}</ol><p class="note">All figures describe the synthetic challenge dataset, not S-Pankki\'s real customers. Each line links to its detail, with the chart, the method and what Vara does with it.</p>')
+fcards = "".join(
+    f'<a class="fc" href="#{sid}"><div class="fi">{FIND_NO[sid]}</div><div class="n">{FC[sid][0]}</div><div class="lb">{FC[sid][1]}</div>{FC[sid][2]}</a>'
+    for sid in FIND_ORDER if sid in FC and sid in FIND_NO)
+FINDS = section("summary", "Findings", f"{NUMW.get(len(FIND_NO), len(FIND_NO))} findings",
+                f'<div class="fgrid">{fcards}</div>')
 S = [("models", "Scorecard", SCORE), ("summary", "Findings", FINDS)] + S
 
-tile = lambda n, l, sub: f'<div><div class="n">{n}</div><div class="l">{l}</div><div class="s">{sub}</div></div>'
+marks = "".join(f'<span class="{"on" if (cards.get(k) or {}).get("verdict") == "ships" else ""}"><i></i>{TITLES[k]}</span>' for k in ORDER)
+ev = lambda n, l, body, cap: f'<div class="ev"><div class="n">{n}</div><div class="lb">{l}</div>{body}<div class="c">{cap}</div></div>'
 HERO = f"""<div class="eyebrow">Junction 2026 · S-Pankki challenge · concept, not an official S-Pankki product</div>
 <h1>Vara Insights</h1>
-<p class="hdata"><b>The data and model evidence behind Vara, a money coach for S-mobiili.</b> Analysed: all {n0(m['nTx'])} transactions of {n0(m['nCustomers'])} customers ({n0(m['nMain'])} main cohort, {m['nTail']} irregular-income), {m['dateFrom'][:7]} to {m['dateTo'][:7]}, one account each; {len(cards)} models trained and each tested against simple baselines. The data is synthetic; the challenge describes it as modelled on real S-Bank data.</p>
+<p class="hdata"><b>The evidence behind Vara.</b> {n0(m['nTx'])} transactions · {n0(m['nCustomers'])} customers · {m['dateFrom'][:7]} to {m['dateTo'][:7]} · {len(cards)} models · synthetic data, modelled on real S-Bank data per the challenge</p>
 <div class="hk">
-{tile(pc(neg_all), 'of customers went below zero at least once in two years', f"{n0(o['everNegativeAll']['neg'])} of {n0(o['everNegativeAll']['n'])}. Includes the first month, when synthetic opening balances put more accounts below zero ({pc(oct24)} against about {pc(later)} later).")}
-{tile(pc(low_after20), 'of dipping pay cycles bottom out 20+ days after payday', f"Dips are shallow: median {eur(-o['depth']['p50'])} at the lowest point, about {pc(o['depthVsSalary']['p50'])} of a monthly salary.")}
-{tile(pc(kept_d), 'fewer days below zero with a 5% trim of everyday extras', f"Only if the saved money is kept and builds up over the two years; kept only until the next payday it is {pc(cyc_d)}. A replay of the data with everything else unchanged, not a prediction.")}
-{tile(f"{n_ships} of {len(ORDER)}", 'models clearly beat their strongest simple baseline', f"{' and '.join(ships_names)} ship. {NUMW.get(len(ORDER) - n_ships, '')} are experimental; for Unusual for you the simple baseline wins.")}
+{ev(pc(neg_all), 'went below zero at least once',
+    mini({'type': 'cols', 'x': [x['ym'] for x in o['byMonth']], 'y': [x['negShare'] for x in o['byMonth']], 'fmt': 'pct', 'every': 6, 'hi': [0], 'lab': [0]}, 'Below zero, by month', '%'),
+    f"{n0(o['everNegativeAll']['neg'])} of {n0(o['everNegativeAll']['n'])}. Includes month one (amber): opening-balance artefact.")}
+{ev(pc(low_after20), 'of dips bottom out on day 20 or later',
+    mini({'type': 'cols', 'x': [int(e) for e in cy['lowDayHistNegativeOnly']['edges'][:-1]], 'y': [c_ / max(1, sum(lowneg)) for c_ in lowneg], 'fmt': 'pct', 'every': 10, 'hi': [i for i in range(len(lowneg)) if i >= 20]}, 'Day of lowest balance since payday', '%'),
+    f"Median dip {eur(-o['depth']['p50'])}.")}
+{ev(pc(kept_d), 'fewer days below zero with a 5% trim',
+    mini({'type': 'hbars', 'rows': [{'label': 'Kept, builds up', 'vals': [kept_d]}, {'label': 'Kept to payday', 'vals': [cyc_d]}], 'series': [{'name': 'Days below zero removed', 'color': C['g7']}], 'fmt': 'pct', 'nolg': True}, 'Days below zero removed, by where the money goes', '%'),
+    "A replay of the data, not a prediction.")}
+{ev(f"{n_ships} of {len(ORDER)}", 'models clearly beat their baseline', f'<div class="ct">Verdicts <span>filled: ships</span></div><div class="marks">{marks}</div>',
+    "Six experimental. Unusual for you: baseline wins.")}
 </div>
-<p class="bl"><b>Bottom line.</b> Dips are shallow and late in the pay cycle, so what prevents them is money still on the account when the dip comes. Vara is built on that: safe to spend net of the bills still due, an early warning a pay cycle ahead, and saving that moves money into a pot where it stays. The two models that ship both forecast the run to payday.</p>
-<div class="hrow"><a class="btn" href="/">Open the prototype</a><a class="btn" href="#models" style="background:rgba(255,255,255,.12);color:#fff">Model scorecard</a><span class="pill">Junction 2026 concept · not an official S-Pankki product · synthetic data</span></div>"""
+<p class="bl"><b>Bottom line.</b> Dips are shallow and late, so Vara keeps money back for them; the two models that ship forecast that run to payday.</p>
+<div class="hrow"><a class="btn" href="/">Open the prototype</a><a class="btn" href="#models" style="background:rgba(255,255,255,.12);color:#fff">Model scorecard</a></div>"""
 
 # ------------------------------------------------------------------------------------------ page
 TEMPLATE = open(os.path.join(HERE, "template.html"), encoding="utf-8").read()
