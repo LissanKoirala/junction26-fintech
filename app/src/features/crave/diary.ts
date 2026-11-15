@@ -3,6 +3,7 @@
 import type { CraveEntry, CraveSummary } from "@shared/crave";
 import { getState, updatePrefs, usePrefs, type CraveEmail } from "@/state/store";
 import { toast } from "@/ui/toast";
+import { t } from "@/lib/i18n";
 
 const EMPTY: CraveEntry[] = [];
 const EMPTY_MAIL: CraveEmail[] = [];
@@ -43,6 +44,21 @@ export const craveActions = {
   },
 };
 
+/** Email subject in the current language (stored subjects are English; this is what is shown). */
+export function mailSubject(m: CraveEmail, food: boolean): string {
+  if (m.kind === "confirmation") return t("Order confirmed: {id}", { id: m.orderId });
+  if (m.kind === "shipped") return food ? t("Your order is on its way… to your savings") : t("Your parcel is on its way… to your savings");
+  return t("Delivered to your Crave pot");
+}
+export const mailFrom = (m: CraveEmail) => (m.kind === "delivered" ? `Vara · ${t("Crave mode")}` : m.from);
+
+// While the reveal is on screen the toasts would cover its buttons; it shows an unread count instead.
+let quiet = 0;
+export function quietEmailToasts(): () => void {
+  quiet++;
+  return () => void quiet--;
+}
+
 /** The three order "emails", arriving over the next half minute. Toasts announce them while the app is open. */
 export function scheduleEmails(e: CraveEntry) {
   const now = Date.now();
@@ -55,11 +71,12 @@ export function scheduleEmails(e: CraveEntry) {
   const cid = getState().customerId;
   for (const m of mails)
     setTimeout(() => {
-      if (getState().customerId === cid) toast(`New email · ${m.subject}`);
+      if (getState().customerId === cid && !quiet) toast(t("New email · {subject}", { subject: mailSubject(m, e.kind === "food") }));
     }, m.at - now);
 }
 
 // ---------------------------------------------------------------- insights
+// labels are English keys, translated where shown
 export const TIME_SLOTS = [
   { key: "morning", label: "Morning", from: 5, to: 11 },
   { key: "afternoon", label: "Afternoon", from: 11, to: 17 },

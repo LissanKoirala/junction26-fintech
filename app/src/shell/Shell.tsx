@@ -1,7 +1,8 @@
 // S-mobiili shell: top bar (centred title, chat bubble right) and the bottom navigation.
 import { CircleUserRound, House, Landmark, MessageCircle, Plus, WalletCards, type LucideIcon } from "lucide-react";
 import { navigate } from "@/lib/router";
-import { cx, IconButton, STROKE } from "@/ui/kit";
+import { t } from "@/lib/i18n";
+import { cx, IconButton, LangSwitch, STROKE } from "@/ui/kit";
 import { ScrollArea } from "@/ui/hero";
 import { Koti } from "./Koti";
 import { Pankki } from "./Pankki";
@@ -14,10 +15,14 @@ const TITLES: Record<TabKey, string> = { koti: "Koti", etukortti: "S-Etukortti",
 
 export function TopBar({ title }: { title: string }) {
   return (
-    <header className="grid shrink-0 grid-cols-[48px_1fr_48px] items-center bg-screen px-1 pt-[env(safe-area-inset-top)]">
-      <span />
+    <header className="grid shrink-0 grid-cols-[76px_1fr_76px] items-center bg-screen px-1 pt-[env(safe-area-inset-top)]">
+      <div className="pl-2">
+        <LangSwitch />
+      </div>
       <h1 className="flex min-h-14 items-center justify-center text-lg font-bold text-green-900">{title}</h1>
-      <IconButton icon={MessageCircle} label="Open Vara chat" onClick={() => navigate("/vara/chat")} />
+      <div className="flex justify-end">
+        <IconButton icon={MessageCircle} label={t("Open Vara chat")} onClick={() => navigate("/vara/chat")} />
+      </div>
     </header>
   );
 }
@@ -38,7 +43,7 @@ function NavItem({ tab, icon: Icon, label, active }: { tab: TabKey; icon: Lucide
 
 export function BottomNav({ tab }: { tab: TabKey }) {
   return (
-    <nav aria-label="Main" className="relative z-10 flex shrink-0 items-end border-t border-line bg-card px-1 pb-[env(safe-area-inset-bottom)]">
+    <nav aria-label={t("Main")}className="relative z-10 flex shrink-0 items-end border-t border-line bg-card px-1 pb-[env(safe-area-inset-bottom)]">
       <NavItem tab="koti" icon={House} label="Koti" active={tab === "koti"} />
       <NavItem tab="etukortti" icon={WalletCards} label="S-Etukortti" active={tab === "etukortti"} />
       <div className="flex flex-1 flex-col items-center pb-1">

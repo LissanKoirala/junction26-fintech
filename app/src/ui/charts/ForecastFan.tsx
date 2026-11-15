@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { scaleLinear } from "d3-scale";
 import { area as d3area, line as d3line, curveMonotoneX } from "d3-shape";
+import { t } from "@/lib/i18n";
 import { useWidth } from "./useWidth";
 
 export interface FanPt { day: number; date: string; p10: number; p25: number; p50: number; p75: number; p90: number }
@@ -51,7 +52,11 @@ export function ForecastFan({
         height={height}
         className="block touch-pan-y"
         role="img"
-        aria-label={`Balance until ${dateLabel(last.date)}: middle path ends at ${format(last.p50)}; on a bad run (1 in 10) the lowest point is ${format(Math.min(...fan.map((f) => f.p10)))}.`}
+        aria-label={t("Balance until {date}: middle path ends at {end}; on a bad run (1 in 10) the lowest point is {low}.", {
+          date: dateLabel(last.date),
+          end: format(last.p50),
+          low: format(Math.min(...fan.map((f) => f.p10))),
+        })}
         onPointerMove={(e) => {
           const r = (e.currentTarget as SVGElement).getBoundingClientRect();
           const d = x.invert(e.clientX - r.left);
@@ -82,7 +87,7 @@ export function ForecastFan({
         <path d={mid} fill="none" stroke={ACCENT} strokeWidth={2} strokeLinecap="round" />
         <circle cx={x(0)} cy={y(fan[0].p50)} r={4.5} fill={INK} stroke="#fff" strokeWidth={2} />
         <circle cx={x(last.day)} cy={y(last.p50)} r={4.5} fill={ACCENT} stroke="#fff" strokeWidth={2} />
-        <text x={padL} y={height - 6} fontSize={11} fill={AXIS}>Today</text>
+        <text x={padL} y={height - 6} fontSize={11} fill={AXIS}>{t("Today")}</text>
         <text x={w - padR} y={height - 6} textAnchor="end" fontSize={11} fill={AXIS}>{dateLabel(last.date)}</text>
         {h && (
           <>
@@ -96,9 +101,9 @@ export function ForecastFan({
           className="tnum pointer-events-none absolute rounded-md bg-ink px-2.5 py-1.5 text-xs text-white shadow-middle"
           style={{ top: padT, left: Math.min(Math.max(x(h.day) - 75, 0), Math.max(0, w - 160)) }}
         >
-          <span className="font-semibold">{dateLabel(h.date)}</span> · likely {format(h.p50)}
+          <span className="font-semibold">{dateLabel(h.date)}</span> · {t("likely {v}", { v: format(h.p50) })}
           <br />
-          <span className="opacity-80">8 in 10 between</span> {format(h.p10)} – {format(h.p90)}
+          <span className="opacity-80">{t("8 in 10 between")}</span> {format(h.p10)} – {format(h.p90)}
         </div>
       )}
     </div>

@@ -12,6 +12,7 @@ import { engine } from "@shared/engine";
 import { useCustomer, useEngineOpts } from "@/state/customer";
 import { useEngine } from "@/lib/safeEngine";
 import { money } from "@/lib/format";
+import { t, tn, rich } from "@/lib/i18n";
 import { goBack } from "@/lib/router";
 import { Banner, Button, Card, ConceptNotice, cx, IconButton, Muted, Progress, STROKE } from "@/ui/kit";
 import { VaraAvatar } from "@/ui/hero";
@@ -34,6 +35,7 @@ interface Line {
 }
 
 type Sort = "rec" | "low" | "high" | "rating" | "deals";
+// labels are English keys, translated where shown
 const SORTS: { v: Sort; label: string }[] = [
   { v: "rec", label: "Recommended" },
   { v: "low", label: "Price ↑" },
@@ -41,6 +43,8 @@ const SORTS: { v: Sort; label: string }[] = [
   { v: "rating", label: "Top rated" },
   { v: "deals", label: "Deals" },
 ];
+/** The model's badge enum is English; show it in the user's language. */
+const badgeLabel = (b: string) => (b ? t(b) : "");
 
 const discountPct = (p: CraveProduct) => (p.compareAtPrice ? Math.round((1 - p.price / p.compareAtPrice) * 100) : 0);
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -67,8 +71,8 @@ const HUNT_LINES = ["Hunting for the best deals…", "Checking a few hundred she
 export function Hunting({ craving, header }: { craving: string; header: CraveShopHeader | null }) {
   const [i, setI] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setI((x) => (x + 1) % HUNT_LINES.length), 1100);
-    return () => clearInterval(t);
+    const id = setInterval(() => setI((x) => (x + 1) % HUNT_LINES.length), 1100);
+    return () => clearInterval(id);
   }, []);
   const a = accentOf(header?.accent);
   const Icon = iconOf(header?.icon);
@@ -98,13 +102,13 @@ export function Hunting({ craving, header }: { craving: string; header: CraveSho
         <AnimatePresence mode="wait">
           {header ? (
             <motion.div key="h" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-              <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: a.main }}>Found a shop</p>
+              <p className="text-sm font-semibold uppercase tracking-wide" style={{ color: a.main }}>{t("Found a shop")}</p>
               <p className="text-2xl font-bold text-ink">{header.shopName}</p>
               <p className="text-ink-muted">{header.tagline}</p>
             </motion.div>
           ) : (
             <motion.p key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="text-lg font-semibold text-green-900">
-              {HUNT_LINES[i]}
+              {t(HUNT_LINES[i])}
             </motion.p>
           )}
         </AnimatePresence>
@@ -120,7 +124,7 @@ function Heart2({ on, onClick, color }: { on: boolean; onClick: () => void; colo
   return (
     <motion.button
       type="button"
-      aria-label={on ? "Remove from wishlist" : "Add to wishlist"}
+      aria-label={on ? t("Remove from wishlist") : t("Add to wishlist")}
       aria-pressed={on}
       whileTap={{ scale: 0.8 }}
       onClick={(e) => {
@@ -141,13 +145,13 @@ function PriceTag({ p, big, noPct }: { p: CraveProduct; big?: boolean; noPct?: b
     <span className="flex flex-wrap items-baseline gap-x-1.5">
       <span className={cx("tnum font-bold text-ink", big ? "text-2xl" : "text-base")}>{money(p.price)}</span>
       {p.compareAtPrice && <span className="tnum text-xs text-ink-muted line-through">{money(p.compareAtPrice)}</span>}
-      {d > 0 && !noPct && <span className="rounded-sm bg-amber-100 px-1 text-xs font-bold text-amber-800">−{d} % today</span>}
+      {d > 0 && !noPct && <span className="rounded-sm bg-amber-100 px-1 text-xs font-bold text-amber-800">{t("−{n} % today", { n: d })}</span>}
     </span>
   );
 }
 
 function BadgeTag({ p, color, kind }: { p: CraveProduct; color: string; kind: string }) {
-  const label = p.badge === "Deal" && discountPct(p) ? `−${discountPct(p)} % today` : p.badge === "Chef's pick" && kind !== "food" ? "Staff pick" : p.badge;
+  const label = p.badge === "Deal" && discountPct(p) ? t("−{n} % today", { n: discountPct(p) }) : p.badge === "Chef's pick" && kind !== "food" ? t("Staff pick") : badgeLabel(p.badge);
   if (!label) return null;
   return (
     <span className="absolute left-2 top-2 rounded-pill px-2 py-0.5 text-[11px] font-bold text-white shadow-low" style={{ background: color }}>
@@ -170,14 +174,14 @@ function GridCard({ p, header, wished, onWish, onOpen, onQuickAdd }: { p: CraveP
           <p className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-ink">{p.name}</p>
           <div className="mt-1"><Stars value={p.rating} count={p.reviewCount} /></div>
           <div className="mt-1 pr-9"><PriceTag p={p} noPct={p.badge === "Deal"} /></div>
-          {p.stockLeft != null && <p className="mt-0.5 text-xs font-semibold text-amber-800">Only {p.stockLeft} left</p>}
+          {p.stockLeft != null && <p className="mt-0.5 text-xs font-semibold text-amber-800">{t("Only {n} left", { n: p.stockLeft })}</p>}
         </div>
       </button>
       <div className="absolute right-3 top-3"><Heart2 on={wished} onClick={onWish} color={a.main} /></div>
       <motion.button
         type="button"
         whileTap={{ scale: 0.85 }}
-        aria-label={`Add ${p.name} to basket`}
+        aria-label={t("Add {name} to basket", { name: p.name })}
         onClick={onQuickAdd}
         className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-pill text-white shadow-middle"
         style={{ background: a.main }}
@@ -198,8 +202,8 @@ function MenuRow({ p, header, wished, onWish, onOpen, onQuickAdd }: { p: CravePr
           <p className="mt-0.5 line-clamp-2 text-sm text-ink-muted">{p.pitch}</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <PriceTag p={p} />
-            {p.badge && p.badge !== "Deal" && <span className="rounded-pill px-2 py-0.5 text-[11px] font-bold" style={{ background: a.soft, color: a.ink }}>{p.badge}</span>}
-            {p.stockLeft != null && <span className="text-xs font-semibold text-amber-800">Only {p.stockLeft} left today</span>}
+            {p.badge && p.badge !== "Deal" && <span className="rounded-pill px-2 py-0.5 text-[11px] font-bold" style={{ background: a.soft, color: a.ink }}>{badgeLabel(p.badge)}</span>}
+            {p.stockLeft != null && <span className="text-xs font-semibold text-amber-800">{t("Only {n} left today", { n: p.stockLeft })}</span>}
           </div>
           <div className="mt-1"><Stars value={p.rating} count={p.reviewCount} /></div>
         </div>
@@ -211,7 +215,7 @@ function MenuRow({ p, header, wished, onWish, onOpen, onQuickAdd }: { p: CravePr
       <motion.button
         type="button"
         whileTap={{ scale: 0.85 }}
-        aria-label={`Add ${p.name} to basket`}
+        aria-label={t("Add {name} to basket", { name: p.name })}
         onClick={onQuickAdd}
         className="absolute bottom-5 right-1 flex h-9 w-9 items-center justify-center rounded-pill text-white shadow-middle"
         style={{ background: a.main }}
@@ -247,7 +251,7 @@ function ProductPage({ p, header, all, wished, onWish, onClose, onAdd, onOpen }:
         <div className="relative bg-card">
           <ProductImage src={p.image} icon={iconOf(header.icon)} accent={header.accent} alt={p.name} rounded="rounded-none" />
           <div className="absolute inset-x-0 top-0 flex items-center justify-between p-2">
-            <IconButton icon={ArrowLeft} label="Back to shop" tone="tonal" onClick={onClose} />
+            <IconButton icon={ArrowLeft} label={t("Back to shop")} tone="tonal" onClick={onClose} />
             <Heart2 on={wished} onClick={onWish} color={a.main} />
           </div>
           <NothingShipsPill className="absolute bottom-3 left-3" />
@@ -256,10 +260,10 @@ function ProductPage({ p, header, all, wished, onWish, onClose, onAdd, onOpen }:
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: a.main }}>{p.brand}</p>
             <h2 className="text-2xl font-bold leading-tight text-ink">{p.name}</h2>
-            <div className="mt-1 flex items-center gap-3"><Stars value={p.rating} count={p.reviewCount} size={14} />{p.badge && <span className="text-xs font-semibold text-ink-muted">· {p.badge}</span>}</div>
+            <div className="mt-1 flex items-center gap-3"><Stars value={p.rating} count={p.reviewCount} size={14} />{p.badge && <span className="text-xs font-semibold text-ink-muted">· {badgeLabel(p.badge)}</span>}</div>
             <p className="mt-2 text-ink-strong">{p.pitch}</p>
             <div className="mt-2"><PriceTag p={p} big /></div>
-            {p.stockLeft != null && <p className="mt-1 text-sm font-semibold text-amber-800">Hurry, only {p.stockLeft} left</p>}
+            {p.stockLeft != null && <p className="mt-1 text-sm font-semibold text-amber-800">{t("Hurry, only {n} left", { n: p.stockLeft })}</p>}
             <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-muted">
               {header.kind === "food" ? <Bike size={16} strokeWidth={STROKE} aria-hidden /> : <Truck size={16} strokeWidth={STROKE} aria-hidden />}
               {header.deliveryPromise}
@@ -285,7 +289,7 @@ function ProductPage({ p, header, all, wished, onWish, onClose, onAdd, onOpen }:
           ))}
           {p.addOns.length > 0 && (
             <div>
-              <p className="mb-1 text-sm font-semibold text-ink-strong">{header.kind === "food" ? "Add extras" : "Complete it with"}</p>
+              <p className="mb-1 text-sm font-semibold text-ink-strong">{header.kind === "food" ? t("Add extras") : t("Complete it with")}</p>
               <Card padded={false} className="divide-y divide-line px-3">
                 {p.addOns.map((x) => {
                   const on = addOns.includes(x.name);
@@ -314,13 +318,13 @@ function ProductPage({ p, header, all, wished, onWish, onClose, onAdd, onOpen }:
 
           {p.reviews.length > 0 && (
             <div>
-              <p className="mb-1 flex items-center gap-2 text-lg font-bold text-ink">Reviews <Stars value={p.rating} count={p.reviewCount} /></p>
+              <p className="mb-1 flex items-center gap-2 text-lg font-bold text-ink">{t("Reviews")} <Stars value={p.rating} count={p.reviewCount} /></p>
               <div className="flex flex-col gap-2">
                 {p.reviews.map((r, i) => (
                   <Card key={i} className="p-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-ink">{r.name}</span>
-                      <span className="flex" aria-label={`${r.rating} of 5`}>
+                      <span className="flex" aria-label={t("{n} of 5", { n: r.rating })}>
                         {Array.from({ length: 5 }, (_, k) => (
                           <Star key={k} size={12} strokeWidth={STROKE} className={k < r.rating ? "fill-amber-400 text-amber-500" : "text-line"} aria-hidden />
                         ))}
@@ -330,12 +334,12 @@ function ProductPage({ p, header, all, wished, onWish, onClose, onAdd, onOpen }:
                   </Card>
                 ))}
               </div>
-              <p className="mt-1 text-xs text-ink-muted">Reviews are invented for the simulation.</p>
+              <p className="mt-1 text-xs text-ink-muted">{t("Reviews are invented for the simulation.")}</p>
             </div>
           )}
 
           <div>
-            <p className="mb-2 text-lg font-bold text-ink">People also bought</p>
+            <p className="mb-2 text-lg font-bold text-ink">{t("People also bought")}</p>
             <div className="no-scrollbar -mx-gutter flex gap-3 overflow-x-auto px-gutter pb-2">
               {others.map((o) => (
                 <button key={o.id} type="button" onClick={() => onOpen(o.id)} className="w-32 shrink-0 rounded-md bg-card p-2 text-left shadow-app-card">
@@ -350,9 +354,9 @@ function ProductPage({ p, header, all, wished, onWish, onClose, onAdd, onOpen }:
       </div>
       <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 border-t border-line bg-card px-gutter py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
         <div className="flex items-center rounded-pill border border-line">
-          <button type="button" aria-label="Less" className="flex h-11 w-11 items-center justify-center" onClick={() => { sfx.click(); setQty((q) => Math.max(1, q - 1)); }}><Minus size={18} strokeWidth={STROKE} aria-hidden /></button>
+          <button type="button" aria-label={t("Less")} className="flex h-11 w-11 items-center justify-center" onClick={() => { sfx.click(); setQty((q) => Math.max(1, q - 1)); }}><Minus size={18} strokeWidth={STROKE} aria-hidden /></button>
           <span className="tnum w-6 text-center font-semibold">{qty}</span>
-          <button type="button" aria-label="More" className="flex h-11 w-11 items-center justify-center" onClick={() => { sfx.click(); setQty((q) => Math.min(9, q + 1)); }}><Plus size={18} strokeWidth={STROKE} aria-hidden /></button>
+          <button type="button" aria-label={t("More")} className="flex h-11 w-11 items-center justify-center" onClick={() => { sfx.click(); setQty((q) => Math.min(9, q + 1)); }}><Plus size={18} strokeWidth={STROKE} aria-hidden /></button>
         </div>
         <motion.button
           type="button"
@@ -362,7 +366,7 @@ function ProductPage({ p, header, all, wished, onWish, onClose, onAdd, onOpen }:
           style={{ background: a.main }}
         >
           <ShoppingBasket size={20} strokeWidth={STROKE} aria-hidden />
-          Add to basket · <span className="tnum">{money(unit * qty)}</span>
+          {t("Add to basket")} · <span className="tnum">{money(unit * qty)}</span>
         </motion.button>
       </div>
     </motion.div>
@@ -451,7 +455,7 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
       category: header.category,
       basketTotal: total,
       amount: r2(stashAmount),
-      items: lines.map((l) => ({ name: byId.get(l.productId)?.name ?? "Item", qty: l.qty, price: r2(l.unit * l.qty) })),
+      items: lines.map((l) => ({ name: byId.get(l.productId)?.name ?? t("Item"), qty: l.qty, price: r2(l.unit * l.qty) })),
       at: Date.now(),
       status: "saved",
     };
@@ -487,15 +491,15 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
     <div className="relative flex h-full flex-col overflow-hidden bg-screen">
       {/* top bar */}
       <header className="z-20 flex items-center gap-1 bg-screen px-1 pt-[env(safe-area-inset-top)]">
-        <IconButton icon={ArrowLeft} label="Back" onClick={back} />
+        <IconButton icon={ArrowLeft} label={t("Back")} onClick={back} />
         <div className="min-w-0 flex-1 text-center">
-          <p className="truncate text-base font-bold text-ink">{step === "shop" ? header?.shopName ?? "Crave mode" : step === "basket" ? "Your basket" : "Checkout"}</p>
+          <p className="truncate text-base font-bold text-ink">{step === "shop" ? header?.shopName ?? t("Crave mode") : step === "basket" ? t("Your basket") : t("Checkout")}</p>
           <NothingShipsPill className="mt-0.5 scale-90" />
         </div>
         <motion.button
           key={bump}
           type="button"
-          aria-label={`Basket, ${count} items`}
+          aria-label={tn("Basket, {n} item", "Basket, {n} items", count)}
           initial={{ scale: 1 }}
           animate={{ scale: bump ? [1, 1.25, 1] : 1 }}
           transition={{ duration: 0.3 }}
@@ -520,7 +524,7 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
                   <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-white/90">
                     <span className="inline-flex items-center gap-1"><Star size={12} strokeWidth={STROKE} className="fill-white" aria-hidden /> {header.rating.toFixed(1).replace(".", ",")} ({header.reviewCount.toLocaleString("fi-FI")})</span>
                     <span className="inline-flex items-center gap-1">{isFood ? <Clock size={12} strokeWidth={STROKE} aria-hidden /> : <Truck size={12} strokeWidth={STROKE} aria-hidden />} {header.deliveryPromise}</span>
-                    {freeFrom > 0 && <span>Free delivery from {money(freeFrom, { whole: true })}</span>}
+                    {freeFrom > 0 && <span>{t("Free delivery from {amount}", { amount: money(freeFrom, { whole: true }) })}</span>}
                   </p>
                 </div>
               </div>
@@ -530,17 +534,17 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
             <div className="mx-gutter flex min-h-12 items-center gap-2 rounded-pill border border-line bg-card px-4 shadow-app-card">
               <Search size={18} strokeWidth={STROKE} className="text-ink-muted" aria-hidden />
               <input
-                aria-label="Search this shop"
+                aria-label={t("Search this shop")}
                 value={q}
                 onChange={(e) => { setQ(e.target.value); setQDirty(true); }}
                 className="min-w-0 flex-1 bg-transparent text-base text-ink outline-none"
               />
-              {q && <button type="button" aria-label="Clear search" onClick={() => { setQ(""); setQDirty(true); }}><X size={18} strokeWidth={STROKE} className="text-ink-muted" aria-hidden /></button>}
+              {q && <button type="button" aria-label={t("Clear search")} onClick={() => { setQ(""); setQDirty(true); }}><X size={18} strokeWidth={STROKE} className="text-ink-muted" aria-hidden /></button>}
             </div>
 
             {/* sort + filters */}
             <div className="no-scrollbar flex gap-2 overflow-x-auto px-gutter">
-              {SORTS.map((s) => <MiniChip key={s.v} on={sort === s.v} color={a.main} onClick={() => setSort(sort === s.v && s.v !== "rec" ? "rec" : s.v)}>{s.label}</MiniChip>)}
+              {SORTS.map((s) => <MiniChip key={s.v} on={sort === s.v} color={a.main} onClick={() => setSort(sort === s.v && s.v !== "rec" ? "rec" : s.v)}>{t(s.label)}</MiniChip>)}
               <MiniChip on={wishOnly} color={a.main} onClick={() => setWishOnly((w) => !w)}><Heart size={14} strokeWidth={STROKE} aria-hidden /> {wish.size}</MiniChip>
             </div>
             {facetList.length > 0 && (
@@ -557,7 +561,7 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
                   <div className="no-scrollbar sticky top-0 z-10 -mx-gutter flex gap-4 overflow-x-auto bg-screen px-gutter py-2">
                     {[null, ...sections].map((s) => (
                       <button key={s ?? "all"} type="button" onClick={() => { sfx.click(); setSection(s); }} className={cx("shrink-0 border-b-2 pb-1 text-sm font-semibold", section === s ? "text-ink" : "border-transparent text-ink-muted")} style={section === s ? { borderColor: a.main } : undefined}>
-                        {s ?? "All"}
+                        {s ?? t("All")}
                       </button>
                     ))}
                   </div>
@@ -588,11 +592,11 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
             )}
             {!visible.length && !loadingMore && (
               <div className="mx-gutter rounded-app-card bg-card p-5 text-center shadow-app-card">
-                <p className="font-semibold text-ink">Nothing matches those filters</p>
-                <Button size="sm" variant="ghost" onClick={() => { setFacets([]); setWishOnly(false); setQ(""); setSort("rec"); }}>Clear filters</Button>
+                <p className="font-semibold text-ink">{t("Nothing matches those filters")}</p>
+                <Button size="sm" variant="ghost" onClick={() => { setFacets([]); setWishOnly(false); setQ(""); setSort("rec"); }}>{t("Clear filters")}</Button>
               </div>
             )}
-            {loadingMore && <p className="flex items-center justify-center gap-2 text-sm text-ink-muted"><Sparkles size={14} strokeWidth={STROKE} aria-hidden /> Stocking the shelves…</p>}
+            {loadingMore && <p className="flex items-center justify-center gap-2 text-sm text-ink-muted"><Sparkles size={14} strokeWidth={STROKE} aria-hidden /> {t("Stocking the shelves…")}</p>}
           </div>
         )}
 
@@ -613,14 +617,14 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
                       <p className="tnum text-sm font-semibold text-ink">{money(l.unit * l.qty)}</p>
                     </div>
                     <div className="flex items-center rounded-pill border border-line">
-                      <button type="button" aria-label="Less" className="flex h-10 w-9 items-center justify-center" onClick={() => setQty(l.key, -1)}><Minus size={16} strokeWidth={STROKE} aria-hidden /></button>
+                      <button type="button" aria-label={t("Less")} className="flex h-10 w-9 items-center justify-center" onClick={() => setQty(l.key, -1)}><Minus size={16} strokeWidth={STROKE} aria-hidden /></button>
                       <span className="tnum w-5 text-center text-sm font-semibold">{l.qty}</span>
-                      <button type="button" aria-label="More" className="flex h-10 w-9 items-center justify-center" onClick={() => setQty(l.key, 1)}><Plus size={16} strokeWidth={STROKE} aria-hidden /></button>
+                      <button type="button" aria-label={t("More")} className="flex h-10 w-9 items-center justify-center" onClick={() => setQty(l.key, 1)}><Plus size={16} strokeWidth={STROKE} aria-hidden /></button>
                     </div>
                   </motion.div>
                 );
               })}
-              {!lines.length && <p className="py-6 text-center text-ink-muted">Your basket is empty.</p>}
+              {!lines.length && <p className="py-6 text-center text-ink-muted">{t("Your basket is empty.")}</p>}
             </Card>
             <Recommended header={header} products={(session.alsoBought.length ? session.alsoBought.map((id) => byId.get(id)!).filter(Boolean) : products.slice(0, 4)).filter((p) => !lines.some((l) => l.productId === p.id))} onAdd={quickAdd} />
             <Summary subtotal={subtotal} fee={baseFee} express={expressFee} total={total} />
@@ -630,16 +634,16 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
         {step === "checkout" && header && (
           <div className="flex flex-col gap-3 px-gutter pb-4">
             <Card>
-              <p className="flex items-center justify-between text-sm font-semibold text-ink-strong">Delivery details <span className="rounded-pill bg-sunken px-2 py-0.5 text-xs font-semibold text-ink-muted">Demo data</span></p>
+              <p className="flex items-center justify-between text-sm font-semibold text-ink-strong">{t("Delivery details")} <span className="rounded-pill bg-sunken px-2 py-0.5 text-xs font-semibold text-ink-muted">{t("Demo data")}</span></p>
               <p className="mt-2 text-ink">{(PERSONAS.find((x) => x.id === c?.id)?.alias ?? "Demo")} Esimerkki</p>
               <p className="text-sm text-ink-muted">Esimerkkikatu 12 B 7, 00100 Helsinki</p>
               <p className="text-sm text-ink-muted">demo@example.invalid · +358 00 000 0000</p>
             </Card>
             <Card>
-              <p className="mb-2 text-sm font-semibold text-ink-strong">Delivery</p>
+              <p className="mb-2 text-sm font-semibold text-ink-strong">{t("Delivery")}</p>
               {[
-                { on: !express, title: isFood ? `Standard · ${header.deliveryPromise}` : `Standard · ${header.deliveryPromise}`, sub: baseFee ? money(baseFee) : "Free", icon: isFood ? Bike : Truck, set: () => setExpress(false) },
-                { on: express, title: isFood ? "Priority · about 10 min sooner" : "Express · tomorrow before 12", sub: `+${money(isFood ? 1.99 : 4.9)}`, icon: Zap, set: () => setExpress(true) },
+                { on: !express, title: t("Standard · {promise}", { promise: header.deliveryPromise }), sub: baseFee ? money(baseFee) : t("Free"), icon: isFood ? Bike : Truck, set: () => setExpress(false) },
+                { on: express, title: isFood ? t("Priority · about 10 min sooner") : t("Express · tomorrow before 12"), sub: `+${money(isFood ? 1.99 : 4.9)}`, icon: Zap, set: () => setExpress(true) },
               ].map((o) => (
                 <button key={o.title} type="button" aria-pressed={o.on} onClick={() => { sfx.click(); o.set(); }} className="flex min-h-14 w-full items-center gap-3 rounded-md border px-3 text-left transition-colors [&+&]:mt-2" style={{ borderColor: o.on ? a.main : "#e6e6e6", background: o.on ? a.soft : undefined }}>
                   <o.icon size={20} strokeWidth={STROKE} style={{ color: a.main }} aria-hidden />
@@ -649,7 +653,7 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
               ))}
             </Card>
             <Card>
-              <p className="mb-1 text-sm font-semibold text-ink-strong">Order summary</p>
+              <p className="mb-1 text-sm font-semibold text-ink-strong">{t("Order summary")}</p>
               {lines.map((l) => (
                 <p key={l.key} className="flex justify-between gap-2 text-sm text-ink"><span className="truncate">{l.qty} × {byId.get(l.productId)?.name}</span><span className="tnum shrink-0">{money(l.unit * l.qty)}</span></p>
               ))}
@@ -670,19 +674,19 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
           className="absolute inset-x-gutter bottom-4 z-20 flex min-h-14 items-center justify-between rounded-pill px-5 font-semibold text-white shadow-middle"
           style={{ background: a.main }}
         >
-          <span className="flex items-center gap-2"><ShoppingBasket size={20} strokeWidth={STROKE} aria-hidden /> View basket · {count}</span>
+          <span className="flex items-center gap-2"><ShoppingBasket size={20} strokeWidth={STROKE} aria-hidden /> {t("View basket")} · {count}</span>
           <span className="tnum">{money(subtotal)}</span>
         </motion.button>
       )}
       {step === "basket" && lines.length > 0 && (
         <div className="absolute inset-x-0 bottom-0 z-20 border-t border-line bg-card px-gutter py-3">
-          <Button full iconRight={ChevronRight} onClick={() => { sfx.click(); setStep("checkout"); }} style={{ background: a.main }}>Checkout · {money(total)}</Button>
+          <Button full iconRight={ChevronRight} onClick={() => { sfx.click(); setStep("checkout"); }} style={{ background: a.main }}>{t("Checkout")} · {money(total)}</Button>
         </div>
       )}
       {step === "checkout" && (
         <div className="absolute inset-x-0 bottom-0 z-20 border-t border-line bg-card px-gutter py-3">
           <Button full onClick={() => { sfx.click(); setPaying(true); }} style={{ background: a.main }}>
-            {stashAmount > 0 ? <>Pay {money(total)}</> : <>Place order (window-shopping)</>}
+            {stashAmount > 0 ? t("Pay {amount}", { amount: money(total) }) : t("Place order (window-shopping)")}
           </Button>
         </div>
       )}
@@ -714,7 +718,7 @@ function FreeDelivery({ subtotal, freeFrom, fee, color }: { subtotal: number; fr
     <Card className="p-3">
       <p className="flex items-center gap-2 text-sm font-semibold text-ink">
         <Truck size={18} strokeWidth={STROKE} style={{ color }} aria-hidden />
-        {left > 0 ? <>Add {money(left)} more for free delivery</> : <>Free delivery unlocked</>}
+        {left > 0 ? t("Add {amount} more for free delivery", { amount: money(left) }) : t("Free delivery unlocked")}
       </p>
       <div className="mt-2 h-2 w-full overflow-hidden rounded-pill bg-track">
         <motion.div className="h-full rounded-pill" style={{ background: color }} initial={false} animate={{ width: `${Math.min(100, (subtotal / freeFrom) * 100)}%` }} />
@@ -728,14 +732,14 @@ function Recommended({ header, products, onAdd }: { header: CraveShopHeader; pro
   const a = accentOf(header.accent);
   return (
     <div>
-      <p className="mb-2 px-1 text-lg font-bold text-ink">{header.kind === "food" ? "Goes well with" : "Frequently bought together"}</p>
+      <p className="mb-2 px-1 text-lg font-bold text-ink">{header.kind === "food" ? t("Goes well with") : t("Frequently bought together")}</p>
       <div className="no-scrollbar -mx-gutter flex gap-3 overflow-x-auto px-gutter pb-1">
         {products.slice(0, 5).map((p) => (
           <div key={p.id} className="relative w-32 shrink-0 rounded-md bg-card p-2 shadow-app-card">
             <ProductImage src={p.image} icon={iconOf(header.icon)} accent={header.accent} alt={p.name} />
             <p className="mt-1 line-clamp-2 min-h-8 text-xs font-semibold text-ink">{p.name}</p>
             <p className="tnum text-xs text-ink-muted">{money(p.price)}</p>
-            <button type="button" aria-label={`Add ${p.name}`} onClick={() => onAdd(p)} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-pill text-white shadow-low" style={{ background: a.main }}>
+            <button type="button" aria-label={t("Add {name}", { name: p.name })} onClick={() => onAdd(p)} className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-pill text-white shadow-low" style={{ background: a.main }}>
               <Plus size={16} strokeWidth={2} aria-hidden />
             </button>
           </div>
@@ -748,14 +752,16 @@ function Recommended({ header, products, onAdd }: { header: CraveShopHeader; pro
 function Summary({ subtotal, fee, express, total, bare }: { subtotal: number; fee: number; express: number; total: number; bare?: boolean }) {
   const rows = (
     <div className="flex flex-col gap-1 text-sm">
-      <p className="flex justify-between text-ink-strong"><span>Subtotal</span><span className="tnum">{money(subtotal)}</span></p>
-      <p className="flex justify-between text-ink-strong"><span>Delivery</span><span className="tnum">{fee ? money(fee) : "Free"}</span></p>
-      {express > 0 && <p className="flex justify-between text-ink-strong"><span>Faster delivery</span><span className="tnum">{money(express)}</span></p>}
-      <p className="mt-1 flex justify-between border-t border-line pt-2 text-base font-bold text-ink"><span>Total</span><span className="tnum">{money(total)}</span></p>
+      <p className="flex justify-between text-ink-strong"><span>{t("Subtotal")}</span><span className="tnum">{money(subtotal)}</span></p>
+      <p className="flex justify-between text-ink-strong"><span>{t("Delivery")}</span><span className="tnum">{fee ? money(fee) : t("Free")}</span></p>
+      {express > 0 && <p className="flex justify-between text-ink-strong"><span>{t("Faster delivery")}</span><span className="tnum">{money(express)}</span></p>}
+      <p className="mt-1 flex justify-between border-t border-line pt-2 text-base font-bold text-ink"><span>{t("Total")}</span><span className="tnum">{money(total)}</span></p>
     </div>
   );
   return bare ? rows : <Card>{rows}</Card>;
 }
+
+const paydayLabel = (d: string | null) => (d ? ` (${d.slice(8, 10).replace(/^0/, "")}.${d.slice(5, 7).replace(/^0/, "")}.)` : "");
 
 /** The safe-to-spend guard: the pot only ever takes money that is free until payday. */
 function Guard({ total, free, payday, overSafe, maxStash, stash, setStash }: { total: number; free: number | null; payday: string | null; overSafe: boolean; maxStash: number; stash: number; setStash: (n: number) => void }) {
@@ -764,16 +770,18 @@ function Guard({ total, free, payday, overSafe, maxStash, stash, setStash }: { t
       <div className="flex items-start gap-3">
         <VaraAvatar size={32} />
         <div className="min-w-0 flex-1">
-          <p className="font-bold text-green-900">Where this money goes</p>
+          <p className="font-bold text-green-900">{t("Where this money goes")}</p>
           <p className="mt-0.5 text-sm text-ink-strong">
-            Nothing ships. When you pay, <b className="tnum">{money(stash)}</b> moves from your account into your <b>Crave pot</b> in savings. It stays yours, and you can release it any time.
+            {rich(t("Nothing ships. When you pay, **{amount}** moves from your account into your Crave pot in savings. It stays yours, and you can release it any time.", { amount: money(stash) }))}
           </p>
         </div>
       </div>
       {free != null && overSafe && (
         <div className="mt-3">
-          <Banner tone="warning" title="That's more than is free until payday">
-            This basket is {money(total)}, and {free > 0 ? <>{money(free, { whole: true })} is free</> : <>nothing is free</>} until payday{payday ? ` (${payday.slice(8, 10).replace(/^0/, "")}.${payday.slice(5, 7).replace(/^0/, "")}.)` : ""} once your musts are covered. Vara won't stash rent money. Choose a smaller amount, or just enjoy the window-shopping.
+          <Banner tone="warning" title={t("That's more than is free until payday")}>
+            {free > 0
+              ? t("This basket is {total}, and {free} is free until payday{date} once your musts are covered. Vara won't stash rent money. Choose a smaller amount, or just enjoy the window-shopping.", { total: money(total), free: money(free, { whole: true }), date: paydayLabel(payday) })
+              : t("This basket is {total}, and nothing is free until payday{date} once your musts are covered. Vara won't stash rent money. Choose a smaller amount, or just enjoy the window-shopping.", { total: money(total), date: paydayLabel(payday) })}
           </Banner>
           <div className="mt-3 flex flex-col gap-2">
             <input
@@ -783,7 +791,7 @@ function Guard({ total, free, payday, overSafe, maxStash, stash, setStash }: { t
               step={1}
               value={Math.min(stash, maxStash)}
               onChange={(e) => setStash(Number(e.target.value))}
-              aria-label="Amount to stash in the Crave pot"
+              aria-label={t("Amount to stash in the Crave pot")}
               aria-valuetext={money(stash)}
               className="vara-range h-8 w-full"
               style={{ ["--pos" as string]: `${maxStash ? (Math.min(stash, maxStash) / maxStash) * 100 : 0}%` }}
@@ -792,15 +800,15 @@ function Guard({ total, free, payday, overSafe, maxStash, stash, setStash }: { t
               {[maxStash, Math.round(maxStash / 2), Math.min(10, maxStash)].filter((v, i, l) => v > 0 && l.indexOf(v) === i).map((v) => (
                 <button key={v} type="button" onClick={() => setStash(v)} className={cx("min-h-9 rounded-pill border px-3 text-sm font-semibold", stash === v ? "border-green-700 bg-green-700 text-white" : "border-green-200 bg-card text-green-900")}>{money(v, { whole: true })}</button>
               ))}
-              <button type="button" onClick={() => setStash(0)} className={cx("min-h-9 rounded-pill border px-3 text-sm font-semibold", stash === 0 ? "border-green-700 bg-green-700 text-white" : "border-green-200 bg-card text-green-900")}>Just window-shop (0 €)</button>
+              <button type="button" onClick={() => setStash(0)} className={cx("min-h-9 rounded-pill border px-3 text-sm font-semibold", stash === 0 ? "border-green-700 bg-green-700 text-white" : "border-green-200 bg-card text-green-900")}>{t("Just window-shop (0 €)")}</button>
             </div>
           </div>
         </div>
       )}
       {free != null && !overSafe && (
-        <p className="mt-2 flex items-start gap-1.5 text-xs text-ink-muted"><Info size={14} strokeWidth={STROKE} className="mt-0.5 shrink-0" aria-hidden /> Checked against your safe-to-spend: {money(free, { whole: true })} is free until payday, so this fits.</p>
+        <p className="mt-2 flex items-start gap-1.5 text-xs text-ink-muted"><Info size={14} strokeWidth={STROKE} className="mt-0.5 shrink-0" aria-hidden /> {t("Checked against your safe-to-spend: {amount} is free until payday, so this fits.", { amount: money(free, { whole: true }) })}</p>
       )}
-      <p className="mt-2 text-xs text-ink-muted">Simulation: no money is moved in this demo.</p>
+      <p className="mt-2 text-xs text-ink-muted">{t("Simulation: no money is moved in this demo.")}</p>
     </Card>
   );
 }
@@ -808,11 +816,11 @@ function Guard({ total, free, payday, overSafe, maxStash, stash, setStash }: { t
 export function ShopError({ session, customerId }: { session: ShopSession; customerId: string }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center">
-      <p className="text-lg font-bold text-green-900">{session.status === "refused" ? "Crave mode can't open a shop for that" : "The shop didn't open"}</p>
-      <Muted>{session.message ?? "Please try again."}</Muted>
-      {session.status === "refused" && <Muted>Try something like sushi, new sneakers or a cosy hoodie.</Muted>}
-      {session.status === "error" && <Button size="sm" onClick={() => startShop(session.craving, customerId, { retry: true })}>Try again</Button>}
-      <p className="mt-4 text-sm italic text-ink-muted">{CRAVE_MOTTO}</p>
+      <p className="text-lg font-bold text-green-900">{session.status === "refused" ? t("Crave mode can't open a shop for that") : t("The shop didn't open")}</p>
+      <Muted>{session.message ?? t("Please try again.")}</Muted>
+      {session.status === "refused" && <Muted>{t("Try something like sushi, new sneakers or a cosy hoodie.")}</Muted>}
+      {session.status === "error" && <Button size="sm" onClick={() => startShop(session.craving, customerId, { retry: true })}>{t("Try again")}</Button>}
+      <p className="mt-4 text-sm italic text-ink-muted">{t(CRAVE_MOTTO)}</p>
       <ConceptNotice />
     </div>
   );

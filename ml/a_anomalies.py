@@ -213,7 +213,8 @@ chunks = [list(c) for c in np.array_split(np.array(cids), 64)]
 done = sum(Parallel(n_jobs=32)(delayed(build_chunk)(c, S_small.filter(pl.col("customer_id").is_in(c)), weekly.filter(pl.col("customer_id").is_in(c))) for c in chunks))
 print(f"wrote {done} anomaly files ({time.time()-t0:.1f}s)")
 
-ships = auc["model"] > max(auc["global_amount"], auc["personal_amount_z"]) + 0.01
+# "ships" only if it beats every baseline, including the Isolation Forest on the same features
+ships = auc["model"] > max(auc["global_amount"], auc["personal_amount_z"], auc["isolation_forest"]) + 0.01
 write_json(os.path.join(GLOBAL_DIR, "modelcard-anomalies.json"), {
     "key": "anomalies", "name": "Unusual for you",
     "purpose": "Flag the purchases that are unusual for this particular person, with a plain reason, so surprises are spotted early.",
@@ -229,6 +230,10 @@ write_json(os.path.join(GLOBAL_DIR, "modelcard-anomalies.json"), {
     "verdict": "ships" if ships else "experimental",
     "caveats": ["No labelled fraud or surprise events exist in the data; validation uses synthetic injected anomalies, which shows the detector finds "
                 "what it was built to find, not that every flag matters to the person.",
+                "The benchmark is partly circular: the injected anomalies are built from the same three signals the score uses (amount against "
+                "the personal normal, unusual hour, rarely used category), and the amount-only baselines cannot see hour or category by "
+                "construction. Read the AUC as proof that the mechanism works, not as real-world accuracy.",
+                "It does not beat an Isolation Forest on the same features on this benchmark; it is used because every flag comes with a plain reason.",
                 "Hours in the data are 05-23 and amounts are smooth, so real unusual events are mostly large amounts.",
                 "A per-customer robust score was chosen over an Isolation Forest on the same personalised features: the forest over-weighted rare hours and categories (tiny purchases at 06:00) and was weaker on amount spikes; its AUC is reported alongside."],
     "validation": {"auc": auc, "byType": by_type},

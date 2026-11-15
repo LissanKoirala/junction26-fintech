@@ -8,6 +8,7 @@ import { HeroCard, heroInverse, heroMuted, heroTitle, VaraAvatar } from "@/ui/he
 import { Badge, Button, cx, HeroFigure, Progress, STROKE } from "@/ui/kit";
 import { Sheet } from "@/ui/Sheet";
 import { safeView, statusWording } from "@/features/vara/useVaraData";
+import { t } from "@/lib/i18n";
 
 export function SafeHero({ s }: { s: SafeToSpend }) {
   const [open, setOpen] = useState(false);
@@ -31,7 +32,7 @@ export function SafeHero({ s }: { s: SafeToSpend }) {
             <HeroFigure value={moneyParts(v.figure).num} ink={inv ? "inverse" : "default"} />
           </div>
         ) : (
-          <p className={cx("mt-2 text-3xl font-bold tracking-tight", inv ? "text-hero-num" : "text-ink")}>Plenty of room</p>
+          <p className={cx("mt-2 text-3xl font-bold tracking-tight", inv ? "text-hero-num" : "text-ink")}>{t("Plenty of room")}</p>
         )}
         <p className={cx("tnum text-sm", muted)}>{v.support}</p>
 
@@ -54,7 +55,7 @@ export function SafeHero({ s }: { s: SafeToSpend }) {
         </div>
         <div className="mt-3">
           <Button variant={inv ? "soft" : "tonal"} size="sm" icon={Calculator} onClick={() => setOpen(true)}>
-            Why this number?
+            {t("Why this number?")}
           </Button>
         </div>
       </HeroCard>
@@ -68,17 +69,16 @@ const SIGN: Record<string, string> = { "+": "", "-": "", "=": "=", "/": "÷" };
 export function StepsSheet({ s, open, onClose }: { s: SafeToSpend; open: boolean; onClose: () => void }) {
   const basisFor = (label: string) => s.upcoming.find((u) => u.label === label || label.includes(u.label))?.basis;
   return (
-    <Sheet open={open} onClose={onClose} title="Why this number?">
+    <Sheet open={open} onClose={onClose} title={t("Why this number?")}>
       <p className="text-sm text-ink-strong">
-        Your balance is not your budget. Vara first sets aside what must be paid before your next payday, then shares the
-        rest across the weeks until then.
+        {t("Your balance is not your budget. Vara first sets aside what must be paid before your next payday, then shares the rest across the weeks until then.")}
       </p>
       <ol className="mt-4 flex flex-col">
         {s.steps.map((st, i) => {
           const isTotal = st.sign === "=" || st.sign === "/";
           const isFinal = i === s.steps.length - 1;
           const basis = st.sign === "-" ? basisFor(st.label) : undefined;
-          const amount = st.sign === "/" ? st.amount.toLocaleString("fi-FI", { maximumFractionDigits: 1 }) + " weeks" : money(st.amount);
+          const amount = st.sign === "/" ? t("{n} weeks", { n: st.amount.toLocaleString("fi-FI", { maximumFractionDigits: 1 }) }) : money(st.amount);
           return (
             <li key={i} className={cx("flex items-start gap-3 py-2.5", isFinal ? "border-t-2 border-green-700" : isTotal ? "border-t border-ink/20" : i > 0 && "border-t border-line")}>
               <span className="tnum w-4 shrink-0 pt-0.5 text-center font-semibold text-ink-muted" aria-hidden>{SIGN[st.sign]}</span>
@@ -95,8 +95,7 @@ export function StepsSheet({ s, open, onClose }: { s: SafeToSpend; open: boolean
         })}
       </ol>
       <p className="mt-2 text-xs text-ink-muted">
-        Calculated from your own transactions as of {dateShort(s.asOf)}. Everyday extras you've spent this week count against
-        the weekly amount.
+        {t("Calculated from your own transactions as of {date}. Everyday extras you've spent this week count against the weekly amount.", { date: dateShort(s.asOf) })}
       </p>
     </Sheet>
   );

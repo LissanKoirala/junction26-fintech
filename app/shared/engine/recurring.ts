@@ -9,6 +9,8 @@ import {
   dateInMonth,
   dayNum,
   dayOfMonth,
+  et,
+  etn,
   daysBetween,
   fromDayNum,
   mean,
@@ -108,16 +110,16 @@ export function predictPaydays(c: CustomerData, horizonDays = 45): PaydayPredict
         estimated: true,
         irregular: s.irregular || undefined,
         basis: s.irregular
-          ? "Your income is irregular, so Vara plans for the next 30 days."
-          : "No regular monthly salary in the last 6 months, so Vara plans for the next 30 days.",
+          ? et("Your income is irregular, so Vara plans for the next 30 days.")
+          : et("No regular monthly salary in the last 6 months, so Vara plans for the next 30 days."),
       },
     ];
   }
   const use15 = s.share15 >= 0.5;
   const nPaid = Math.round(s.share15 * Math.max(1, Math.min(12, s.monthsSeen)));
   const basis = use15
-    ? `You were paid on the 15th in ${nPaid} of the last ${Math.min(12, s.monthsSeen)} months; the other months it came at the end of the month.`
-    : `Your salary usually arrives around day ${s.lateDay} of the month.`;
+    ? et("You were paid on the 15th in {n} of the last {m} months; the other months it came at the end of the month.", { n: nPaid, m: Math.min(12, s.monthsSeen) })
+    : et("Your salary usually arrives around day {day} of the month.", { day: s.lateDay });
   const out: PaydayPrediction[] = [];
   const paidThisMonth = s.last != null && monthKey(s.last) === monthKey(asOf);
   let m = paidThisMonth ? addMonths(monthKey(asOf), 1) : monthKey(asOf);
@@ -296,7 +298,7 @@ export const getRecurring: GetRecurring = (c) => {
   if (s.dates.length) {
     items.push({
       kind: "salary",
-      label: "Salary",
+      label: et("Salary"),
       typicalAmount: r2(s.typical),
       amountLow: r2(s.low),
       amountHigh: r2(s.high),
@@ -307,16 +309,16 @@ export const getRecurring: GetRecurring = (c) => {
       lastDate: s.last,
       nextFrom: pay && !pay.estimated ? pay.date : null,
       nextTo: pay && !pay.estimated ? (pay.latest ?? pay.date) : null,
-      note: s.regular ? pay?.basis : s.irregular ? "Income is irregular, so Vara plans for the next 30 days instead of predicting a payday." : "Income is irregular: no steady monthly salary in the last 6 months.",
+      note: s.regular ? pay?.basis : s.irregular ? et("Income is irregular, so Vara plans for the next 30 days instead of predicting a payday.") : et("Income is irregular: no steady monthly salary in the last 6 months."),
     });
-    if (s.irregular) items[items.length - 1].label = "Income (irregular)";
+    if (s.irregular) items[items.length - 1].label = et("Income (irregular)");
   }
   const h = housingInfo(c);
   if (h.paidMonths.size) {
     const next = housingDue(c, addDays(c.asOf, 70))[0];
     items.push({
       kind: "housing",
-      label: "Rent / housing",
+      label: et("Rent / housing"),
       typicalAmount: r2(h.typical),
       amountLow: r2(h.low),
       amountHigh: r2(h.high),
@@ -329,7 +331,7 @@ export const getRecurring: GetRecurring = (c) => {
       nextTo: h.active && next ? next.to : null,
       note:
         h.monthsSeen < 12
-          ? "Some months have no housing payment in the data (a gap in the data, not a missed payment)."
+          ? et("Some months have no housing payment in the data (a gap in the data, not a missed payment).")
           : undefined,
     });
   }
@@ -338,7 +340,7 @@ export const getRecurring: GetRecurring = (c) => {
     const nUtil = c.tx.filter((t) => t.type === "utilities_payment" && t.date >= monthStart(u.months[0])).length;
     items.push({
       kind: "utilities",
-      label: "Utilities (electricity, water, internet …)",
+      label: et("Utilities (electricity, water, internet …)"),
       typicalAmount: r2(u.perMonth),
       amountLow: r2(Math.min(...u.totals.filter((t) => t > 0))),
       amountHigh: r2(Math.max(...u.totals)),
@@ -347,7 +349,7 @@ export const getRecurring: GetRecurring = (c) => {
       lastDate: [...c.tx].reverse().find((t) => t.type === "utilities_payment")?.date ?? null,
       nextFrom: addDays(c.asOf, 1),
       nextTo: monthEnd(monthKey(addDays(c.asOf, 1))),
-      note: `About ${Math.round(nUtil / Math.max(1, u.paidMonths))} bills a month; budgeted as a monthly total.`,
+      note: et("About {n} bills a month; budgeted as a monthly total.", { n: Math.round(nUtil / Math.max(1, u.paidMonths)) }),
     });
   }
   const inv = investInfo(c);
@@ -357,7 +359,7 @@ export const getRecurring: GetRecurring = (c) => {
     const nf = pending ? pending.date : nextPay ? addDays(nextPay, Math.max(1, inv.lagDays - 1)) : null;
     items.push({
       kind: "investment",
-      label: "Investing",
+      label: et("Investing"),
       typicalAmount: r2(inv.typical),
       amountLow: r2(inv.low),
       amountHigh: r2(inv.high),
@@ -366,7 +368,7 @@ export const getRecurring: GetRecurring = (c) => {
       lastDate: inv.last,
       nextFrom: inv.regular ? nf : null,
       nextTo: inv.regular && nf ? addDays(nf, 3) : null,
-      note: `Usually ${inv.lagDays} day${inv.lagDays === 1 ? "" : "s"} after payday.`,
+      note: etn("Usually {n} day after payday.", "Usually {n} days after payday.", inv.lagDays),
     });
   }
   const g = dailyRate(c, 3, (t) => t.category === "Groceries");
@@ -381,7 +383,7 @@ export const getRecurring: GetRecurring = (c) => {
     }
     items.push({
       kind: "groceries",
-      label: "Groceries",
+      label: et("Groceries"),
       typicalAmount: r2(g.perDay * 7),
       amountLow: r2(weekly.length ? Math.min(...weekly) : 0),
       amountHigh: r2(weekly.length ? Math.max(...weekly) : 0),
@@ -390,7 +392,7 @@ export const getRecurring: GetRecurring = (c) => {
       lastDate: [...c.tx].reverse().find((t) => t.category === "Groceries")?.date ?? null,
       nextFrom: addDays(c.asOf, 1),
       nextTo: addDays(c.asOf, 7),
-      note: "Weekly average over the last 3 full months.",
+      note: et("Weekly average over the last 3 full months."),
     });
   }
   return items;

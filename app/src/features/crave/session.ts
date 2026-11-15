@@ -2,6 +2,7 @@
 // (prefetch) the shop and the Crave screen picks it up, already filled in, when the customer taps it.
 import { useEffect, useSyncExternalStore } from "react";
 import type { CraveEvent, CraveProduct, CraveShop, CraveShopHeader } from "@shared/crave";
+import { getLang, t, type Lang } from "@/lib/i18n";
 
 export interface ShopSession {
   craving: string;
@@ -19,7 +20,8 @@ export interface ShopSession {
 const sessions = new Map<string, ShopSession>();
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
-const keyOf = (c: string) => c.trim().toLowerCase().replace(/\s+/g, " ");
+// one session per craving and language: an English and a Finnish shop never mix
+const keyOf = (c: string, lang: Lang = getLang()) => `${lang}|${c.trim().toLowerCase().replace(/\s+/g, " ")}`;
 
 function patch(key: string, fn: (s: ShopSession) => ShopSession) {
   const s = sessions.get(key);
@@ -61,14 +63,14 @@ function apply(key: string, ev: CraveEvent) {
   });
 }
 
-async function run(key: string, craving: string, customerId: string) {
+async function run(key: string, craving: string, customerId: string, lang: Lang) {
   try {
     const res = await fetch("/api/crave/shop", {
       method: "POST",
       headers: { "content-type": "application/json", accept: "text/event-stream" },
-      body: JSON.stringify({ customerId, craving }),
+      body: JSON.stringify({ customerId, craving, lang }),
     });
-    if (!res.ok || !res.body) throw new Error(res.status === 429 ? "Too many shops in a short time. Try again in a moment." : `HTTP ${res.status}`);
+    if (!res.ok || !res.body) throw new Error(res.status === 429 ? t("Too many shops in a short time. Try again in a moment.") : `HTTP ${res.status}`);
     const reader = res.body.getReader();
     const dec = new TextDecoder();
     let buf = "";
@@ -92,21 +94,22 @@ async function run(key: string, craving: string, customerId: string) {
     const s = sessions.get(key);
     if (s && s.status === "loading") {
       if (s.products.length) patch(key, (x) => ({ ...x, status: "ready" }));
-      else patch(key, (x) => ({ ...x, status: "error", message: "The shop could not be opened right now." }));
+      else patch(key, (x) => ({ ...x, status: "error", message: t("The shop could not be opened right now.") }));
     }
   } catch (e) {
-    patch(key, (x) => ({ ...x, status: x.products.length ? "ready" : "error", message: e instanceof Error && !/HTTP|fetch/i.test(e.message) ? e.message : "The shop could not be opened right now. Please try again." }));
+    patch(key, (x) => ({ ...x, status: x.products.length ? "ready" : "error", message: e instanceof Error && !/HTTP|fetch/i.test(e.message) ? e.message : t("The shop could not be opened right now. Please try again.") }));
   }
 }
 
 /** Starts (or reuses) the shop for this craving. Safe to call repeatedly. */
 export function startShop(craving: string, customerId: string, opts: { retry?: boolean } = {}): string {
-  const key = keyOf(craving);
+  const lang = getLang();
+  const key = keyOf(craving, lang);
   const cur = sessions.get(key);
   if (cur && !(opts.retry && (cur.status === "error" || cur.status === "refused"))) return key;
-  sessions.set(key, { craving: craving.trim(), status: "loading", label: "Hunting for the best deals…", header: null, products: [], alsoBought: [], startedAt: Date.now() });
+  sessions.set(key, { craving: craving.trim(), status: "loading", label: "", header: null, products: [], alsoBought: [], startedAt: Date.now() });
   emit();
-  void run(key, craving.trim(), customerId);
+  void run(key, craving.trim(), customerId, lang);
   return key;
 }
 

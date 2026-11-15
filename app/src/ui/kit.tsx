@@ -2,6 +2,7 @@
 import { type ButtonHTMLAttributes, type ComponentType, type ReactNode, useId, useState } from "react";
 import { ChevronDown, ChevronRight, Info, TriangleAlert, type LucideIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { LANGS, LANG_NAMES, setLang, t, useLang } from "@/lib/i18n";
 
 export const STROKE = 1.5;
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(" ");
@@ -288,7 +289,7 @@ export function Skeleton({ className }: { className?: string }) {
 export function SkeletonCard({ lines = 3, tall }: { lines?: number; tall?: boolean }) {
   return (
     <Card>
-      <div aria-busy="true" aria-label="Loading" className="flex flex-col gap-3">
+      <div aria-busy="true" aria-label={t("Loading")}className="flex flex-col gap-3">
         <Skeleton className="h-5 w-1/2" />
         {tall && <Skeleton className="h-12 w-2/3" />}
         {Array.from({ length: lines }, (_, i) => (
@@ -419,8 +420,33 @@ export function Slider({
 export function ConceptNotice({ className }: { className?: string }) {
   return (
     <p className={cx("px-4 py-3 text-center text-xs text-ink-muted", className)}>
-      Junction 2026 concept · not an official S-Pankki product
+      {t("Junction 2026 concept · not an official S-Pankki product")}
     </p>
+  );
+}
+
+// ------------------------------------------------------------------ language switch
+/** Compact "EN | FI" switch for the top bars. The screen tree remounts on change, so callers need nothing else. */
+export function LangSwitch({ className }: { className?: string }) {
+  const lang = useLang();
+  return (
+    <div role="radiogroup" aria-label={t("App language")} className={cx("inline-flex items-center rounded-pill bg-card p-0.5 text-xs font-bold shadow-app-card", className)}>
+      {LANGS.map((l) => (
+        <button
+          key={l}
+          type="button"
+          role="radio"
+          lang={l}
+          aria-checked={l === lang}
+          aria-label={LANG_NAMES[l]}
+          title={LANG_NAMES[l]}
+          onClick={() => setLang(l)}
+          className={cx("min-h-8 min-w-8 rounded-pill px-1.5 tracking-wide transition-colors duration-200", l === lang ? "bg-green-700 text-white" : "text-green-900 hover:bg-green-50")}
+        >
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </div>
   );
 }
 

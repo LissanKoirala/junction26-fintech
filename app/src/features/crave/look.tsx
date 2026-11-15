@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import type { CraveAccent, CraveIcon } from "@shared/crave";
 import { cx, STROKE } from "@/ui/kit";
+import { getLang, t } from "@/lib/i18n";
 
 export const ACCENT: Record<CraveAccent, { main: string; soft: string; ink: string }> = {
   teal: { main: "#0f766e", soft: "#ccfbf1", ink: "#134e4a" },
@@ -83,7 +84,7 @@ export function NothingShipsPill({ className, onDark }: { className?: string; on
       )}
     >
       <PackageX size={14} strokeWidth={STROKE} aria-hidden />
-      Crave mode · nothing ships
+      {t("Crave mode · nothing ships")}
     </span>
   );
 }
@@ -117,4 +118,14 @@ export function Confetti({ count = 44, accent }: { count?: number; accent?: stri
       ))}
     </div>
   );
+}
+
+/** Example cravings in the current language (the cached demo shops). Call at render time. */
+export function craveExamples() {
+  const fi = getLang() === "fi";
+  return [
+    { q: "sushi", icon: Fish },
+    { q: fi ? "langattomat kuulokkeet" : "wireless headphones", icon: Headphones },
+    { q: fi ? "uudet lenkkarit" : "new sneakers", icon: Footprints },
+  ];
 }

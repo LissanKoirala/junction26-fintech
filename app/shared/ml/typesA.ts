@@ -141,7 +141,8 @@ export interface MlHabits {
     series: { weekStart: string; value: number }[]; // last 40 weeks for a sparkline
   }[];
   method: string;
-  falsePositiveRate?: number; // per series, measured on time-shuffled series
+  falsePositiveRate?: number; // per series, measured on 4-week block-shuffled series (conservative)
+  chanceShare?: number; // upper estimate of the share of flagged shifts that could be chance (0..1)
 }
 
 // ------------------------------------------------------------------ ml/home/{id}.json  ("First-home readiness", illustrative)

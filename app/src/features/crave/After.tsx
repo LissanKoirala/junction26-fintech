@@ -1,22 +1,23 @@
 // Afterglow: order tracking that plays along (the courier arrives at the savings pot, not the door) and an in-app
 // inbox with order emails. No real emails are sent.
+// Stage labels below are English keys, translated where shown.
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { Bike, Box, Check, Inbox as InboxIcon, Mail, PiggyBank, Truck, UtensilsCrossed } from "lucide-react";
 import { CRAVE_MOTTO, type CraveEntry } from "@shared/crave";
 import { money } from "@/lib/format";
+import { rich, t, tn } from "@/lib/i18n";
 import { goBack, navigate, useRoute } from "@/lib/router";
 import { FullScreen, ScreenHeader, ScrollArea } from "@/ui/hero";
 import { Badge, Button, Card, ConceptNotice, cx, Muted, Page, STROKE, Unavailable } from "@/ui/kit";
 import type { CraveEmail } from "@/state/store";
-import { craveActions, useCravings, useInbox } from "./diary";
-import { NothingShipsPill } from "./look";
+import { craveActions, mailFrom, mailSubject, useCravings, useInbox } from "./diary";
 
 function useNow(ms = 1000) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), ms);
-    return () => clearInterval(t);
+    const id = setInterval(() => setNow(Date.now()), ms);
+    return () => clearInterval(id);
   }, [ms]);
   return now;
 }
@@ -31,7 +32,7 @@ const STAGES = [
 function FoodRoute({ progress }: { progress: number }) {
   const d = "M30 150 C 90 150, 80 60, 160 70 S 250 140, 300 50";
   return (
-    <svg viewBox="0 0 330 190" className="w-full" role="img" aria-label="Courier route from the restaurant to your savings pot">
+    <svg viewBox="0 0 330 190" className="w-full" role="img" aria-label={t("Courier route from the restaurant to your savings pot")}>
       <rect x="0" y="0" width="330" height="190" rx="16" fill="#ebf7ec" />
       {[40, 90, 140].map((y) => <line key={y} x1="0" x2="330" y1={y} y2={y} stroke="#dcefdf" strokeWidth="10" />)}
       {[70, 170, 260].map((x) => <line key={x} y1="0" y2="190" x1={x} x2={x} stroke="#dcefdf" strokeWidth="10" />)}
@@ -57,8 +58,8 @@ export function Tracking() {
   if (!e)
     return (
       <FullScreen>
-        <ScreenHeader title="Track order" onBack={() => goBack("/crave")} />
-        <Page><Unavailable title="No orders yet" reason="Shop a craving first." /></Page>
+        <ScreenHeader title={t("Track order")} onBack={() => goBack("/crave")} />
+        <Page><Unavailable title={t("No orders yet")} reason={t("Shop a craving first.")} /></Page>
       </FullScreen>
     );
   const elapsed = now - e.at;
@@ -67,12 +68,12 @@ export function Tracking() {
   const Vehicle = e.kind === "food" ? Bike : Truck;
   return (
     <FullScreen>
-      <ScreenHeader title="Track order" onBack={() => goBack("/crave/pot")} right={<span className="whitespace-nowrap pr-2 text-xs font-semibold text-green-700">Nothing ships</span>} />
+      <ScreenHeader title={t("Track order")} onBack={() => goBack("/crave/pot")} right={<span className="whitespace-nowrap pr-2 text-xs font-semibold text-green-700">{t("Nothing ships")}</span>} />
       <ScrollArea>
         <Page>
           <Card>
             <p className="text-sm text-ink-muted">{e.shopName} · {e.id}</p>
-            <p className="text-xl font-bold text-ink">{STAGES[stage][e.kind]}</p>
+            <p className="text-xl font-bold text-ink">{t(STAGES[stage][e.kind])}</p>
             <p className="text-sm text-ink-muted">{e.items.map((i) => `${i.qty} × ${i.name}`).join(", ")}</p>
             <div className="mt-3">
               {e.kind === "food" ? (
@@ -99,8 +100,8 @@ export function Tracking() {
                     {i < STAGES.length - 1 && <span className={cx("w-0.5 flex-1", i < stage ? "bg-green-700" : "bg-line")} style={{ minHeight: 20 }} />}
                   </div>
                   <div className="pb-4">
-                    <p className={cx("font-semibold", i <= stage ? "text-ink" : "text-ink-muted")}>{s[e.kind]}</p>
-                    {i === 3 && <p className="text-sm text-ink-muted">The courier rings at your savings pot instead of your door: {money(e.amount)} delivered.</p>}
+                    <p className={cx("font-semibold", i <= stage ? "text-ink" : "text-ink-muted")}>{t(s[e.kind])}</p>
+                    {i === 3 && <p className="text-sm text-ink-muted">{t("The courier rings at your savings pot instead of your door: {amount} delivered.", { amount: money(e.amount) })}</p>}
                   </div>
                 </li>
               ))}
@@ -108,12 +109,12 @@ export function Tracking() {
           </Card>
           {stage === 3 && (
             <Card className="bg-hero-deep text-white">
-              <p className="font-bold text-hero-num">Delivered. To your future self.</p>
-              <p className="text-sm text-hero-meta">{CRAVE_MOTTO}</p>
+              <p className="font-bold text-hero-num">{t("Delivered. To your future self.")}</p>
+              <p className="text-sm text-hero-meta">{t(CRAVE_MOTTO)}</p>
             </Card>
           )}
-          <Button variant="soft" icon={InboxIcon} onClick={() => navigate("/crave/inbox")}>Open inbox</Button>
-          <Badge tone="info">Simulation: no money was moved, nothing ships</Badge>
+          <Button variant="soft" icon={InboxIcon} onClick={() => navigate("/crave/inbox")}>{t("Open inbox")}</Button>
+          <Badge tone="info">{t("Simulation: no money was moved, nothing ships")}</Badge>
           <ConceptNotice />
         </Page>
       </ScrollArea>
@@ -123,48 +124,48 @@ export function Tracking() {
 
 // ------------------------------------------------------------------ inbox
 function EmailBody({ m, e }: { m: CraveEmail; e: CraveEntry | undefined }) {
-  if (!e) return <Muted>This order is no longer in your diary.</Muted>;
+  if (!e) return <Muted>{t("This order is no longer in your diary.")}</Muted>;
   const items = (
     <table className="mt-3 w-full text-sm">
       <tbody>
         {e.items.map((i, k) => (
           <tr key={k} className="border-b border-line"><td className="py-1.5 text-ink">{i.qty} × {i.name}</td><td className="tnum py-1.5 text-right text-ink">{money(i.price)}</td></tr>
         ))}
-        <tr><td className="pt-2 font-bold text-ink">Total</td><td className="tnum pt-2 text-right font-bold text-ink">{money(e.basketTotal)}</td></tr>
+        <tr><td className="pt-2 font-bold text-ink">{t("Total")}</td><td className="tnum pt-2 text-right font-bold text-ink">{money(e.basketTotal)}</td></tr>
       </tbody>
     </table>
   );
   if (m.kind === "confirmation")
     return (
       <div>
-        <div className="rounded-t-md bg-green-900 px-4 py-5 text-white"><p className="text-xs uppercase tracking-wide text-hero-meta">{e.shopName}</p><p className="text-2xl font-bold">Thanks for your order!</p></div>
+        <div className="rounded-t-md bg-green-900 px-4 py-5 text-white"><p className="text-xs uppercase tracking-wide text-hero-meta">{e.shopName}</p><p className="text-2xl font-bold">{t("Thanks for your order!")}</p></div>
         <div className="rounded-b-md border border-t-0 border-line bg-card p-4">
-          <p className="text-ink">Hi! We've received your order <b>{e.id}</b> and we're getting it ready.</p>
+          <p className="text-ink">{rich(t("Hi! We've received your order **{id}** and we're getting it ready.", { id: e.id }))}</p>
           {items}
-          <p className="mt-3 text-sm text-ink-muted">Delivery address: Esimerkkikatu 12 B 7, 00100 Helsinki (demo data)</p>
-          <p className="mt-1 text-sm text-ink-muted">Paid with S-Pankki Debit •••• 4821 (simulation)</p>
+          <p className="mt-3 text-sm text-ink-muted">{t("Delivery address: {address} (demo data)", { address: "Esimerkkikatu 12 B 7, 00100 Helsinki" })}</p>
+          <p className="mt-1 text-sm text-ink-muted">{t("Paid with {card} (simulation)", { card: "S-Pankki Debit •••• 4821" })}</p>
         </div>
       </div>
     );
   if (m.kind === "shipped")
     return (
       <div>
-        <div className="rounded-t-md bg-green-700 px-4 py-5 text-white"><p className="text-xs uppercase tracking-wide text-green-150">{e.shopName}</p><p className="text-2xl font-bold">It's on its way!</p></div>
+        <div className="rounded-t-md bg-green-700 px-4 py-5 text-white"><p className="text-xs uppercase tracking-wide text-green-150">{e.shopName}</p><p className="text-2xl font-bold">{t("It's on its way!")}</p></div>
         <div className="rounded-b-md border border-t-0 border-line bg-card p-4">
-          <p className="text-ink">Good news: order <b>{e.id}</b> has left {e.kind === "food" ? "the kitchen" : "our warehouse"}.</p>
-          <p className="mt-2 text-ink">Small detail: it is heading to your <b>savings</b>, not your door. The courier is carrying <b className="tnum">{money(e.amount)}</b> straight into your Crave pot.</p>
-          <p className="mt-3 text-sm text-ink-muted">Track it any time in Vara.</p>
+          <p className="text-ink">{rich(e.kind === "food" ? t("Good news: order **{id}** has left the kitchen.", { id: e.id }) : t("Good news: order **{id}** has left our warehouse.", { id: e.id }))}</p>
+          <p className="mt-2 text-ink">{rich(t("Small detail: it is heading to your **savings**, not your door. The courier is carrying **{amount}** straight into your Crave pot.", { amount: money(e.amount) }))}</p>
+          <p className="mt-3 text-sm text-ink-muted">{t("Track it any time in Vara.")}</p>
         </div>
       </div>
     );
   return (
     <div>
-      <div className="rounded-t-md bg-hero-deep px-4 py-5 text-white"><p className="text-xs uppercase tracking-wide text-hero-num">Vara · Crave mode</p><p className="text-2xl font-bold">Delivered to your Crave pot</p></div>
+      <div className="rounded-t-md bg-hero-deep px-4 py-5 text-white"><p className="text-xs uppercase tracking-wide text-hero-num">Vara · {t("Crave mode")}</p><p className="text-2xl font-bold">{t("Delivered to your Crave pot")}</p></div>
       <div className="rounded-b-md border border-t-0 border-line bg-card p-4">
-        <p className="text-ink">Your “{e.craving}” craving has been delivered: <b className="tnum">{money(e.amount)}</b> is now in your Crave pot.</p>
-        <p className="mt-2 text-ink">Still want it in 48 hours? Release it with one tap in Vara and buy it for real. It's your money either way.</p>
-        <p className="mt-4 text-lg font-bold text-green-700">{CRAVE_MOTTO}</p>
-        <p className="mt-2 text-xs text-ink-muted">Simulation: no money was moved. Junction 2026 concept · not an official S-Pankki product.</p>
+        <p className="text-ink">{rich(t("Your “{craving}” craving has been delivered: **{amount}** is now in your Crave pot.", { craving: e.craving, amount: money(e.amount) }))}</p>
+        <p className="mt-2 text-ink">{t("Still want it in 48 hours? Release it with one tap in Vara and buy it for real. It's your money either way.")}</p>
+        <p className="mt-4 text-lg font-bold text-green-700">{t(CRAVE_MOTTO)}</p>
+        <p className="mt-2 text-xs text-ink-muted">{t("Simulation: no money was moved.")} {t("Junction 2026 concept · not an official S-Pankki product")}</p>
       </div>
     </div>
   );
@@ -184,13 +185,13 @@ export function InboxView() {
   if (open)
     return (
       <FullScreen>
-        <ScreenHeader title="Email" onBack={() => goBack("/crave/inbox")} />
+        <ScreenHeader title={t("Email")} onBack={() => goBack("/crave/inbox")} />
         <ScrollArea>
           <Page>
             <div className="px-1">
-              <p className="text-lg font-bold text-ink">{open.subject}</p>
-              <p className="text-sm text-ink-muted">From: {open.from} &lt;orders@example.invalid&gt;</p>
-              <p className="text-sm text-ink-muted">To: you (in-app inbox, demo)</p>
+              <p className="text-lg font-bold text-ink">{mailSubject(open, list.find((e) => e.id === open.orderId)?.kind === "food")}</p>
+              <p className="text-sm text-ink-muted">{t("From: {from}", { from: mailFrom(open) })} &lt;orders@example.invalid&gt;</p>
+              <p className="text-sm text-ink-muted">{t("To: you (in-app inbox, demo)")}</p>
             </div>
             <EmailBody m={open} e={list.find((e) => e.id === open.orderId)} />
             <ConceptNotice />
@@ -201,24 +202,24 @@ export function InboxView() {
   const pending = mails.filter((m) => m.at > now).length;
   return (
     <FullScreen>
-      <ScreenHeader title="Inbox" onBack={() => goBack("/crave/pot")} />
+      <ScreenHeader title={t("Inbox")} onBack={() => goBack("/crave/pot")} />
       <ScrollArea>
         <Page>
-          <Muted className="px-1">Order emails from Crave mode land here, inside the app. No real emails are sent.</Muted>
+          <Muted className="px-1">{t("Order emails from Crave mode land here, inside the app. No real emails are sent.")}</Muted>
           <Card padded={false} className="divide-y divide-line">
             {visible.map((m) => (
               <motion.button key={m.id} layout initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} type="button" onClick={() => navigate(`/crave/inbox?mail=${m.id}`)} className="flex w-full items-start gap-3 p-4 text-left hover:bg-green-50">
                 <span className="mt-1.5 h-2 w-2 shrink-0 rounded-pill" style={{ background: m.read ? "transparent" : "#00aa46" }} aria-hidden />
                 <span className="min-w-0 flex-1">
-                  <span className={cx("block truncate text-sm", m.read ? "text-ink-muted" : "font-bold text-ink")}>{m.from}</span>
-                  <span className={cx("block truncate", m.read ? "text-ink-strong" : "font-semibold text-ink")}>{m.subject}</span>
+                  <span className={cx("block truncate text-sm", m.read ? "text-ink-muted" : "font-bold text-ink")}>{mailFrom(m)}</span>
+                  <span className={cx("block truncate", m.read ? "text-ink-strong" : "font-semibold text-ink")}>{mailSubject(m, list.find((e) => e.id === m.orderId)?.kind === "food")}</span>
                 </span>
                 <span className="shrink-0 text-xs text-ink-muted">{new Date(m.at).toLocaleTimeString("fi-FI", { hour: "2-digit", minute: "2-digit" })}</span>
               </motion.button>
             ))}
-            {!visible.length && <p className="flex items-center gap-2 p-4 text-ink-muted"><Mail size={18} strokeWidth={STROKE} aria-hidden /> No emails yet.</p>}
+            {!visible.length && <p className="flex items-center gap-2 p-4 text-ink-muted"><Mail size={18} strokeWidth={STROKE} aria-hidden /> {t("No emails yet.")}</p>}
           </Card>
-          {pending > 0 && <Muted className="px-1">{pending} more on the way…</Muted>}
+          {pending > 0 && <Muted className="px-1">{t("{n} more on the way…", { n: pending })}</Muted>}
           <ConceptNotice />
         </Page>
       </ScrollArea>

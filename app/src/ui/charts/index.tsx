@@ -4,6 +4,7 @@ import { useId, useMemo, useState, type ReactNode } from "react";
 import { scaleLinear, scaleBand } from "d3-scale";
 import { arc as d3arc, area as d3area, line as d3line, pie as d3pie, curveMonotoneX } from "d3-shape";
 import { motion } from "motion/react";
+import { t as tt } from "@/lib/i18n";
 import { cx } from "../kit";
 
 /** Categorical series colours, in fixed order (bank theme tokens). */
@@ -253,7 +254,11 @@ export function FanChart({ fan, format, height = 170, markers = [], dateLabel }:
         width={w}
         height={height}
         role="img"
-        aria-label={`Balance forecast to ${dateLabel(fan[fan.length - 1].date)}: middle path ends at ${format(fan[fan.length - 1].p50)}, 1 in 10 paths below ${format(Math.min(...fan.map((f) => f.p10)))}`}
+        aria-label={tt("Balance forecast to {date}: middle path ends at {end}, 1 in 10 paths below {low}", {
+          date: dateLabel(fan[fan.length - 1].date),
+          end: format(fan[fan.length - 1].p50),
+          low: format(Math.min(...fan.map((f) => f.p10))),
+        })}
         onPointerMove={(e) => {
           const rect = (e.currentTarget as SVGElement).getBoundingClientRect();
           const d = x.invert(e.clientX - rect.left);
@@ -291,9 +296,9 @@ export function FanChart({ fan, format, height = 170, markers = [], dateLabel }:
       </svg>
       {h && (
         <div className="pointer-events-none absolute top-0 rounded-sm bg-ink px-2 py-1 text-xs text-white shadow-low" style={{ left: Math.min(Math.max(x(h.day) - 70, 0), w - 150) }}>
-          <span className="font-semibold">{dateLabel(h.date)}</span> · likely {format(h.p50)}
+          <span className="font-semibold">{dateLabel(h.date)}</span> · {tt("likely {v}", { v: format(h.p50) })}
           <br />
-          range {format(h.p10)} – {format(h.p90)}
+          {tt("range {lo} – {hi}", { lo: format(h.p10), hi: format(h.p90) })}
         </div>
       )}
     </div>

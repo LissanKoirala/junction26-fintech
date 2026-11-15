@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { X, type LucideIcon } from "lucide-react";
 import { motion } from "motion/react";
+import { t } from "@/lib/i18n";
 import { cx, IconHero, STROKE } from "./kit";
 
 export function StorySegments({ count, index, label }: { count: number; index: number; label: string }) {
@@ -27,7 +28,7 @@ export function StorySurface({ children }: { children: ReactNode }) {
 
 export function StoryClose({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} aria-label="Close check-in" className="flex h-11 w-11 items-center justify-center rounded-pill text-white hover:bg-white/10">
+    <button type="button" onClick={onClick} aria-label={t("Close check-in")} className="flex h-11 w-11 items-center justify-center rounded-pill text-white hover:bg-white/10">
       <X size={24} strokeWidth={STROKE} aria-hidden />
     </button>
   );

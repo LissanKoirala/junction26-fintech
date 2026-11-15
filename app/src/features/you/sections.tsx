@@ -224,7 +224,12 @@ export function HabitsSection() {
           No lasting change in your weekly spending over the last year. Steady is fine too: if you start a new habit, it shows up here after about six weeks.
         </p>
       )}
-      {hs.length > 0 && <Caveat>These are patterns in your weekly numbers, not judgements. About 1 in 20 flagged changes could be chance.</Caveat>}
+      {hs.length > 0 && (
+        <Caveat>
+          These are patterns in your weekly numbers, not judgements.
+          {hl.data.chanceShare ? ` Up to about 1 in ${Math.max(2, Math.round(1 / hl.data.chanceShare))} flagged changes could be chance.` : " Some flagged changes could be chance."}
+        </Caveat>
+      )}
     </MlCard>
   );
 }

@@ -22,7 +22,8 @@ D = load_domain()
 CL = {k: v["label"] for k, v in D["categories"].items()}
 ASOF = date.fromisoformat(AS_OF)
 NW, MIN_AFTER, BEFORE, SEARCH = 104, 6, 26, 52
-TARGET_FP = 0.005   # per series; ~19 series per customer
+TARGET_FP = 0.01    # per series, measured on the block-shuffled null (see below); ~19 series per customer
+BLOCK = 4           # weeks per block in the block-shuffle null
 SMALL = D["smallPurchaseThreshold"]
 
 tx = add_basket_column(load_tx(), D)
@@ -79,33 +80,43 @@ def passes(ts, bb, ba, d, metric_is_count, thr):
 is_count = np.array([s[2] == "weekly_count" for s in SERIES])[None, :]
 main = np.array([not is_tail_cohort(c) for c in ids])
 ts, tcp, bb, ba, dd = scan(X)
-# shuffle null: permute each series in time (destroys any sustained shift, keeps the distribution)
+# Two nulls of "no sustained change", both built from the real series:
+#   weeks  = every week shuffled independently (destroys all structure in time; too easy to beat when weeks are correlated)
+#   blocks = 4-week blocks shuffled (keeps short runs such as one busy month; conservative, because a real sustained shift
+#            survives inside its blocks and can land in the search window)
+# The threshold is calibrated on the block null. The truth lies between the two.
 rng = np.random.default_rng(11)
-Xs = X[main].copy()
-for _ in range(1):
-    idx = np.argsort(rng.random(Xs.shape), axis=-1)
-    Xs = np.take_along_axis(Xs, idx, -1)
+Xm = X[main]
+Xs = np.take_along_axis(Xm, np.argsort(rng.random(Xm.shape), axis=-1), -1)
+order = np.argsort(rng.random(Xm.shape[:-1] + (NW // BLOCK,)), axis=-1)
+bidx = (order[..., :, None] * BLOCK + np.arange(BLOCK)).reshape(Xm.shape[:-1] + (NW,))
+Xb = np.take_along_axis(Xm, bidx, -1)
 nts, _, nbb, nba, ndd = scan(Xs)
-null_abs = np.sort(np.abs(nts).ravel())
-# threshold: smallest |t| such that the shuffled false-positive rate (all filters) <= TARGET_FP
+bts, _, bbb, bba, bdd = scan(Xb)
+null_abs = np.sort(np.abs(bts).ravel())
 thr = None
-for cand in np.arange(2.0, 12.0, 0.1):
-    fp = passes(nts, nbb, nba, ndd, is_count, cand).mean()
-    if fp <= TARGET_FP:
+for cand in np.arange(2.0, 14.0, 0.1):
+    if passes(bts, bbb, bba, bdd, is_count, cand).mean() <= TARGET_FP:
         thr = float(cand); break
-fp_rate = float(passes(nts, nbb, nba, ndd, is_count, thr).mean())
+if thr is None:
+    thr = 14.0
+fp_block = float(passes(bts, bbb, bba, bdd, is_count, thr).mean())
+fp_weeks = float(passes(nts, nbb, nba, ndd, is_count, thr).mean())
+fp_rate = fp_block
 real_mask = passes(ts, bb, ba, dd, is_count, thr)
 det_rate = float(real_mask[main].mean())
-fp_rate_cust = float(passes(nts, nbb, nba, ndd, is_count, thr).any(1).mean())
+fp_rate_cust = float(passes(bts, bbb, bba, bdd, is_count, thr).any(1).mean())
+fp_weeks_cust = float(passes(nts, nbb, nba, ndd, is_count, thr).any(1).mean())
 det_rate_cust = float(real_mask[main].any(1).mean())
-print(f"threshold |t|>={thr:.1f}: shuffled FP {fp_rate:.4f}/series ({fp_rate_cust:.3f} of customers); real detection {det_rate:.4f}/series "
-      f"({det_rate_cust:.3f} of customers) ({time.time()-t0:.1f}s)")
+chance_lo, chance_hi = fp_weeks / max(det_rate, 1e-9), fp_block / max(det_rate, 1e-9)
+print(f"threshold |t|>={thr:.1f}: false positives {fp_weeks:.4f} (weeks shuffled) / {fp_block:.4f} (4-week blocks) per series; "
+      f"real detection {det_rate:.4f}/series ({det_rate_cust:.3f} of customers vs {fp_rate_cust:.3f} on block null) ({time.time()-t0:.1f}s)")
 conf = 1 - (len(null_abs) - np.searchsorted(null_abs, np.abs(ts))) / len(null_abs)
 
 odir = out_dir("ml", "habits")
 METHOD = (f"Weekly series (104 weeks). Most recent change point in the last {SEARCH} weeks (new level must hold >= {MIN_AFTER} weeks, "
-          f"compared with the {BEFORE} weeks before); reported when Welch |t| >= {thr:.1f} (calibrated on time-shuffled series to a "
-          f"{fp_rate:.1%} false-positive rate), Cohen's d >= 0.8 and change >= 20%.")
+          f"compared with the {BEFORE} weeks before); reported when Welch |t| >= {thr:.1f} (calibrated so that at most {TARGET_FP:.0%} of "
+          f"{BLOCK}-week block-shuffled series are flagged), Cohen's d >= 0.8 and change >= 20%.")
 weekstarts = [str(ASOF - timedelta(days=7 * (NW - 1 - j) + 6)) for j in range(NW)]
 n = 0
 for ci, cid in enumerate(ids):
@@ -128,7 +139,7 @@ for ci, cid in enumerate(ids):
         best.setdefault(h["category"], h)
     out = sorted(best.values(), key=lambda h: (-h["confidence"] * abs(h["monthlyImpact"])))[:5]
     write_json(os.path.join(odir, f"{cid}.json"), {"id": cid, "asOf": AS_OF, "habits": out, "method": METHOD,
-                                                   "falsePositiveRate": fp_rate})
+                                                   "falsePositiveRate": fp_rate, "chanceShare": round(min(1.0, chance_hi), 3)})
     n += 1
 print(f"wrote {n} habit files ({time.time()-t0:.1f}s)")
 
@@ -137,16 +148,21 @@ write_json(os.path.join(GLOBAL_DIR, "modelcard-habits.json"), {
     "purpose": "Notice when a spending habit has really changed (and stayed changed), so small wins are praised and slips caught early.",
     "method": METHOD,
     "trainedOn": f"{int(main.sum())} main-cohort customers x {NS} weekly series, {weekstarts[0]}..{AS_OF}",
-    "split": "No target labels. The threshold is calibrated on time-shuffled copies of the same series (the null of 'no sustained change'); "
-             "detections on real series are compared with that null rate.",
+    "split": "No target labels. The same detector is run on two shuffled copies of the real series, where no sustained change exists by "
+             f"construction: weeks shuffled independently, and {BLOCK}-week blocks shuffled (keeps short runs; conservative). The threshold is "
+             "calibrated on the block-shuffled copy.",
     "metrics": [
-        {"label": "Series flagged", "model": det_rate, "baseline": fp_rate, "baselineName": "same detector on shuffled series (false-positive rate)", "unit": "share", "better": "higher"},
-        {"label": "Customers with at least one habit", "model": det_rate_cust, "baseline": fp_rate_cust, "baselineName": "shuffled series", "unit": "share", "better": "higher"},
+        {"label": "Series flagged", "model": det_rate, "baseline": fp_block, "baselineName": f"same detector on {BLOCK}-week block-shuffled series", "unit": "share", "better": "higher"},
+        {"label": "Series flagged", "model": det_rate, "baseline": fp_weeks, "baselineName": "same detector on week-shuffled series", "unit": "share", "better": "higher"},
+        {"label": "Customers with at least one habit", "model": det_rate_cust, "baseline": fp_rate_cust, "baselineName": f"{BLOCK}-week block-shuffled series", "unit": "share", "better": "higher"},
     ],
-    "verdict": "ships" if det_rate > 3 * fp_rate else ("experimental" if det_rate > 1.5 * fp_rate else "not_better_than_baseline"),
-    "caveats": [f"Roughly {fp_rate / max(det_rate, 1e-9):.0%} of flagged shifts could be chance (shuffled false-positive rate / real detection rate).",
-                "Weekly spending in this synthetic data is noisy and mostly stationary, so genuine habit changes are rare.",
+    "verdict": "ships" if det_rate > 3 * fp_block else ("experimental" if det_rate > 1.5 * fp_block else "not_better_than_baseline"),
+    "caveats": [f"Between about {chance_lo:.0%} (weeks shuffled independently) and {chance_hi:.0%} ({BLOCK}-week blocks shuffled) of flagged shifts "
+                "could be chance. The first null is too easy and the second is conservative, so the truth lies between them.",
+                f"With about {NS} series per customer, {det_rate_cust:.0%} of customers have at least one flagged shift, against {fp_rate_cust:.0%} "
+                "on block-shuffled series: a flag is a prompt for a question, not a finding about the person.",
                 "A change point is a statistical shift, not a confirmed intention; the coach phrases it as a question."],
-    "validation": {"threshold_t": thr, "fp_rate_series": fp_rate, "detection_rate_series": det_rate, "fp_rate_customers": fp_rate_cust,
+    "validation": {"threshold_t": thr, "fp_rate_series_blocks": fp_block, "fp_rate_series_weeks": fp_weeks, "fp_rate_customers_weeks": fp_weeks_cust,
+                   "chance_share_range": [chance_lo, chance_hi], "block_weeks": BLOCK, "fp_rate_series": fp_rate, "detection_rate_series": det_rate, "fp_rate_customers": fp_rate_cust,
                    "detection_rate_customers": det_rate_cust},
     "trainedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "trainSeconds": round(time.time() - t0, 1)})

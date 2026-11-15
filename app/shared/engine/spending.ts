@@ -5,7 +5,9 @@ import type { QuerySpending, SpendingGroup, SpendingQuery, SpendingResult } from
 import type { Category, CustomerData, FlowKind, Period, Tx } from "../types";
 import { isBasket, kindsOf } from "./classify";
 import {
-  WEEKDAYS,
+  et,
+  tEur,
+  weekdayName,
   addDays,
   addMonths,
   basketLabel,
@@ -100,23 +102,23 @@ function groupKey(m: Match, by: NonNullable<SpendingQuery["groupBy"]>): [string,
       return [t.category, categoryLabel(t.category)];
     case "mcc":
       // non-purchases (rent, bills) and the ~5% of purchases without a code are grouped by their category
-      return t.mcc ? [t.mcc, `${mccLabel(t.mcc)} (${t.mcc})`] : [`cat:${t.category}`, `${categoryLabel(t.category)} (no merchant code)`];
+      return t.mcc ? [t.mcc, `${mccLabel(t.mcc)} (${t.mcc})`] : [`cat:${t.category}`, et("{category} (no merchant code)", { category: categoryLabel(t.category) })];
     case "basket":
       return isBasket(m.kind) ? [m.kind, basketLabel(m.kind)] : [m.kind, m.kind];
     case "month":
       return [monthKey(t.date), monthLabel(monthKey(t.date))];
     case "week": {
       const ws = weekStart(t.date);
-      return [ws, `Week of ${dayLabel(ws)}`];
+      return [ws, et("Week of {day}", { day: dayLabel(ws) })];
     }
     case "day":
       return [t.date, dayLabel(t.date)];
     case "weekday": {
       const w = isoWeekday(t.date);
-      return [String(w), WEEKDAYS[w]];
+      return [String(w), weekdayName(w)];
     }
     case "merchant":
-      return [t.merchantId ?? "none", t.merchantId ? `${mccLabel(t.mcc)} · ${t.merchantId}` : "No merchant id"];
+      return [t.merchantId ?? "none", t.merchantId ? `${mccLabel(t.mcc)} · ${t.merchantId}` : et("No merchant id")];
     case "hour": {
       const h = t.time.slice(0, 2);
       return [h, `${h}:00–${String(+h + 1).padStart(2, "0")}:00`];
@@ -126,15 +128,15 @@ function groupKey(m: Match, by: NonNullable<SpendingQuery["groupBy"]>): [string,
 const TIME_ORDERED = new Set(["month", "week", "day", "weekday", "hour"]);
 
 export function describeFilters(q: SpendingQuery): string[] {
-  const f: string[] = [`Period: ${q.period.label ?? rangeLabel(q.period.from, q.period.to)} (${q.period.from} to ${q.period.to})`];
-  if (q.categories?.length) f.push(`Category: ${q.categories.map(categoryLabel).join(", ")}`);
-  if (q.mccs?.length) f.push(`Merchant type: ${q.mccs.map((m) => `${mccLabel(m)} (MCC ${m})`).join(", ")}`);
-  if (q.baskets?.length) f.push(`Basket: ${q.baskets.map(basketLabel).join(", ")}`);
-  if (q.minAmount != null) f.push(`Amount at least ${q.minAmount} €`);
-  if (q.maxAmount != null) f.push(`Amount at most ${q.maxAmount} €`);
-  if (q.weekdays?.length) f.push(`Weekdays: ${q.weekdays.map((w) => WEEKDAYS[w]).join(", ")}`);
-  if (!q.categories?.some((c) => NON_SPENDING.includes(c))) f.push("Spending only (rent, bills and card purchases; saving and transfers excluded)");
-  if (q.groupBy) f.push(`Grouped by ${q.groupBy}`);
+  const f: string[] = [et("Period: {label} ({from} to {to})", { label: q.period.label ?? rangeLabel(q.period.from, q.period.to), from: q.period.from, to: q.period.to })];
+  if (q.categories?.length) f.push(et("Category: {list}", { list: q.categories.map((x) => categoryLabel(x)).join(", ") }));
+  if (q.mccs?.length) f.push(et("Merchant type: {list}", { list: q.mccs.map((m) => `${mccLabel(m)} (MCC ${m})`).join(", ") }));
+  if (q.baskets?.length) f.push(et("Basket: {list}", { list: q.baskets.map((x) => basketLabel(x)).join(", ") }));
+  if (q.minAmount != null) f.push(et("Amount at least {amount}", { amount: tEur(q.minAmount) }));
+  if (q.maxAmount != null) f.push(et("Amount at most {amount}", { amount: tEur(q.maxAmount) }));
+  if (q.weekdays?.length) f.push(et("Weekdays: {list}", { list: q.weekdays.map((w) => weekdayName(w)).join(", ") }));
+  if (!q.categories?.some((c) => NON_SPENDING.includes(c))) f.push(et("Spending only (rent, bills and card purchases; saving and transfers excluded)"));
+  if (q.groupBy) f.push(et("Grouped by {what}", { what: et(q.groupBy) }));
   return f;
 }
 

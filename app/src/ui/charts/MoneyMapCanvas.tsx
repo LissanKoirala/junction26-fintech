@@ -1,10 +1,11 @@
 // Money Map: thousands of customers as dots on a canvas (one draw per size / highlight change, no per-frame work),
 // coloured by tribe, with a pulsing "You are here" marker in HTML on top.
 import { useEffect, useRef } from "react";
+import { t } from "@/lib/i18n";
 import { useWidth } from "./useWidth";
 
 export function MoneyMapCanvas({
-  xs, ys, groups, colorOf, you, highlight, height = 300, ariaLabel, youLabel = "You are here", onTap,
+  xs, ys, groups, colorOf, you, highlight, height = 300, ariaLabel, youLabel, onTap,
 }: {
   xs: number[];
   ys: number[];
@@ -77,7 +78,7 @@ export function MoneyMapCanvas({
               top: labelBelow ? yy + 10 : yy - 32,
             }}
           >
-            {youLabel}
+            {youLabel ?? t("You are here")}
           </span>
         </>
       )}

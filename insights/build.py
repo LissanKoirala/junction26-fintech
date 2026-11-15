@@ -665,10 +665,10 @@ if c:
         extra = ""
         if bt:
             extra += chart({'type': 'hbars', 'rows': [{'label': k, 'vals': [v.get('model'), v.get('global_amount'), v.get('isolation_forest')]} for k, v in bt.items()],
-                            'series': [{'name': 'Personal score (shipped)', 'color': C['g7']}, {'name': 'Global amount percentile', 'color': C['grey']}, {'name': 'Isolation Forest', 'color': C['blue']}], 'fmt': 'dec'},
-                           'ROC AUC by type of injected anomaly. Being personal matters for unusual hours and categories; for plain amount spikes a global rule does as well.')
+                            'series': [{'name': 'Personal score (used in the app)', 'color': C['g7']}, {'name': 'Global amount percentile', 'color': C['grey']}, {'name': 'Isolation Forest', 'color': C['blue']}], 'fmt': 'dec'},
+                           'ROC AUC by type of injected anomaly. The personal score beats an amount-only rule on unusual hours and categories, which that rule cannot see by construction. The Isolation Forest is better on both of those and worse on amount spikes.')
         if a:
-            extra += f"<p>Across {n0(a['n'])} customers the model flags {n0(a['flagged'])} purchases in the last 12 months, and {pc(a['recent'] / a['n'])} of customers have at least one in the last 30 days. {n0(a['suggested'])} flagged purchases are proposed for the Surprise musts basket.</p>" + \
+            extra += f"<p>Across {n0(a['n'])} customers the model flags {n0(a['flagged'])} purchases in the last 12 months, {n0(a['suggested'])} of them are proposed for the Surprise musts basket. A flag means &quot;in the top 5% of unusualness for this customer&quot;, so most active customers have one in any given month ({pc(a['recent'] / a['n'])} in the last 30 days): that share follows from the cut-off and is not a finding.</p><p>We kept the simple personal score, although the Isolation Forest scores slightly higher overall, because every flag comes with a plain reason the customer can check (&quot;6x your usual Home &amp; tech purchase&quot;).</p>" + \
                 chart({'type': 'hbars', 'rows': [{'label': k, 'vals': [n]} for k, n in a['cats']], 'series': [{'name': 'Flagged purchases', 'color': C['g7']}], 'fmt': 'num'}, 'Flagged purchases by category.')
         body = card_head(c) + extra + metric_table(c) + caveats(c)
         MS.append(("m-anomalies", "Unusual for you", section("m-anomalies", "Model 3 · Did anything odd happen?", "Unusual for you: a personal normal for every customer", body)))
@@ -682,9 +682,17 @@ if c:
         v = c.get("validation") or {}
         extra = ""
         if v:
-            extra += chart({'type': 'hbars', 'rows': [{'label': 'Weekly series flagged', 'vals': [v.get('detection_rate_series'), v.get('fp_rate_series')]}, {'label': 'Customers with at least one habit', 'vals': [v.get('detection_rate_customers'), v.get('fp_rate_customers')]}],
-                            'series': [{'name': 'Real data', 'color': C['g7']}, {'name': 'Time-shuffled data (false positives)', 'color': C['grey']}], 'fmt': 'pct1'},
-                           'The detector on real series against the same detector on shuffled copies, where no sustained change exists.')
+            blocks = v.get('fp_rate_series_blocks', v.get('fp_rate_series'))
+            series = [{'name': 'Real data', 'color': C['g7']}, {'name': f"{v.get('block_weeks', 4)}-week blocks shuffled", 'color': C['amber']}]
+            rows = [{'label': 'Weekly series flagged', 'vals': [v.get('detection_rate_series'), blocks]}, {'label': 'Customers with at least one habit', 'vals': [v.get('detection_rate_customers'), v.get('fp_rate_customers')]}]
+            if v.get('fp_rate_series_weeks') is not None:
+                series.append({'name': 'Single weeks shuffled', 'color': C['grey']})
+                rows[0]['vals'].append(v.get('fp_rate_series_weeks')); rows[1]['vals'].append(v.get('fp_rate_customers_weeks'))
+            extra += chart({'type': 'hbars', 'rows': rows, 'series': series, 'fmt': 'pct1'},
+                           'The detector on real series against the same detector on two shuffled copies, where no sustained change exists by construction.')
+            cr_ = v.get('chance_share_range')
+            if cr_:
+                extra += f"<p>How many flags are noise depends on what counts as \"no change\". Shuffling single weeks destroys all structure and gives {pc(cr_[0])}; shuffling {v.get('block_weeks', 4)}-week blocks keeps short runs such as one busy month and gives {pc(cr_[1])}. The second is conservative, because a real shift survives inside its blocks, so the truth lies between them. The threshold was set on the stricter one after an independent check showed the first was too easy.</p>"
         if h:
             lab = {"new_habit": "New habit (holding)", "forming": "Forming", "slipping": "Slipping"}
             extra += f"<p>{n0(h['withHabit'])} of {n0(h['n'])} customers ({pc(h['withHabit'] / h['n'])}) have at least one sustained shift in the last year, {n0(h['total'])} shifts in total.</p><div class='g2'>" + \

@@ -7,7 +7,7 @@ import type { CustomerData } from "../types";
 import { kindsOf } from "./classify";
 import { dailyRate, housingDue, nextPayday, pendingInvestment, salaryInfo, utilitiesMonthly } from "./recurring";
 import { spendingByKind } from "./spending";
-import { addDays, completeMonths, currentBalance, dayLabel, daysBetween, isoWeekday, mean, median, monthEnd, monthStart, r2, weekStart, tEur } from "./util";
+import { addDays, completeMonths, currentBalance, dayLabel, dayOfMonth, daysBetween, et, etn, isoWeekday, mean, median, monthEnd, monthStart, r2, weekStart, tEur } from "./util";
 
 /** Internal knobs used by the what-if simulator (reserve multipliers and deltas). */
 export interface SafeTweak {
@@ -50,18 +50,20 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
   const upcoming: UpcomingItem[] = [];
   const tomorrow = addDays(asOf, 1);
   const dayBeforePay = addDays(pay.date, -1) >= tomorrow ? addDays(pay.date, -1) : tomorrow;
-  const dLabel = `${nDays} day${nDays === 1 ? "" : "s"}`;
+  const dLabel = etn("{n} day", "{n} days", nDays);
 
   // housing still due before payday
   for (const h of housingDue(c, pay.date)) {
     const amount = Math.max(0, h.amount + (tw.housingDelta ?? 0));
     upcoming.push({
       kind: "housing",
-      label: "Rent / housing",
+      label: et("Rent / housing"),
       amount: r2(amount),
       from: h.from,
       to: h.to,
-      basis: `Median of your last 6 housing payments, usually paid between day ${dayLabel(h.from).split(" ")[0]} and ${dayLabel(h.to).split(" ")[0]} of the month${tw.housingDelta ? `, adjusted by ${tEur(tw.housingDelta)} in this scenario` : ""}.`,
+      basis: tw.housingDelta
+        ? et("Median of your last 6 housing payments, usually paid between day {from} and {to} of the month, adjusted by {delta} in this scenario.", { from: dayOfMonth(h.from), to: dayOfMonth(h.to), delta: tEur(tw.housingDelta) })
+        : et("Median of your last 6 housing payments, usually paid between day {from} and {to} of the month.", { from: dayOfMonth(h.from), to: dayOfMonth(h.to) }),
     });
   }
   // utilities: monthly total pro-rated
@@ -69,11 +71,11 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
   if (u.perMonth > 0) {
     upcoming.push({
       kind: "utilities",
-      label: "Utilities",
+      label: et("Utilities"),
       amount: r2(((u.perMonth * nDays) / 30.44) * (tw.utilitiesMult ?? 1)),
       from: tomorrow,
       to: dayBeforePay,
-      basis: `Your utilities average ${tEur(u.perMonth)} a month (the ${u.paidMonths} of the last ${u.months.length} months that had bills), pro-rated for ${dLabel}.`,
+      basis: et("Your utilities average {amount} a month (the {n} of the last {m} months that had bills), pro-rated for {days}.", { amount: tEur(u.perMonth), n: u.paidMonths, m: u.months.length, days: dLabel }),
     });
   }
   // groceries and other fixed-must purchases, pro-rated from the last 3 full months
@@ -81,22 +83,22 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
   if (gro.perDay > 0) {
     upcoming.push({
       kind: "groceries",
-      label: "Groceries",
+      label: et("Groceries"),
       amount: r2(gro.perDay * nDays * (tw.groceriesMult ?? 1)),
       from: tomorrow,
       to: dayBeforePay,
-      basis: `You spend about ${tEur(gro.perDay * 7)} a week on groceries (last 3 full months), so ${dLabel} need about this much.`,
+      basis: et("You spend about {amount} a week on groceries (last 3 full months), so {days} need about this much.", { amount: tEur(gro.perDay * 7), days: dLabel }),
     });
   }
   const tr = dailyRate(c, 3, (t, k) => kinds[k] === "must_regular" && t.type === "purchase" && t.category !== "Groceries");
   if (tr.perDay > 0) {
     upcoming.push({
       kind: "transport",
-      label: "Getting around and other fixed musts",
+      label: et("Getting around and other fixed musts"),
       amount: r2(tr.perDay * nDays * (tw.transportMult ?? 1)),
       from: tomorrow,
       to: dayBeforePay,
-      basis: `Public transport, fuel and other fixed-must purchases average ${tEur(tr.perDay * 7)} a week (last 3 full months).`,
+      basis: et("Public transport, fuel and other fixed-must purchases average {amount} a week (last 3 full months).", { amount: tEur(tr.perDay * 7) }),
     });
   }
   // the usual investment deposit, if it is still pending before payday
@@ -105,11 +107,11 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
     if (inv && inv.date < pay.date) {
       upcoming.push({
         kind: "investment",
-        label: "Your usual investment deposit",
+        label: et("Your usual investment deposit"),
         amount: r2(inv.amount),
         from: inv.date,
         to: inv.date,
-        basis: "You usually invest this amount a few days after payday, and it has not gone out yet this month.",
+        basis: et("You usually invest this amount a few days after payday, and it has not gone out yet this month."),
       });
     }
   }
@@ -118,21 +120,21 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
   if (opts.goal && opts.goal.monthlyContribution > 0) {
     upcoming.push({
       kind: "goal",
-      label: `Savings goal: ${opts.goal.name}`,
+      label: et("Savings goal: {name}", { name: opts.goal.name }),
       amount: r2(opts.goal.monthlyContribution * share),
       from: tomorrow,
       to: dayBeforePay,
-      basis: `${tEur(opts.goal.monthlyContribution)} a month toward "${opts.goal.name}", pro-rated for ${dLabel}.`,
+      basis: et("{amount} a month toward \"{name}\", pro-rated for {days}.", { amount: tEur(opts.goal.monthlyContribution), name: opts.goal.name, days: dLabel }),
     });
   }
   if (tw.extraMonthlySaving && tw.extraMonthlySaving > 0) {
     upcoming.push({
       kind: "goal",
-      label: "Extra saving (scenario)",
+      label: et("Extra saving (scenario)"),
       amount: r2(tw.extraMonthlySaving * share),
       from: tomorrow,
       to: dayBeforePay,
-      basis: `${tEur(tw.extraMonthlySaving)} a month moved to savings, pro-rated for ${dLabel}.`,
+      basis: et("{amount} a month moved to savings, pro-rated for {days}.", { amount: tEur(tw.extraMonthlySaving), days: dLabel }),
     });
   }
   // buffer: 10% of the income that stays on this account (at least 50 €)
@@ -141,16 +143,16 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
   if (buffer > 0) {
     upcoming.push({
       kind: "buffer",
-      label: "Safety buffer",
+      label: et("Safety buffer"),
       amount: r2(buffer),
       from: null,
       to: null,
       basis:
         opts.bufferTarget != null
-          ? "The buffer you chose to keep untouched."
+          ? et("The buffer you chose to keep untouched.")
           : c.hasSalarySweep
-            ? `A cushion for surprise musts: 10% of the income that stays on this account (at least 50 €).`
-            : `A cushion for surprise musts: 10% of your monthly income (at least 50 €).`,
+            ? et("A cushion for surprise musts: 10% of the income that stays on this account (at least 50 €).")
+            : et("A cushion for surprise musts: 10% of your monthly income (at least 50 €)."),
     });
   }
 
@@ -171,19 +173,25 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
     const lateCovered = buffer >= lateExtra;
     const n = pay.lateCount ?? 0;
     const m = pay.monthsSeen ?? 12;
-    const history = n > 0 ? `Pay usually comes on the 15th. In ${n} of the last ${m} months it came at the end of the month` : `Pay has come on the 15th in each of the last ${m} months`;
     let lateNote: string;
-    if (lateCovered) lateNote = n > 0 ? `${history}; your cushion covers that.` : `${history}. If it ever comes at the end of the month, your cushion covers that.`;
+    if (lateCovered)
+      lateNote =
+        n > 0
+          ? et("Pay usually comes on the 15th. In {n} of the last {m} months it came at the end of the month; your cushion covers that.", { n, m })
+          : et("Pay has come on the 15th in each of the last {m} months. If it ever comes at the end of the month, your cushion covers that.", { m });
     else {
       const short = r2(lateExtra - buffer);
-      lateNote = n > 0 ? `${history}, so Vara keeps ${tEur(short)} aside in case it does.` : `${history}. Vara still keeps ${tEur(short)} aside in case it comes at the end of the month.`;
+      lateNote =
+        n > 0
+          ? et("Pay usually comes on the 15th. In {n} of the last {m} months it came at the end of the month, so Vara keeps {amount} aside in case it does.", { n, m, amount: tEur(short) })
+          : et("Pay has come on the 15th in each of the last {m} months. Vara still keeps {amount} aside in case it comes at the end of the month.", { m, amount: tEur(short) });
       upcoming.push({
         kind: "buffer",
-        label: "In case pay comes late",
+        label: et("In case pay comes late"),
         amount: short,
         from: pay.date,
         to: pay.latest,
-        basis: `If pay comes on ${dayLabel(pay.latest)} instead of ${dayLabel(pay.date)}, the ${gap} extra days of fixed musts need about ${tEur(lateExtra)}. Your cushion covers ${tEur(buffer)}, so Vara keeps the rest aside.`,
+        basis: et("If pay comes on {late} instead of {date}, the {n} extra days of fixed musts need about {extra}. Your cushion covers {buffer}, so Vara keeps the rest aside.", { late: dayLabel(pay.latest), date: dayLabel(pay.date), n: gap, extra: tEur(lateExtra), buffer: tEur(buffer) }),
       });
     }
     late = { lateExtra, lateCovered, lateNote };
@@ -209,18 +217,18 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
   // far more room than a usual week: the UI shows "well covered" instead of a giant weekly figure
   const wellCovered = free > 0 && typicalWeek > 0 && safePerWeek > 3 * typicalWeek && safePerWeek > 200;
 
-  const steps: SafeToSpend["steps"] = [{ label: "Balance today", amount: r2(balance), sign: "+" }];
+  const steps: SafeToSpend["steps"] = [{ label: et("Balance today"), amount: r2(balance), sign: "+" }];
   for (const x of upcoming) steps.push({ label: x.label, amount: x.amount, sign: "-" });
-  steps.push({ label: "Free until payday", amount: free, sign: "=" });
-  steps.push({ label: `Weeks until payday (${dLabel})`, amount: Math.round(weeks * 100) / 100, sign: "/" });
-  steps.push({ label: "Safe to spend per week", amount: safePerWeek, sign: "=" });
+  steps.push({ label: et("Free until payday"), amount: free, sign: "=" });
+  steps.push({ label: et("Weeks until payday ({days})", { days: dLabel }), amount: Math.round(weeks * 100) / 100, sign: "/" });
+  steps.push({ label: et("Safe to spend per week"), amount: safePerWeek, sign: "=" });
 
   let note: string | undefined;
   if (safePerWeek > 200 && safePerWeek > 3 * typicalWeek)
-    note = `Most of this is savings you have already built up. Your everyday extras usually take about ${tEur(typicalWeek)} a week; staying near that keeps the cushion growing.`;
-  else if (free < 0) note = "The musts coming before payday are bigger than your balance. Small cuts now, or moving a bill, can stop the account going below zero.";
+    note = et("Most of this is savings you have already built up. Your everyday extras usually take about {amount} a week; staying near that keeps the cushion growing.", { amount: tEur(typicalWeek) });
+  else if (free < 0) note = et("The musts coming before payday are bigger than your balance. Small cuts now, or moving a bill, can stop the account going below zero.");
   if (pay.estimated) note = (note ? note + " " : "") + pay.basis;
-  else if (c.hasSalarySweep) note = (note ? note + " " : "") + "Most of your salary moves to another account right after payday, so this only covers the money in this account.";
+  else if (c.hasSalarySweep) note = (note ? note + " " : "") + et("Most of your salary moves to another account right after payday, so this only covers the money in this account.");
 
   return {
     asOf,

@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useDragControls } from "motion/react";
 import { X } from "lucide-react";
+import { t as tr } from "@/lib/i18n";
 import { IconButton } from "./kit";
 
 export function overlayRoot(): HTMLElement {
@@ -33,7 +34,7 @@ export function Sheet({
         <div className="pointer-events-auto absolute inset-0 z-50 flex flex-col justify-end">
           <motion.button
             type="button"
-            aria-label="Close"
+            aria-label={tr("Close")}
             tabIndex={-1}
             className="absolute inset-0 bg-black/30"
             initial={{ opacity: 0 }}
@@ -66,7 +67,7 @@ export function Sheet({
             <div className="mx-auto mt-2 h-1 w-10 rounded-pill bg-line" aria-hidden />
             <div className="flex items-center justify-between gap-2 pl-5 pr-2 pt-1">
               <h2 id={id} className="text-xl font-bold text-title">{title}</h2>
-              <IconButton icon={X} label="Close" onClick={onClose} />
+              <IconButton icon={X} label={tr("Close")} onClick={onClose} />
             </div>
             </div>
             <div className="no-scrollbar flex-1 overflow-y-auto px-5 pb-5">{children}</div>

@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import { theme, type HeroVariant } from "./theme";
+import { t } from "@/lib/i18n";
 import { cx, IconButton } from "./kit";
 
 /** The hero block at the top of Today (and the Vara card on Koti). */
@@ -65,7 +66,7 @@ export function BasketTag({ color, label, variant = theme.basketChips }: { color
 export function ScreenHeader({ title, onBack, right, leading }: { title: ReactNode; onBack?: () => void; right?: ReactNode; leading?: ReactNode }) {
   return (
     <header className="sticky top-0 z-20 grid grid-cols-[48px_1fr_48px] items-center bg-screen px-1 pt-[env(safe-area-inset-top)]">
-      <div>{onBack && <IconButton icon={ArrowLeft} label="Back" onClick={onBack} />}</div>
+      <div>{onBack && <IconButton icon={ArrowLeft} label={t("Back")} onClick={onBack} />}</div>
       <h1 className="flex min-h-14 items-center justify-center gap-2 truncate text-center text-lg font-bold text-green-900">
         {leading}
         {title}

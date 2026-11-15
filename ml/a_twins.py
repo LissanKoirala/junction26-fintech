@@ -101,8 +101,15 @@ for i in test:
     q1, q3 = np.percentile(o, [25, 75]); inIQR.append(q1 <= r2[i] <= q3)
 pred, actual, persist = map(np.array, (pred, actual, persist))
 pop = np.full_like(actual, np.mean(r2[train]))
+pop_med = np.full_like(actual, np.median(r2[train]))   # the fair constant for an absolute-error metric
+# one-feature baseline: median outcome by decile of the year-1 savings rate, fitted on the training customers
+sr1 = Y1["savings_rate"].to_numpy()
+qs = np.quantile(sr1[train], np.linspace(0, 1, 11))
+dec = np.clip(np.searchsorted(qs, sr1, side="right") - 1, 0, 9)
+med_by = {k: float(np.median(r2[train][dec[train] == k])) for k in range(10)}
+one_feature = np.array([med_by[int(k)] for k in dec[test]])
 mae = lambda p: float(np.mean(np.abs(p - actual)))
-val = {"mae_twins": mae(pred), "mae_pop": mae(pop), "mae_persist": mae(persist),
+val = {"mae_twins": mae(pred), "mae_pop": mae(pop), "mae_median": mae(pop_med), "mae_one_feature": mae(one_feature), "mae_persist": mae(persist),
        "rho_twins": float(spearmanr(pred, actual)[0]), "rho_persist": float(spearmanr(persist, actual)[0]),
        "iqr_coverage": float(np.mean(inIQR)), "n_test": int(len(test))}
 print("validation", {k: round(v, 3) for k, v in val.items()}, f"({time.time()-t_val:.1f}s)")
@@ -208,7 +215,8 @@ done = sum(Parallel(n_jobs=32)(delayed(run)(c) for c in chunks if len(c)))
 print(f"wrote {done} twins files ({time.time()-t0:.1f}s)")
 
 if not only:
-    better = val["mae_twins"] < 0.9 * min(val["mae_pop"], val["mae_persist"])   # "ships" only with a >=10% error cut
+    best_base = min(val["mae_median"], val["mae_one_feature"], val["mae_persist"])
+    better = val["mae_twins"] < 0.9 * best_base   # "ships" only with a >=10% error cut against the strongest baseline
     write_json(os.path.join(GLOBAL_DIR, "modelcard-twins.json"), {
         "key": "twins", "name": "Two Futures (money twins)",
         "purpose": "Show what happened next to customers whose habits a year ago looked like yours today.",
@@ -219,8 +227,10 @@ if not only:
         "split": f"Customer hold-out 80/20 (seed 7, n_test={val['n_test']}) with a time split: held-out customers' YEAR-1 features only, "
                  "target = their own YEAR-2 balance change / YEAR-1 monthly income. Caveat: twins' outcomes and the target share the same calendar year.",
         "metrics": [
-            {"label": "MAE of year-2 balance change (months of income)", "model": val["mae_twins"], "baseline": val["mae_pop"],
-             "baselineName": "population mean", "unit": "months of income", "better": "lower"},
+            {"label": "MAE of year-2 balance change (months of income)", "model": val["mae_twins"], "baseline": val["mae_median"],
+             "baselineName": "population median", "unit": "months of income", "better": "lower"},
+            {"label": "MAE vs a one-feature rule", "model": val["mae_twins"], "baseline": val["mae_one_feature"],
+             "baselineName": "median outcome by decile of last year's savings rate", "unit": "months of income", "better": "lower"},
             {"label": "MAE vs persistence", "model": val["mae_twins"], "baseline": val["mae_persist"],
              "baselineName": "same change as last year", "unit": "months of income", "better": "lower"},
             {"label": "Spearman correlation with actual", "model": val["rho_twins"], "baseline": val["rho_persist"],
@@ -228,7 +238,7 @@ if not only:
             {"label": "Actual outcome inside twins' interquartile range", "model": val["iqr_coverage"], "baseline": 0.5,
              "baselineName": "nominal 50%", "unit": "share", "better": "higher"},
         ],
-        "verdict": "ships" if better else ("experimental" if val["mae_twins"] < val["mae_pop"] else "not_better_than_baseline"),
+        "verdict": "ships" if better else ("experimental" if val["mae_twins"] < best_base else "not_better_than_baseline"),
         "caveats": ["Correlation in synthetic data, not causal advice.",
                     "Groups are terciles inside each customer's own 100 twins, so 'built' and 'slipped' are relative to similar people.",
                     "Opening balances in the data are synthetic; balance change is measured, not the level."],

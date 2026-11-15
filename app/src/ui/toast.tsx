@@ -1,6 +1,7 @@
 // One-line toast for static mock actions ("not part of this concept").
 import { useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { t, tData } from "@/lib/i18n";
 
 let msg: { text: string; id: number } | null = null;
 const ls = new Set<() => void>();
@@ -15,7 +16,7 @@ export function toast(text: string) {
     ls.forEach((l) => l());
   }, 2600);
 }
-export const notInDemo = (what: string) => toast(`${what} is part of the real S-mobiili, not this concept demo.`);
+export const notInDemo = (what: string) => toast(t("{what} is part of the real S-mobiili, not this concept demo.", { what: tData(what) }));
 
 export function ToastHost() {
   const m = useSyncExternalStore(

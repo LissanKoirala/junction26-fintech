@@ -2,8 +2,30 @@
 // No Node or DOM APIs. Dates are plain "YYYY-MM-DD" strings; "today" is always customer.asOf.
 import domainJson from "../domain.json";
 import type { Basket, Category, CustomerData } from "../types";
+import { getLang, isLang, t, tn, type Lang, type Vars } from "../i18n";
 
 export const DOMAIN = domainJson;
+
+// ---------------------------------------------------------------- language
+// Engine entry points take `opts.lang` (default: getLang()). Engine code is synchronous, so index.ts runs each call
+// inside withLang() and every helper below reads the scoped language: no lang parameter needs threading through.
+let scopedLang: Lang | null = null;
+export const engineLang = (): Lang => scopedLang ?? getLang();
+/** A valid language or the engine's current one (guards against .map(categoryLabel) passing an index). */
+const L = (lang: unknown): Lang => (isLang(lang) ? lang : engineLang());
+export function withLang<T>(lang: Lang | undefined, f: () => T): T {
+  if (!lang) return f();
+  const prev = scopedLang;
+  scopedLang = lang;
+  try {
+    return f();
+  } finally {
+    scopedLang = prev;
+  }
+}
+/** Translate an engine sentence into the engine's current language (English text is the key). */
+export const et = (text: string, vars?: Vars, lang: Lang = engineLang()): string => t(text, vars, lang);
+export const etn = (one: string, other: string, n: number, vars?: Vars, lang: Lang = engineLang()): string => tn(one, other, n, vars, lang);
 
 const DAY = 86_400_000;
 
@@ -76,22 +98,34 @@ export function completeMonths(asOf: string, n: number): string[] {
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MONTHS_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-export const monthLabel = (key: string) => `${MONTHS_LONG[+key.slice(5, 7) - 1]} ${key.slice(0, 4)}`;
-export const monthShort = (key: string) => `${MONTHS[+key.slice(5, 7) - 1]} ${key.slice(0, 4)}`;
-export const dayLabel = (s: string) => `${+s.slice(8, 10)} ${MONTHS[+s.slice(5, 7) - 1]}`;
-export function rangeLabel(from: string, to: string): string {
-  if (from === to) return `${dayLabel(from)} ${from.slice(0, 4)}`;
+// Finnish month stems: "syyskuu 2026" (long), "syys 2026" (short, as in "huhti–syys 2026")
+const FI_MONTHS = ["tammi", "helmi", "maalis", "huhti", "touko", "kesä", "heinä", "elo", "syys", "loka", "marras", "joulu"];
+const mIdx = (key: string) => +key.slice(5, 7) - 1;
+const shortName = (key: string, lang: Lang) => (lang === "fi" ? FI_MONTHS[mIdx(key)] : MONTHS[mIdx(key)]);
+export const monthLabel = (key: string, lang0?: Lang | number) =>
+  L(lang0) === "fi" ? `${FI_MONTHS[mIdx(key)]}kuu ${key.slice(0, 4)}` : `${MONTHS_LONG[mIdx(key)]} ${key.slice(0, 4)}`;
+export const monthShort = (key: string, lang0?: Lang | number) => `${shortName(key, L(lang0))} ${key.slice(0, 4)}`;
+/** "15 Oct" in English, "15.10." in Finnish. */
+export const dayLabel = (s: string, lang0?: Lang | number) =>
+  L(lang0) === "fi" ? `${+s.slice(8, 10)}.${+s.slice(5, 7)}.` : `${+s.slice(8, 10)} ${MONTHS[mIdx(s)]}`;
+export function rangeLabel(from: string, to: string, lang0?: Lang | number): string {
+  const lang = L(lang0);
+  const fi = lang === "fi";
+  if (from === to) return fi ? `${dayLabel(from, lang)}${from.slice(0, 4)}` : `${dayLabel(from, lang)} ${from.slice(0, 4)}`;
   const mf = monthKey(from);
   const mt = monthKey(to);
   if (from === monthStart(mf) && to === monthEnd(mt)) {
-    if (mf === mt) return monthLabel(mf);
+    if (mf === mt) return monthLabel(mf, lang);
     return mf.slice(0, 4) === mt.slice(0, 4)
-      ? `${MONTHS[+mf.slice(5, 7) - 1]}–${monthShort(mt)}`
-      : `${monthShort(mf)}–${monthShort(mt)}`;
+      ? `${shortName(mf, lang)}–${monthShort(mt, lang)}`
+      : `${monthShort(mf, lang)}–${monthShort(mt, lang)}`;
   }
-  return `${dayLabel(from)}–${dayLabel(to)} ${to.slice(0, 4)}`;
+  return fi ? `${dayLabel(from, lang)}–${dayLabel(to, lang)}${to.slice(0, 4)}` : `${dayLabel(from, lang)}–${dayLabel(to, lang)} ${to.slice(0, 4)}`;
 }
 export const WEEKDAYS = ["", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const FI_WEEKDAYS = ["", "maanantai", "tiistai", "keskiviikko", "torstai", "perjantai", "lauantai", "sunnuntai"];
+/** Weekday name, 1 = Monday ... 7 = Sunday, in the engine's language. */
+export const weekdayName = (w: number, lang0?: Lang | number) => (L(lang0) === "fi" ? FI_WEEKDAYS[w] : WEEKDAYS[w]);
 
 export function median(xs: number[]): number {
   if (!xs.length) return 0;
@@ -117,10 +151,18 @@ export function quantileSorted(s: ArrayLike<number>, q: number): number {
 }
 
 type CategoryInfo = { label: string; icon: string };
-export const categoryLabel = (c: string) => (DOMAIN.categories as Record<string, CategoryInfo>)[c]?.label ?? c;
-export const mccLabel = (mcc: string | null) =>
-  mcc ? ((DOMAIN.mcc as unknown as Record<string, { label: string }>)[mcc]?.label ?? `MCC ${mcc}`) : "Unknown merchant type";
-export const basketLabel = (b: Basket) => DOMAIN.baskets[b].label;
+// Labels come from domain.json in English and are translated through the engine dictionary (fi/engine.ts).
+export const categoryLabel = (c: string, lang0?: Lang | number) => {
+  const lang = L(lang0);
+  const l = (DOMAIN.categories as Record<string, CategoryInfo>)[c]?.label;
+  return l ? et(l, undefined, lang) : c;
+};
+export const mccLabel = (mcc: string | null, lang0?: Lang | number) => {
+  const lang = L(lang0);
+  const l = mcc ? (DOMAIN.mcc as unknown as Record<string, { label: string }>)[mcc]?.label : undefined;
+  return l ? et(l, undefined, lang) : mcc ? `MCC ${mcc}` : et("Unknown merchant type", undefined, lang);
+};
+export const basketLabel = (b: Basket, lang0?: Lang | number) => et(DOMAIN.baskets[b].label, undefined, L(lang0));
 export const BASKETS: Basket[] = ["must_regular", "must_irregular", "everyday"];
 export const SMALL = DOMAIN.smallPurchaseThreshold;
 export const PURCHASE_CATS: Category[] = ["Groceries", "Restaurants", "Transportation", "Entertainment", "Health", "Home & Tech", "Lifestyle", "Travel"];

@@ -3,9 +3,15 @@
 // in the browser (instant what-if sliders) and on the server (chat tools). All money is EUR.
 // Spending totals are returned as POSITIVE numbers. "Today" is always customer.asOf.
 import type { Basket, BasketOverrides, Category, CustomerData, FlowKind, Goal, Period, Tx } from "../types";
+import type { Lang } from "../i18n";
 
 export interface EngineOptions {
   overrides?: BasketOverrides;
+  lang?: Lang; // language of every sentence and label in the result; default getLang() (the server always passes it)
+}
+/** Options for entry points that only need the language. */
+export interface LangOptions {
+  lang?: Lang;
 }
 
 // ---------------------------------------------------------------- classification
@@ -25,7 +31,7 @@ export type PeriodName =
   | "last_12_months"
   | "this_year"
   | "all_time";
-export type ResolvePeriod = (asOf: string, name: PeriodName) => Period;
+export type ResolvePeriod = (asOf: string, name: PeriodName, opts?: LangOptions) => Period;
 
 // ---------------------------------------------------------------- spending queries
 export interface SpendingQuery {
@@ -100,7 +106,7 @@ export interface RecurringItem {
   nextTo: string | null;
   note?: string; // e.g. "Some months have no housing payment in the data"
 }
-export type GetRecurring = (customer: CustomerData) => RecurringItem[];
+export type GetRecurring = (customer: CustomerData, opts?: LangOptions) => RecurringItem[];
 
 // ---------------------------------------------------------------- safe to spend
 export interface SafeToSpendOptions extends EngineOptions {
@@ -220,7 +226,7 @@ export interface SimResult {
 }
 export type SimulateBalance = (customer: CustomerData, params: SimParams) => SimResult;
 /** Fixed events for the next `days` days derived from getRecurring (salary, housing, investment). */
-export type GetFixedEvents = (customer: CustomerData, days: number, opts?: { goal?: Goal | null }) => FixedEvent[];
+export type GetFixedEvents = (customer: CustomerData, days: number, opts?: { goal?: Goal | null; lang?: Lang }) => FixedEvent[];
 
 // ---------------------------------------------------------------- summaries
 export interface MonthRow {

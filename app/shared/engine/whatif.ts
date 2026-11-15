@@ -5,13 +5,13 @@ import { isBasket, kindsOf } from "./classify";
 import { dailyRate, housingInfo, utilitiesMonthly } from "./recurring";
 import { computeSafeToSpend, type SafeTweak } from "./safeToSpend";
 import { spendingByKind } from "./spending";
-import { basketLabel, categoryLabel, completeMonths, mccLabel, monthEnd, monthStart, r1, r2, rangeLabel, txRange, tEur, tNum } from "./util";
+import { basketLabel, categoryLabel, et, etn, completeMonths, mccLabel, monthEnd, monthStart, r1, r2, rangeLabel, txRange, tEur, tNum } from "./util";
 
 const MUST_TRANSPORT = new Set(["4111", "5541", "5542"]);
 
 export function adjustmentLabel(a: Adjustment): string {
   if (a.label) return a.label;
-  const what = a.target.mcc ? mccLabel(a.target.mcc) : a.target.category ? categoryLabel(a.target.category) : a.target.basket ? basketLabel(a.target.basket) : "All spending";
+  const what = a.target.mcc ? mccLabel(a.target.mcc) : a.target.category ? categoryLabel(a.target.category) : a.target.basket ? basketLabel(a.target.basket) : et("All spending");
   const pct = Math.round(a.changePct);
   return `${what} ${pct > 0 ? "+" : pct < 0 ? "−" : "±"}${Math.abs(pct)}%`;
 }
@@ -58,7 +58,7 @@ export const simulateWhatIf: SimulateWhatIf = (c, scenario, opts) => {
   if (scenario.housingChange) {
     tw.housingDelta = scenario.housingChange;
     const base = h.typical;
-    perAdjustment.push({ label: "Housing", baselineMonthly: r2(base), newMonthly: r2(Math.max(0, base + scenario.housingChange)), savedMonthly: r2(-scenario.housingChange) });
+    perAdjustment.push({ label: et("Housing"), baselineMonthly: r2(base), newMonthly: r2(Math.max(0, base + scenario.housingChange)), savedMonthly: r2(-scenario.housingChange) });
   }
   const extra = Math.max(0, scenario.extraMonthlySaving ?? 0);
   if (extra) tw.extraMonthlySaving = extra;
@@ -79,12 +79,12 @@ export const simulateWhatIf: SimulateWhatIf = (c, scenario, opts) => {
   const equivalents: string[] = [];
   if (savedMonthly > 0) {
     const gWeek = dailyRate(c, 3, (t) => t.category === "Groceries").perDay * 7;
-    if (gWeek > 0) equivalents.push(`about ${tNum((savedMonthly * 12) / gWeek)} weeks of your groceries per year`);
+    if (gWeek > 0) equivalents.push(et("about {n} weeks of your groceries per year", { n: tNum((savedMonthly * 12) / gWeek) }));
     const u = utilitiesMonthly(c, 6).perMonth;
-    if (h.active && h.typical > 0) equivalents.push(`about ${Math.round((savedMonthly / h.typical) * 100)}% of a month's rent, every month`);
-    else if (u > 0) equivalents.push(`about ${tNum((savedMonthly * 12) / u)} months of your utility bills per year`);
+    if (h.active && h.typical > 0) equivalents.push(et("about {pct}% of a month's rent, every month", { pct: Math.round((savedMonthly / h.typical) * 100) }));
+    else if (u > 0) equivalents.push(et("about {n} months of your utility bills per year", { n: tNum((savedMonthly * 12) / u) }));
   } else if (savedMonthly < 0) {
-    equivalents.push(`${tEur(-savedMonthly)} more spending every month`);
+    equivalents.push(et("{amount} more spending every month", { amount: tEur(-savedMonthly) }));
   }
 
   // what is left at the end of an average month (income minus spending and saving), before and after the change
@@ -93,7 +93,7 @@ export const simulateWhatIf: SimulateWhatIf = (c, scenario, opts) => {
   const monthEndLeftAfter = r2(monthEndLeftBefore + savedMonthly - extra); // extra saving moves money, it does not stay on the account
 
   const res: WhatIfResult = {
-    basis: `Monthly average of ${rangeLabel(from, to)} (${nMonths} full month${nMonths === 1 ? "" : "s"})`,
+    basis: etn("Monthly average of {range} ({n} full month)", "Monthly average of {range} ({n} full months)", nMonths, { range: rangeLabel(from, to) }),
     perAdjustment,
     savedMonthly,
     safePerWeekBefore: before.safePerWeek,

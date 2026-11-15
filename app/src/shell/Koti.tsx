@@ -4,6 +4,7 @@ import { PERSONAS } from "@shared/personas";
 import { useCustomerState } from "@/state/customer";
 import { money, dateFi } from "@/lib/format";
 import { navigate } from "@/lib/router";
+import { t } from "@/lib/i18n";
 import { Card, CardTitle, ConceptNotice, IconCircle, ListRow, Page, Skeleton, Muted, STROKE, TextLink } from "@/ui/kit";
 import { notInDemo } from "@/ui/toast";
 import { VaraCard } from "@/features/vara/VaraCard";
@@ -35,7 +36,7 @@ export function Koti() {
       <div className="px-1 pt-1">
         <p className="text-2xl font-bold text-green-900">{greeting(cs.id)}</p>
         <Muted>
-          {cs.status === "ready" ? `Tilanne ${dateFi(cs.data.asOf)}` : "Ladataan…"} · {cs.id} <span className="text-ink-muted">(demo customer)</span>
+          {cs.status === "ready" ? `Tilanne ${dateFi(cs.data.asOf)}` : "Ladataan…"} · {cs.id} <span className="text-ink-muted">({t("demo customer")})</span>
         </Muted>
       </div>
 
@@ -59,12 +60,12 @@ export function Koti() {
         {prefs.bank && (
           <ListRow
             leading={<IconCircle icon={PiggyBank} tone="sunken" />}
-            title={`${prefs.bank.bankName} (simulated)`}
-            subtitle="Connected via open banking · demo"
-            right={<span className="text-sm font-normal text-ink-muted">Simulated</span>}
+            title={t("{bank} (simulated)", { bank: prefs.bank.bankName })}
+            subtitle={t("Connected via open banking · demo")}
+            right={<span className="text-sm font-normal text-ink-muted">{t("Simulated")}</span>}
           />
         )}
-        <ListRow leading={<IconCircle icon={CreditCard} />} title="S-Etukortti Visa" subtitle="Debit and credit" chevron onClick={() => notInDemo("Card settings")} />
+        <ListRow leading={<IconCircle icon={CreditCard} />} title="S-Etukortti Visa" subtitle={t("Debit and credit")}chevron onClick={() => notInDemo("Card settings")} />
       </Card>
 
       <ConceptNotice />

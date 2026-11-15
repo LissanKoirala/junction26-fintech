@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { ShieldCheck, TriangleAlert, Search, type LucideIcon } from "lucide-react";
 import type { Explain } from "@shared/chat";
 import { periodLabel } from "@/lib/format";
+import { t, tn } from "@/lib/i18n";
 import { cx, Disclosure, IconCircle, STROKE } from "./kit";
 import { VaraAvatar } from "./hero";
 
@@ -108,16 +109,16 @@ export function LegendRow({ color, label, value }: { color: string; label: React
 
 export function ExplainDrawer({ explain }: { explain: Explain }) {
   const rows: [string, ReactNode][] = [];
-  if (explain.period) rows.push(["Period", periodLabel(explain.period)]);
-  if (explain.filters?.length) rows.push(["Filters", explain.filters.join(" · ")]);
-  if (explain.txCount != null) rows.push(["Transactions", explain.txCount.toLocaleString("fi-FI")]);
-  if (explain.formula) rows.push(["Formula", explain.formula]);
-  if (explain.model) rows.push(["Model", `${explain.model.name} · ${explain.model.metric}`]);
-  if (explain.source) rows.push(["Source", explain.source]);
-  rows.push(["Computed by", <code key="t" className="text-xs">{explain.tool}</code>]);
+  if (explain.period) rows.push([t("Period"), periodLabel(explain.period)]);
+  if (explain.filters?.length) rows.push([t("Filters"), explain.filters.join(" · ")]);
+  if (explain.txCount != null) rows.push([t("Transactions"), explain.txCount.toLocaleString("fi-FI")]);
+  if (explain.formula) rows.push([t("Formula"), explain.formula]);
+  if (explain.model) rows.push([t("Model"), `${explain.model.name} · ${explain.model.metric}`]);
+  if (explain.source) rows.push([t("Source"), explain.source]);
+  rows.push([t("Computed by"), <code key="t" className="text-xs">{explain.tool}</code>]);
   return (
     <div className="mt-2 border-t border-line">
-      <Disclosure label="How I got this" icon={Search}>
+      <Disclosure label={t("How I got this")} icon={Search}>
         <dl className="grid grid-cols-[96px_1fr] gap-x-3 gap-y-1.5 pb-1 text-sm">
           {rows.map(([k, v]) => (
             <div key={k} className="contents">
@@ -136,16 +137,16 @@ export function CheckLine({ verified, unverified, note }: { verified: boolean; u
     return (
       <p className="flex items-center gap-1.5 px-1 text-xs text-ink-muted">
         <ShieldCheck size={14} strokeWidth={STROKE} aria-hidden className="text-green-700" />
-        Numbers checked against your transactions{note ? ` · ${note}` : ""}
+        {t("Numbers checked against your transactions")}{note ? ` · ${note}` : ""}
       </p>
     );
   return (
     <div className="flex items-start gap-2 rounded-md bg-warning-bg px-3 py-2 text-sm text-ink" role="note">
       <TriangleAlert size={16} strokeWidth={STROKE} aria-hidden className="mt-0.5 shrink-0 text-warning" />
       <span>
-        I couldn't match {unverified.length === 1 ? "this figure" : "these figures"} to your transactions:{" "}
-        <span className="font-semibold">{unverified.join(", ")}</span>. Treat {unverified.length === 1 ? "it" : "them"} with care; the cards
-        above are exact.
+        {tn("I couldn't match this figure to your transactions:", "I couldn't match these figures to your transactions:", unverified.length)}{" "}
+        <span className="font-semibold">{unverified.join(", ")}</span>.{" "}
+        {tn("Treat it with care; the cards above are exact.", "Treat them with care; the cards above are exact.", unverified.length)}
       </span>
     </div>
   );

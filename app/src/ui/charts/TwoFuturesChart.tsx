@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { scaleLinear } from "d3-scale";
 import { area as d3area, line as d3line, curveMonotoneX } from "d3-shape";
+import { t } from "@/lib/i18n";
 import { useWidth } from "./useWidth";
 
 export interface FuturePath {
@@ -64,7 +65,7 @@ export function TwoFuturesChart({
   }, [futures, w, height, compact]);
 
   const hoverRows = hover == null ? null : hover <= 0
-    ? [{ key: "you", label: "You", color: INK, value: past.find((p) => p.month === hover)?.balance }]
+    ? [{ key: "you", label: t("You"), color: INK, value: past.find((p) => p.month === hover)?.balance }]
     : futures.map((f) => ({ key: f.key, label: f.label, color: f.color, value: f.path.find((p) => p.month === hover)?.p50 }));
 
   return (
@@ -74,7 +75,10 @@ export function TwoFuturesChart({
         height={height}
         className="block touch-pan-y"
         role="img"
-        aria-label={`Your balance over the last 12 months, now ${format(now)}. ${futures.map((f) => `${f.label}: ends near ${format(f.path[f.path.length - 1].p50)}`).join(". ")}.`}
+        aria-label={[
+          t("Your balance over the last 12 months, now {v}.", { v: format(now) }),
+          ...futures.map((f) => t("{label}: ends near {v}.", { label: f.label, v: format(f.path[f.path.length - 1].p50) })),
+        ].join(" ")}
         onPointerMove={(e) => {
           const r = (e.currentTarget as SVGElement).getBoundingClientRect();
           const m = Math.round(x.invert(e.clientX - r.left));
@@ -116,7 +120,7 @@ export function TwoFuturesChart({
         <circle cx={x(0)} cy={y(now)} r={5} fill={INK} stroke="#fff" strokeWidth={2} />
         {/* x axis labels */}
         <text x={padL} y={height - 6} fontSize={11} fill={AXIS}>{monthLabel(minM)}</text>
-        <text x={x(0)} y={height - 6} fontSize={11} fill={INK} fontWeight={600} textAnchor="middle">Now</text>
+        <text x={x(0)} y={height - 6} fontSize={11} fill={INK} fontWeight={600} textAnchor="middle">{t("Now")}</text>
         <text x={w - padR} y={height - 6} fontSize={11} fill={AXIS} textAnchor="end">{monthLabel(maxM)}</text>
         {/* direct labels */}
         {labels.map((l) => {
@@ -136,7 +140,7 @@ export function TwoFuturesChart({
           className="pointer-events-none absolute top-0 rounded-md bg-ink px-2.5 py-1.5 text-xs text-white shadow-middle"
           style={{ left: Math.min(Math.max(x(hover) - 70, 0), Math.max(0, w - 160)) }}
         >
-          <p className="font-semibold">{hover === 0 ? "Now" : monthLabel(hover)}</p>
+          <p className="font-semibold">{hover === 0 ? t("Now") : monthLabel(hover)}</p>
           {hoverRows.map((r) => (
             <p key={r.key} className="flex items-center gap-1.5">
               <span className="inline-block h-2 w-2 rounded-pill" style={{ background: r.color === INK ? "#fff" : r.color }} />
