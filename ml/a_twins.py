@@ -112,7 +112,29 @@ mae = lambda p: float(np.mean(np.abs(p - actual)))
 val = {"mae_twins": mae(pred), "mae_pop": mae(pop), "mae_median": mae(pop_med), "mae_one_feature": mae(one_feature), "mae_persist": mae(persist),
        "rho_twins": float(spearmanr(pred, actual)[0]), "rho_persist": float(spearmanr(persist, actual)[0]),
        "iqr_coverage": float(np.mean(inIQR)), "n_test": int(len(test))}
-print("validation", {k: round(v, 3) for k, v in val.items()}, f"({time.time()-t_val:.1f}s)")
+# paired bootstrap of the MAE difference against each baseline (own rng, so the main rng stream is unchanged)
+rb = np.random.default_rng(0)
+boot = rb.integers(0, len(actual), (4000, len(actual)))
+val["mae_diff_ci"] = {}
+for nm, b in [("median", pop_med), ("one_feature", one_feature), ("persist", persist)]:
+    d = np.abs(pred - actual) - np.abs(b - actual)
+    bs = d[boot].mean(1)
+    val["mae_diff_ci"][nm] = [float(d.mean()), float(np.quantile(bs, 0.025)), float(np.quantile(bs, 0.975))]
+# the same validation on other customer splits, against the one-feature rule
+val["gain_one_feature_other_seeds"] = {}
+for sd in (1, 2, 3):
+    pm = np.random.default_rng(sd).permutation(n)
+    te_, tr_ = pm[: n // 5], pm[n // 5:]
+    q_ = np.quantile(sr1[tr_], np.linspace(0, 1, 11))
+    dd_ = np.clip(np.searchsorted(q_, sr1, side="right") - 1, 0, 9)
+    mb_ = {k: float(np.median(r2[tr_][dd_[tr_] == k])) for k in range(10)}
+    pr_, of_ = [], []
+    for i in te_:
+        nb, _ = neighbours(Z1[i], inc1[i], tr_, Z1[tr_], inc1[tr_])
+        pr_.append(np.median(r2[nb])); of_.append(mb_[int(dd_[i])])
+    pr_, of_ = np.array(pr_), np.array(of_)
+    val["gain_one_feature_other_seeds"][str(sd)] = float(1 - np.mean(np.abs(pr_ - r2[te_])) / np.mean(np.abs(of_ - r2[te_])))
+print("validation", {k: (round(v, 3) if isinstance(v, float) else v) for k, v in val.items()}, f"({time.time()-t_val:.1f}s)")
 
 # ------------------------------------------------------------------ per customer
 GROUPS = [("built", "Built a buffer"), ("held", "Held steady"), ("slipped", "Slipped")]
@@ -216,7 +238,15 @@ print(f"wrote {done} twins files ({time.time()-t0:.1f}s)")
 
 if not only:
     best_base = min(val["mae_median"], val["mae_one_feature"], val["mae_persist"])
-    better = val["mae_twins"] < 0.9 * best_base   # "ships" only with a >=10% error cut against the strongest baseline
+    ci = val["mae_diff_ci"]
+    on_par = {k: v[1] <= 0 <= v[2] for k, v in ci.items()}   # 95% CI of the MAE difference includes zero: within noise
+    best_k = min(("median", "one_feature", "persist"), key=lambda k: val[f"mae_{k}"])
+    # "ships" only with a >=10% error cut against the strongest baseline that is outside the noise
+    better = val["mae_twins"] < 0.9 * best_base and not on_par[best_k]
+    gain = {k: 1 - val["mae_twins"] / val[f"mae_{k}"] for k in ("median", "one_feature", "persist")}
+    seeds = list(val["gain_one_feature_other_seeds"].values())
+    mrow = lambda label, k, name: {"label": label, "model": val["mae_twins"], "baseline": val[f"mae_{k}"], "baselineName": name,  # noqa: E731
+                                   "unit": "months of income", "better": "lower", "onPar": on_par[k], "diffCI95": ci[k][1:]}
     write_json(os.path.join(GLOBAL_DIR, "modelcard-twins.json"), {
         "key": "twins", "name": "Two Futures (money twins)",
         "purpose": "Show what happened next to customers whose habits a year ago looked like yours today.",
@@ -227,19 +257,21 @@ if not only:
         "split": f"Customer hold-out 80/20 (seed 7, n_test={val['n_test']}) with a time split: held-out customers' YEAR-1 features only, "
                  "target = their own YEAR-2 balance change / YEAR-1 monthly income. Caveat: twins' outcomes and the target share the same calendar year.",
         "metrics": [
-            {"label": "MAE of year-2 balance change (months of income)", "model": val["mae_twins"], "baseline": val["mae_median"],
-             "baselineName": "population median", "unit": "months of income", "better": "lower"},
-            {"label": "MAE vs a one-feature rule", "model": val["mae_twins"], "baseline": val["mae_one_feature"],
-             "baselineName": "median outcome by decile of last year's savings rate", "unit": "months of income", "better": "lower"},
-            {"label": "MAE vs persistence", "model": val["mae_twins"], "baseline": val["mae_persist"],
-             "baselineName": "same change as last year", "unit": "months of income", "better": "lower"},
+            # strongest baseline first (the overview and the chat quote metrics[0])
+            mrow("MAE vs a one-feature rule", "one_feature", "median outcome by decile of last year's savings rate"),
+            mrow("MAE of year-2 balance change (months of income)", "median", "population median"),
+            mrow("MAE vs persistence", "persist", "same change as last year"),
             {"label": "Spearman correlation with actual", "model": val["rho_twins"], "baseline": val["rho_persist"],
              "baselineName": "same change as last year", "unit": "", "better": "higher"},
             {"label": "Actual outcome inside twins' interquartile range", "model": val["iqr_coverage"], "baseline": 0.5,
              "baselineName": "nominal 50%", "unit": "share", "better": "higher"},
         ],
         "verdict": "ships" if better else ("experimental" if val["mae_twins"] < best_base else "not_better_than_baseline"),
-        "caveats": ["Correlation in synthetic data, not causal advice.",
+        "caveats": [f"The twins are about {gain['one_feature']:.0%} better than a one-feature rule (median outcome by decile of last year's savings "
+                    f"rate), which is within noise (95% interval of the error difference {ci['one_feature'][1]:+.3f} to {ci['one_feature'][2]:+.3f}; "
+                    f"{min(seeds):.1%} to {max(seeds):.1%} on other customer splits), {gain['median']:.1%} better than the population median and "
+                    f"{gain['persist']:.0%} better than persistence.",
+                    "Correlation in synthetic data, not causal advice.",
                     "Groups are terciles inside each customer's own 100 twins, so 'built' and 'slipped' are relative to similar people.",
                     "Opening balances in the data are synthetic; balance change is measured, not the level."],
         "validation": val, "trainedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "trainSeconds": round(time.time() - t0, 1)})

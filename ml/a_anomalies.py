@@ -2,13 +2,14 @@
 
 Personal normal = the customer's own YEAR-1 purchases (2024-10..2025-09). Every purchase of the last 12 months
 (YEAR 2) is described by personalised features (amount vs own category distribution, own hour/weekday habits, how
-rare the category is for them, gap since the previous purchase in the category vs their usual gap). One Isolation
-Forest is fitted on these personalised features across all main-cohort customers; score = percentile of the
-anomaly score (0..1). Reasons are computed from the same features.
+rare the category is for them, gap since the previous purchase in the category vs their usual gap). Score = a
+per-customer robust surprise (see robust()), turned into a percentile (0..1) against ONE pooled reference sample of
+main-cohort purchases, so the share of a customer's purchases above 0.95 varies by customer. Reasons are computed
+from the same features. An Isolation Forest on the same features is fitted only as a comparison.
 
 Validation: synthetic injection on held-out customers (copies of real year-2 purchases with a 3-6x amount, a rare
-hour for that customer, or a rarely used category), ROC AUC vs (a) a global, non-personal amount percentile and
-(b) the personal amount z-score alone.
+hour for that customer, or a rarely used category), ROC AUC vs the Isolation Forest, a global, non-personal amount
+percentile and the personal amount z-score alone.
 
 Writes ml/anomalies/{id}.json (MlAnomalies) for all 5,100 customers, global/modelcard-anomalies.json
 usage: ~/mlenv/bin/python ml/a_anomalies.py
@@ -213,6 +214,14 @@ chunks = [list(c) for c in np.array_split(np.array(cids), 64)]
 done = sum(Parallel(n_jobs=32)(delayed(build_chunk)(c, S_small.filter(pl.col("customer_id").is_in(c)), weekly.filter(pl.col("customer_id").is_in(c))) for c in chunks))
 print(f"wrote {done} anomaly files ({time.time()-t0:.1f}s)")
 
+# how many purchases are flagged (score >= 0.95), main cohort, year 2: the true count, not the per-customer top-30 lists
+S_m = S.filter(is_main)
+flag = S_m.group_by("customer_id").agg((pl.col("score") >= 0.95).sum().alias("k"), pl.len().alias("n"))
+share = (flag["k"] / flag["n"]).to_numpy()
+FLAGS = {"purchases": int(S_m.height), "flagged": int(flag["k"].sum()), "customers": int(flag.height),
+         "shareP10": float(np.quantile(share, 0.1)), "shareP50": float(np.median(share)), "shareP90": float(np.quantile(share, 0.9))}
+print("flags", FLAGS)
+
 # "ships" only if it beats every baseline, including the Isolation Forest on the same features
 ships = auc["model"] > max(auc["global_amount"], auc["personal_amount_z"], auc["isolation_forest"]) + 0.01
 write_json(os.path.join(GLOBAL_DIR, "modelcard-anomalies.json"), {
@@ -223,9 +232,10 @@ write_json(os.path.join(GLOBAL_DIR, "modelcard-anomalies.json"), {
     "split": f"Time split (normal from {YEAR1[0]}..{YEAR1[1]}, scored {YEAR2[0]}..{YEAR2[1]}); validation on {len(hold)} held-out customers "
              f"with {inj.height:,} injected anomalies vs {normal.height:,} real purchases.",
     "metrics": [
-        {"label": "ROC AUC, injected anomalies", "model": auc["model"], "baseline": auc["global_amount"], "baselineName": "global amount percentile (not personal)", "unit": "", "better": "higher"},
-        {"label": "ROC AUC, injected anomalies", "model": auc["model"], "baseline": auc["personal_amount_z"], "baselineName": "personal amount z-score only", "unit": "", "better": "higher"},
+        # strongest baseline first (the overview and the chat quote metrics[0]); the global amount percentile is the circular one
         {"label": "ROC AUC, injected anomalies", "model": auc["model"], "baseline": auc["isolation_forest"], "baselineName": "Isolation Forest on the same personal features", "unit": "", "better": "higher"},
+        {"label": "ROC AUC, injected anomalies", "model": auc["model"], "baseline": auc["personal_amount_z"], "baselineName": "personal amount z-score only", "unit": "", "better": "higher"},
+        {"label": "ROC AUC, injected anomalies", "model": auc["model"], "baseline": auc["global_amount"], "baselineName": "global amount percentile (not personal)", "unit": "", "better": "higher"},
     ] + [{"label": f"ROC AUC, {k}", "model": v["model"], "baseline": v["global_amount"], "baselineName": "global amount percentile", "unit": "", "better": "higher"} for k, v in by_type.items()],
     "verdict": "ships" if ships else "experimental",
     "caveats": ["No labelled fraud or surprise events exist in the data; validation uses synthetic injected anomalies, which shows the detector finds "
@@ -234,7 +244,12 @@ write_json(os.path.join(GLOBAL_DIR, "modelcard-anomalies.json"), {
                 "the personal normal, unusual hour, rarely used category), and the amount-only baselines cannot see hour or category by "
                 "construction. Read the AUC as proof that the mechanism works, not as real-world accuracy.",
                 "It does not beat an Isolation Forest on the same features on this benchmark; it is used because every flag comes with a plain reason.",
+                f"On amount spikes, the one injected type that resembles real events, the personal score does not beat the non-personal amount rule "
+                f"({by_type['amount x3-6']['model']:.3f} vs {by_type['amount x3-6']['global_amount']:.3f}); its edge is on unusual hours and categories.",
+                f"A flag (score >= 0.95) is measured against one pooled reference of purchases from all customers, not against each customer's own: "
+                f"the share of a customer's purchases that is flagged is {FLAGS['shareP10']:.1%} at the 10th percentile, {FLAGS['shareP50']:.1%} "
+                f"at the median and {FLAGS['shareP90']:.1%} at the 90th ({FLAGS['flagged']:,} of {FLAGS['purchases']:,} year-2 purchases in the main cohort).",
                 "Hours in the data are 05-23 and amounts are smooth, so real unusual events are mostly large amounts.",
                 "A per-customer robust score was chosen over an Isolation Forest on the same personalised features: the forest over-weighted rare hours and categories (tiny purchases at 06:00) and was weaker on amount spikes; its AUC is reported alongside."],
-    "validation": {"auc": auc, "byType": by_type},
+    "validation": {"auc": auc, "byType": by_type, "flags": FLAGS},
     "trainedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "trainSeconds": round(time.time() - t0, 1)})

@@ -16,6 +16,7 @@ import { clientIp, rateLimit, takeDailyBudget } from "../llm";
 import { CRAVE_MODEL, generateDetails, generateShop } from "./generate";
 import { CRAVE_DIR, IMAGE_MODEL, productImage, readImage } from "./images";
 import { tr, type Lang } from "../../shared/i18n";
+import { registerWalletRoutes } from "./wallet";
 
 const VERSION = 1;
 const SHOP_TIMEOUT_MS = 60_000;
@@ -175,6 +176,7 @@ export async function buildShop(craving: string, send: (ev: CraveEvent) => void 
 }
 
 export function registerCraveRoutes(app: Hono) {
+  registerWalletRoutes(app);
   app.get("/api/crave/img/:file", async (c) => {
     const buf = await readImage(c.req.param("file"));
     if (!buf) return c.json({ error: "not found" }, 404);

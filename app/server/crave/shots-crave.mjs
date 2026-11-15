@@ -23,6 +23,7 @@ page.on("console", (m) => {
   }
 });
 page.on("pageerror", (e) => errors.push(`[pageerror] ${e.message}`));
+if (opt.net) page.on("response", (r) => r.status() >= 400 && errors.push(`[net] ${r.status()} ${r.url().slice(0, 120)}`));
 page.on("dialog", (d) => d.accept());
 
 for (const st of steps) {

@@ -288,6 +288,15 @@ const fi: Record<string, string> = {
   "Home & Tech": "Koti ja tekniikka",
   Lifestyle: "Ostokset ja vapaa-aika",
   Transportation: "Liikkuminen",
+
+  // real wallet sheet (Stripe test mode)
+  "Test payment · your card is not charged": "Testimaksu · korttiasi ei veloiteta",
+  "Stripe test payment: no money moves and nothing ships.": "Stripen testimaksu: rahaa ei siirry eikä mitään lähetetä.",
+  "Payment cancelled. Try again, or use the simulated pay.": "Maksu peruttiin. Yritä uudelleen tai käytä simuloitua maksua.",
+  "The test payment didn't go through. Try again, or use the simulated pay.": "Testimaksu ei mennyt läpi. Yritä uudelleen tai käytä simuloitua maksua.",
+  "Use simulated pay": "Käytä simuloitua maksua",
+  "That's a lot of payments in a short time. Try again in a few minutes.": "Paljon maksuja lyhyessä ajassa. Yritä uudelleen muutaman minuutin päästä.",
+  "The test wallet has reached today's limit. The simulated pay still works.": "Testilompakon päiväraja on täynnä. Simuloitu maksu toimii edelleen.",
 };
 
 export default fi;

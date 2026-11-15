@@ -3,15 +3,19 @@
 // money really goes), a "Double-click to pay" prompt with a side-button hint at the right edge of the phone. Then the
 // ritual: a face-scan glyph (~0.9 s), "Processing" (~0.7 s), a blue circle with the tick drawn in and "Done", with the
 // synthesised chime and a haptic pulse on the same frame. Everything here is part of the simulation.
+// When the server has Stripe TEST keys and the device has a wallet, the official wallet button (Stripe Express
+// Checkout Element) replaces the prompt and the Pay button: a real wallet sheet, a test payment, no card charged.
+// See wallet.ts. Without keys, or on any problem, this sheet behaves exactly as the simulation above.
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { PiggyBank, ScanFace, X } from "lucide-react";
 import type { CraveShopHeader } from "@shared/crave";
-import { t } from "@/lib/i18n";
+import { t, useLang } from "@/lib/i18n";
 import { money } from "@/lib/format";
 import { STROKE } from "@/ui/kit";
 import { accentOf, iconOf, NothingShipsPill } from "./look";
 import { sfx } from "./sfx";
+import { useRealWallet } from "./wallet";
 
 const CARD_LAST4 = "4821"; // invented, simulation only
 const BLUE = "#0a7cff"; // a generic "done" blue
@@ -59,9 +63,13 @@ export function PaySheet({ open, header, total, stash, onClose, onPaid }: { open
   }, [open]);
   const a = accentOf(header.accent);
   const Icon = iconOf(header.icon);
+  const lang = useLang();
+  const wallet = useRealWallet({ open, amountCents: Math.round(total * 100), lang, onPaid });
+  const real = wallet.state === "ready"; // the real wallet button is showing
 
   const confirm = () => {
     if (phase !== "confirm") return;
+    wallet.switchToSimulated(); // tapped the simulated Pay while Stripe was still checking: stay simulated
     sfx.unlock(); // the chime plays ~1.6 s later; the audio context must be started from this tap
     sfx.click();
     setPhase("scan");
@@ -93,9 +101,9 @@ export function PaySheet({ open, header, total, stash, onClose, onPaid }: { open
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => phase === "confirm" && onClose()}
+            onClick={() => phase === "confirm" && !wallet.paying && onClose()}
           />
-          {phase === "confirm" && <SideButtonHint />}
+          {phase === "confirm" && !real && <SideButtonHint />}
           <motion.div
             role="dialog"
             aria-modal="true"
@@ -109,7 +117,7 @@ export function PaySheet({ open, header, total, stash, onClose, onPaid }: { open
             <div className="flex items-center justify-between">
               <span className="flex min-w-0 flex-col items-start gap-1">
                 <NothingShipsPill className="scale-90 origin-left" />
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t("Simulated wallet · demo")}</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{real ? t("Test payment · your card is not charged") : t("Simulated wallet · demo")}</span>
               </span>
               {phase === "confirm" ? (
                 <button type="button" aria-label={t("Cancel payment")} onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-pill bg-black/[0.07] text-ink-muted">
@@ -120,8 +128,8 @@ export function PaySheet({ open, header, total, stash, onClose, onPaid }: { open
               )}
             </div>
 
-            {/* card */}
-            <div className="mt-2 flex items-center gap-3 border-b border-black/10 pb-3">
+            {/* card (simulation only: in the real wallet the person picks their card in the wallet sheet) */}
+            {!real && <div className="mt-2 flex items-center gap-3 border-b border-black/10 pb-3">
               <div className="relative h-[46px] w-[72px] shrink-0 overflow-hidden rounded-[7px] bg-gradient-to-br from-[#0a8a4c] to-[#043d24] shadow-low">
                 <span className="absolute left-1.5 top-1.5 block h-2.5 w-3.5 rounded-[2px] bg-amber-200/90" aria-hidden />
                 <span className="absolute bottom-1 right-1.5 text-[8px] font-bold tracking-wider text-white/90">DEBIT</span>
@@ -130,10 +138,10 @@ export function PaySheet({ open, header, total, stash, onClose, onPaid }: { open
                 <p className="truncate text-[15px] font-semibold">S-Pankki Debit •••• {CARD_LAST4}</p>
                 <p className="truncate text-xs text-ink-muted">{t("Invented demo card")}</p>
               </div>
-            </div>
+            </div>}
 
             {/* pay row + amount */}
-            <div className="border-b border-black/10 py-3">
+            <div className={`border-b border-black/10 py-3 ${real ? "mt-2 border-t" : ""}`}>
               <p className="flex items-center gap-2 text-[15px] font-semibold">
                 <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[6px] text-white" style={{ background: a.main }}><Icon size={14} strokeWidth={STROKE} aria-hidden /></span>
                 <span className="truncate">{t("Pay {shop}", { shop: header.shopName })}</span>
@@ -149,9 +157,28 @@ export function PaySheet({ open, header, total, stash, onClose, onPaid }: { open
             </div>
 
             {/* the ritual */}
-            <div className="flex min-h-[176px] flex-col items-center justify-center pt-3">
+            <div className="relative flex min-h-[176px] flex-col items-center justify-center pt-3">
+              {/* the real wallet button mounts here; hidden while Stripe checks the device, gone when off */}
+              {phase === "confirm" && wallet.state !== "off" && (
+                <div className={real ? "flex w-full flex-col items-center gap-3" : "pointer-events-none invisible absolute inset-x-0 top-3"} aria-hidden={!real}>
+                  <div ref={wallet.mountRef} className="w-full" />
+                  {real && (
+                    <p className="min-h-[2.5rem] text-center text-xs text-ink-muted" role="status">
+                      {wallet.note === "cancelled" ? t("Payment cancelled. Try again, or use the simulated pay.") : wallet.note === "failed" ? t("The test payment didn't go through. Try again, or use the simulated pay.") : wallet.paying ? t("Confirming…") : ""}
+                      {wallet.note && (
+                        <>
+                          {" "}
+                          <button type="button" onClick={wallet.switchToSimulated} className="font-semibold text-ink underline underline-offset-2">
+                            {t("Use simulated pay")}
+                          </button>
+                        </>
+                      )}
+                    </p>
+                  )}
+                </div>
+              )}
               <AnimatePresence mode="wait">
-                {phase === "confirm" && (
+                {phase === "confirm" && !real && (
                   <motion.div key="c" exit={{ opacity: 0 }} className="flex w-full flex-col items-center gap-3">
                     <button
                       type="button"
@@ -197,7 +224,7 @@ export function PaySheet({ open, header, total, stash, onClose, onPaid }: { open
                 )}
               </AnimatePresence>
             </div>
-            <p className="mt-1 text-center text-[11px] text-ink-muted">{t("Simulation: no money is moved and no card is charged.")}</p>
+            <p className="mt-1 text-center text-[11px] text-ink-muted">{real ? t("Stripe test payment: no money moves and nothing ships.") : t("Simulation: no money is moved and no card is charged.")}</p>
           </motion.div>
         </div>
       )}
