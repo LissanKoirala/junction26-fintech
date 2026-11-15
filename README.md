@@ -22,6 +22,9 @@ before they make them.
 - **Crave mode**: when you feel like buying something, Vara generates a shop for
   it with a full checkout. Nothing ships; the money goes to your savings instead.
   Opt-in, clearly labelled and reversible.
+- **Shopping Lab**: a separate page inside Crave mode (`#/crave/lab`) embeds
+  real-product storefronts, with Gemini-backed imports for other merchant URLs.
+  Its checkout and savings pot are simulated and separate from the wallet.
 - **Machine-learning features**: money map, two futures, unusual-for-you radar,
   habit detector, balance forecast, overdraft early warning with reasons,
   first-home readiness. Each one is reported against a naive baseline.
@@ -31,6 +34,7 @@ before they make them.
 | Path | What it is |
 |---|---|
 | `app/` | The mobile web app: React + Vite front end (`src/`), Hono API server (`server/`), shared engine and types (`shared/`) |
+| `shopping-lab/` | Standalone mobile shopping demo: retailer storefronts, Gemini discovery, live catalogue imports, and simulated savings checkout |
 | `ml/` | Python pipelines that train the models and write per-customer outputs and model cards |
 | `insights/` | The judges' insights site: `eda.py` computes every statistic from the raw data, `build.py` renders the page |
 | `design/` | Moodboard for the visual direction |
@@ -52,6 +56,16 @@ bash ml/a_run_all.sh
 # insights site
 python insights/eda.py && python insights/build.py
 ```
+
+## Shopping Lab
+
+The standalone shopping demo is documented in [shopping-lab/README.md](shopping-lab/README.md), with an [embedding contract](shopping-lab/docs/INTEGRATION.md) for the S-mobiili app. It runs on its own origin or port (5174 is recommended alongside the existing app), with a separate Gemini backend secret and catalogue cache.
+
+Hosted demo: [Vara Shopping Lab](https://vara-shopping-lab.lissanartist.chatgpt.site/).
+
+Open **Crave mode → Open Shopping Lab**, or navigate directly to `#/crave/lab`.
+The app page embeds the hosted demo; its complete source lives in `shopping-lab/`.
+Deploy the updated main app to make the new route available on the Azure host.
 
 ## Data and credits
 
