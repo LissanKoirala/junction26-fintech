@@ -58,7 +58,7 @@ const S03: React.FC = () => {
     <At x={120} y={190}><In at={a80} from="scale"><Big size={300}><Mint><CountTo at={a80} to={80} suffix="%" /></Mint></Big></In></At>
     <At x={130} y={520}><In at={a80 + 0.2}><Big size={72}>aged 18–24</Big></In></At>
     <At x={1010} y={190}><In at={a96} from="scale"><Big size={300}><Mint><CountTo at={a96} to={96} suffix="%" /></Mint></Big></In></At>
-    <At x={1020} y={520}><In at={a96 + 0.2}><Big size={72}>of dips: just before payday</Big></In></At>
+    <At x={1020} y={520}><In at={a96 + 0.2}><Big size={72}>of dips: day 20 or later</Big></In></At>
     <Sfx name="tick" at={a80 + 0.9} volume={0.6} /><Sfx name="tick" at={a96 + 0.9} volume={0.6} />
     <At x={1020} y={720}><In at={a96 + 0.4}>
       <div style={{ display: "flex", gap: 6, alignItems: "flex-end" }}>
@@ -88,7 +88,7 @@ const S04: React.FC = () => {
     <At x={120} y={380}><In at={a39} from="scale"><Token size={270} /></In></At>
     <At x={120} y={680}><In at={a39 + 0.2}><Big size={50} weight={700} color={C.heroMeta}>a typical purchase</Big></In></At>
     <At x={560} y={420} style={{ display: "flex", gap: 18 }}>
-      {Array.from({ length: 6 }, (_, i) => <In key={i} at={deep + 0.25 + i * 0.2} from="scale"><Token size={176} fill={i === 5 ? 0.9 : 1} label={i === 5 ? "0,9×" : "39 €"} /></In>)}
+      {Array.from({ length: 6 }, (_, i) => <In key={i} at={deep + 0.25 + i * 0.2} from="scale"><Token size={176} fill={i === 5 ? 0.9 : 1} label={i === 5 ? "0.9×" : "39 €"} /></In>)}
     </At>
     {Array.from({ length: 6 }, (_, i) => <Sfx key={i} name="tick" at={deep + 0.25 + i * 0.2} volume={0.45} />)}
     <At x={560} y={260}><In at={deep + 1.5}><Big size={120}><Mint>×5.9</Mint></Big></In></At>

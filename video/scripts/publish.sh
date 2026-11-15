@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Copies the two version 2 videos, their posters and the viewing page to the demo server's /video/ folder,
+# Copies the two version 2 videos, their posters, the slides (vara-slides.pptx) and the viewing page to the demo
+# server's /video/ folder,
 # and removes version 1's per-slide clips and stills from it.
 # Run on the server:  scripts/publish.sh <out dir>   (default ~/vidout/v2, as written by scripts/finish-v2.sh)
 set -euo pipefail
@@ -14,6 +15,7 @@ python3 -c "import json,sys; v=json.load(open(sys.argv[1])); sys.exit(0 if v['ok
 sudo mkdir -p "$DEST"
 sudo cp "$OUT/vara-demo.mp4" "$OUT/vara-pitch.mp4" "$OUT/poster-demo.jpg" "$OUT/poster-pitch.jpg" "$DEST/"
 sudo cp "$HERE/site/index.html" "$DEST/index.html"
+[ -f "$HERE/vara-slides.pptx" ] && sudo cp "$HERE/vara-slides.pptx" "$DEST/" || echo "note: no vara-slides.pptx; the page's slides link will be dead" >&2
 sudo rm -rf "$DEST/clips" "$DEST/stills" "$DEST/vara-pitch-short.mp4"   # version 1's per-slide clips and stills
 sudo chmod -R a+rX "$DEST"
 du -sh "$DEST"; ls -la "$DEST"

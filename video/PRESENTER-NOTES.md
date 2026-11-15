@@ -1,99 +1,101 @@
-# Presenter notes
+# Presenter notes (version 2)
 
-Two ways to use the deck:
+Two films, each one continuous piece with narration, music and the app's own sounds. Start times below are where
+each scene begins in the finished file; the lines are the narration exactly as voiced. To present live, mute the
+player and say the lines yourself, but keep the sound on for the pay moment: the chime alone is the point of it.
 
-- **Play it.** `vara-pitch.mp4`, the pitch video, is the whole pitch with a narrator, 4 min 55 s.
-  `vara-demo.mp4`, the demo video, is 1 min 53 s of the product: the one number (slide 04, opening with "This is
-  Vara, a personal economic trainer inside S-mobiili. It starts with one number: what's safe to spend, after
-  rent, bills and a cushion."), chat, Crave mode and its live run, the close.
-- **Present over it.** The fourteen clips in `videos/` each end on a complete, still frame. Mute the player,
-  play a clip, talk, and move on when you are ready. The narrator's lines below are a script you can say
-  yourself.
+## Demo video (`vara-demo.mp4`) · 1:50.0 (110.0 s)
 
-Slide 08 is the one to keep the sound on for: the pay chime is the moment of the pitch.
+**d1 · 0:00.0 · Cold open: the craving** (15.0 s)  
+“You know the feeling. You want something. You scroll, you compare, you hit buy. That rush is the best part. Then the parcel arrives, the thrill is gone, and so is the money. What if you could keep the thrill, and keep the money?”
 
-## Slide by slide
+**d2 · 0:15.0 · The build, in true time** (21.7 s)  
+“Meet Aino. She wants new sneakers, and payday is two weeks away. So she tells her bank, and Vara builds her a shop. Watch this. A whole store that didn't exist a moment ago. Gemini is writing it live: its name, its brands, ten products, the reviews, with photos to match. Almost instantly.”  
+*Stopwatch in real time: “First product · 2.5 s”, then “Shop complete · 8.8 s”. Any sped-up footage is labelled.*
 
-**01 · Meet Aino (15 s).** "Meet Aino. She's twenty-one, payday is two weeks away, and she really wants new
-sneakers. Her banking app shows what she has. It doesn't show what she can afford."
-If asked: Aino is a fictional name for one synthetic customer in the challenge data (age 21, the app's date is
-fixed at 30 September 2026).
+**d3 · 0:36.7 · Three more shops** (6.3 s)  
+“Sushi. Headphones. A winter coat. Any craving, a brand-new shop, every time.”
 
-**02 · She is not alone (23 s).** "She's not alone. In the challenge data, three point six million transactions from five
-thousand one hundred customers, seven in ten dipped below zero at least once in two years. Among eighteen to
-twenty-four-year-olds, it's eight in ten. Almost always in the last days before payday."
-If asked: 69% overall, 80% for ages 18 to 24, and 96% of dips reach their lowest point 20 or more days after
-payday. The data is synthetic; the challenge describes it as modelled on real S-Bank data. The 69% includes
-the first month, where the synthetic opening balances put more accounts below zero than later months.
+**d4 · 0:43.0 · The hunt and the pay sheet** (17.7 s)  
+“She gets the whole thrill. The hunt. The scroll. The basket. The checkout. And Vara has already checked: a hundred and thirty-seven euros is free until payday, so it fits. Double-click to pay.”  
+*Pay sheet large; the wallet button held to read; double-click, scan, tick. Music stops; the app's chime plays alone.*
+*The chime: 0:58.5. Nothing is said for 1.5 s either side.*
 
-**03 · The dips are small (20 s).** "And the dips are small. A typical everyday purchase is thirty-nine euros. The deepest dip in two
-years is the size of six of them. So this isn't a maths problem. It's about the moment, and whether the money
-is still there when the dip would have come."
-If asked: the 72% is what a 5% trim (about 44 € a month) removes when the saved money is kept and builds up
-as a cushion over the two years; kept only until the next payday it removes 15%. It is a replay of the data
-with everything else unchanged, not a prediction. That gap is the argument for
-Crave mode: the money has to stay somewhere.
+**d5 · 1:00.7 · The twist: nothing ships** (14.4 s)  
+“Order confirmed. The email lands. And then: plot twist. Nothing ships. Nothing was ever going to ship. The money went straight into her own savings pot. She got the hit. She kept the money.”  
+*Played straight (order, email), then a hard stop, PLOT TWIST, “Nothing ships”, the order turns into the savings pot.*
 
-**04 · Meet Vara (16 s).** "So we built Vara, a personal economic trainer inside S-mobiili. It starts with one
-number: what's safe to spend, after rent, bills and a cushion."
-If asked: 37 € until Sunday, 64 € a week until payday on 15 October, 137 € in total. The number comes from a
-deterministic engine, not from the language model.
+**d6 · 1:15.1 · Reversible** (5.1 s)  
+“Still want them in two days? One tap releases the money, and she buys them for real.”
 
-**05 · Chat with your money (23 s).** "Ask it anything, in plain words. Answers arrive as cards, built from
-your own transactions, and every number shows how it was worked out. The language model never does the
-arithmetic. An engine does, and a guard checks every figure before it reaches you."
-If asked: Claude Opus 5.5 calls tools in the engine; the guard compares every figure in the answer with the
-engine's results. The public endpoint is limited to 30 requests per 5 minutes per visitor and 2 000 AI calls
-a day. The recording cuts 4.1 seconds of waiting for the answer; the badge on the slide says so.
+**d7 · 1:20.2 · The coach underneath** (23.6 s)  
+“Underneath is Vara, a money coach inside S-mobiili, built on Gemini. Ask it anything, and answers arrive as cards from your own transactions. Gemini never does the maths: an engine does, and a guard checks every figure. And eight machine-learning models map her against five thousand other customers, forecast her balance, and warn her before a dip.”  
+*The coach (Gemini, function calling): its answer offers Crave mode. Then the customer map and the balance forecast from the models.*
 
-**06 · A coach that comes to you (20 s).** "What-if lets you try a decision before you make it. Every week,
-Vara checks in first, with the story of your week. And it works in English and in Finnish."
+**d8 · 1:43.8 · Close** (6.2 s)  
+“Vara. Helping you save money, a craving at a time.”
 
-**07 · Crave mode (19 s).** "But advice doesn't stop a craving. So we tried something else. Crave mode. Tell
-Vara what you want, and it builds a shop for it on the spot. You hunt, you fill the basket, you check out.
-Nothing ships. The money goes to your savings instead."
+## Pitch video (`vara-pitch.mp4`) · 3:53.2 (233.2 s)
 
-**08 · Crave mode, live (46 s).** "Here it is, live. New sneakers." … (let it play) … "The thrill of buying.
-And the money is still hers."
-If asked: the shop "Hallo Stride" and its brands are invented by the model (Claude Haiku 5.5) for the craving;
-no real shop or brand is shown. The recording is uncut and uses the simulated pay sheet.
+**p1 · 0:00.0 · Cold open: the craving** (13.6 s)  
+“You know the feeling. You want something. You scroll, you compare, you hit buy. That rush is the best part. Then the parcel arrives, the thrill is gone, and so is the money. And for a lot of people, that money was needed.”
 
-**09 · Honest by design (26 s).** "Crave mode is honest by design. You opt in, and every screen says nothing
-ships. It never sets aside more than is free until payday, and you can release the money and buy it for real
-at any time. In this prototype the money movement is simulated, and the wallet button at checkout comes from
-Stripe, in test mode. No card is charged."
-If asked: the cap is the 137 € that is free until payday, not the 37 € for this week. The order emails
-arrive in an in-app inbox; no real email is sent. The wallet button is Stripe's own element in test mode; we
-have not completed a wallet payment on a real phone.
+**p2 · 0:13.6 · The data** (21.8 s)  
+“In the challenge data, three point six million transactions from five thousand one hundred customers, seven in ten went below zero at least once in two years. Among eighteen to twenty-four-year-olds, eight in ten. Almost always in the last days before payday. And the dips are tiny. A typical everyday purchase is thirty-nine euros. The deepest dip in two years is six of them.”
 
-**10 · Eight models, tested honestly (25 s).** "Behind the coach are eight machine-learning models trained on
-the challenge data, from a balance forecast and an overdraft early warning to a small transformer that reads
-account history like text. We tested each one against the strongest simple baseline we could find. Two
-clearly win, and ship. Six are labelled experimental, and the app says so."
-If asked: the forecast's error on 14-day spending is 340 € against 373 € for the baseline; the early
-warning's PR AUC is 0.800 against 0.768 (its ROC AUC gain is small: 0.967 against 0.963). For "Unusual for
-you" the simple baseline wins (ROC AUC 0.889 against 0.901), and the app says so.
+**p3 · 0:35.4 · Not a maths problem** (17.9 s)  
+“So this isn't a maths problem. It's a craving problem. Replay those two years with everyday extras trimmed by just five percent, and keep the money, and seventy-two percent of the days below zero disappear. Spend it by the next payday instead, and it's fifteen. Skipping a purchase isn't enough. The money has to stay.”
 
-**11 · Written up for the judges (16 s).** "It's all written up for the judges on a separate insights site:
-eleven findings, every model card, and the limits of what this data can tell."
-The site is at `/insights/` on the demo address.
+**p4 · 0:53.3 · Feed it: Crave mode** (15.2 s)  
+“Nobody stops a craving with a pie chart. And a craving doesn't want the parcel. It wants the hunt. The scroll. The buy button. So what if you could have all of that, and keep the money? We don't fight the craving. We feed it. This is Crave mode.”
 
-**12 · Built to fit S-mobiili (19 s).** "Vara is built to fit S-mobiili. It lives inside the app's shell,
-hands savings goals to Säästäjä, and can read other banks through an open-banking mock. One engine, one
-guarded chat endpoint, two languages. And it's live today."
-If asked: the Säästäjä hand-off and the other-bank connection are mocks; nothing leaves the prototype.
+**p5 · 1:08.5 · The build, in true time** (26.3 s)  
+“Meet Aino. She wants new sneakers, and payday is two weeks away. She tells Vara. And almost instantly, Gemini builds a shop for exactly that, live, while you watch. Its name. Its brands. Ten products. Reviews. Photos to match. None of it existed a moment ago, and none of it is a real retailer. Sushi. Headphones. A winter coat. A new shop, every single time.”  
+*Stopwatch in real time: “First product · 2.5 s”, then “Shop complete · 8.8 s”. Any sped-up footage is labelled.*
 
-**13 · Five criteria (18 s).** "Five criteria. Financial literacy: every answer shows its working. Original
-AI: a shop that sells nothing. A clear mobile experience, in two languages. Feasible: it's running now. And
-made for S-mobiili."
+**p6 · 1:34.8 · The hunt and the pay sheet** (15.2 s)  
+“Then she does what she came to do. Hunt. Compare. Add to basket. Check out. Vara has already checked the price against what's free until payday. Double-click.”  
+*Pay sheet large; the wallet button held to read; double-click, scan, tick. Music stops; the app's chime plays alone.*
+*The chime: 1:47.8. Nothing is said for 1.5 s either side.*
 
-**14 · Close (9 s).** "Vara. Helping you save money, a craving at a time."
+**p7 · 1:50.0 · The twist: nothing ships** (17.7 s)  
+“Order confirmed. The confirmation lands in her inbox. And then: plot twist. Nothing ships. Nothing was ever going to. The money went straight into her own Crave pot. She got the hit. She kept the money. That's saving, a craving at a time.”  
+*Played straight (order, email), then a hard stop, PLOT TWIST, “Nothing ships”, the order turns into the Crave pot.*
 
-## Good to know before you present
+**p8 · 2:07.8 · Reversible, and what is simulated** (14.8 s)  
+“And it's reversible. Still want it in two days? One tap releases the money, and you buy it for real. It never sets aside more than is free until payday. In this prototype the money movement is simulated, and the wallet button comes from Stripe, in test mode.”
 
-- Vara is a Junction 2026 concept, not an official S-Pankki product; every slide's footer says so.
-- All money movement is simulated. Stripe runs in test mode only and the app refuses live keys.
-- Every figure on the slides is traced in `SOURCES.md`.
-- Not shown in the video: the Shopping Lab storefront experiment (linked from the Crave intro in the app),
-  the baskets explorer, peer benchmarks, voice input in use, and the individual model screens on the You tab.
-- The closing slide carries no team names.
+**p9 · 2:22.6 · The coach** (26.4 s)  
+“Crave mode sits on a full coach, built on Gemini. Vara lives inside S-mobiili and starts with one number: what's safe to spend, after rent, bills and a cushion. Ask anything in plain words. Answers arrive as cards from your own transactions, and every number shows its working. Gemini never does the arithmetic. An engine does, and a guard checks every figure. Try a decision before you make it. Get the story of your week. In English and in Finnish.”  
+*The coach (Gemini, function calling): its answer offers Crave mode; “How I got this” shows the working. What-if, the weekly check-in (Gemini, structured output), Finnish.*
+
+**p10 · 2:49.0 · Eight models** (39.4 s)  
+“Behind it are eight machine-learning models trained on the challenge data. One maps every customer by spending behaviour, so Vara can show Aino where she stands among five thousand others. One finds her look-alikes and plays out two futures. One forecasts her balance to payday, and one warns her before she dips below zero. We tested each against the strongest simple baseline we could find, and we show the ones that lost. Two clearly win and ship. Six are labelled experimental, and the app says so.”  
+*One visual per model sentence: the customer map, the look-alikes and two futures, the forecast, the early warning, the scorecard.*
+
+**p11 · 3:28.4 · Built for S-mobiili** (18.7 s)  
+“It's built to slot into S-mobiili. One engine. One guarded chat endpoint. Savings goals handed to Säästäjä and other banks through open banking, both mocked here. Financial literacy: every answer shows its working. Original AI: a shop that sells nothing. Clear on mobile, in two languages. Feasible: it's live right now.”
+
+**p12 · 3:47.1 · Close** (6.1 s)  
+“Vara. Helping you save money, a craving at a time.”
+
+## Honesty notes (if asked)
+
+- All data is synthetic. Aino is a fictional customer; the figures come from the challenge's synthetic dataset or the
+  app's model cards (see `SOURCES.md`).
+- Every shop, brand, product, photo and review in the films is invented by the app; none is a real retailer.
+- The shop's text (name, brands, products, reviews) is written live by Gemini 3.5 Flash-Lite (streaming structured output);
+  the product photos come from a separate image model, not Gemini.
+  The coach's answers use Gemini (function calling). The eight ML models are our own, trained on the challenge data.
+  The weekly check-in's story is written by Gemini (structured output). In the films the coach's own answer points
+  to Crave mode (“Shop it in Crave mode”).
+  The model never does the arithmetic: an engine computes every figure and a guard checks it.
+- The builds are real and uncached. The stopwatch shows true elapsed time: the hero shop opens after 2.5 s and
+  is complete, products and photos, after 8.8 s. “Almost instantly” is said once the shop is open; any
+  sped-up footage carries a “×N speed” label. The three montage shops took 8.0 s, 7.2 s and 7.0 s, all real time.
+- Money movement is simulated. The pay sheet is the app's own; the wallet button is Stripe in test mode and is never
+  pressed (the take pays with the simulated sheet). No card is charged. The card shown is the app's invented demo card.
+- Footage is the live prototype, edited for length (“Live app recording · edited for length · synthetic data”).
+- Narration is a synthetic voice; the music and effects are original generated audio.
+- Vara is a Junction 2026 concept, not an official S-Pankki product. No S-Pankki or Apple logo is drawn, and no
+  real brand appears.
