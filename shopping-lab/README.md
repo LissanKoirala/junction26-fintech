@@ -34,6 +34,16 @@ The supplied Sites build helper handles publication packaging. `.openai/hosting.
 
 ## Architecture
 
+### Immersive mobile storefronts
+
+`components/storefronts.tsx` renders separate mobile shopping experiences for Uber Eats, StockX and Zara, plus a merchant-named retail layout for imported catalogues. Each includes its own navigation, search, category filters, saved items and persistent basket controls. StockX adds price sorting and a direct Buy now journey; Zara adds an editorial photo story and a compact collection view. Product information stays sourced from the catalogue; stock, reviews, discounts and delivery estimates are not invented.
+
+`components/purchase.tsx` keeps product selection and checkout in the active store's visual style, with full-height mobile screens, fixed purchase actions, required variants, quantity controls and editable sample delivery/contact details. `components/shopping-modal.tsx` handles keyboard focus and Escape. `components/launchpad.tsx` is the shop selector. Styles are colocated in the matching component CSS files. All checkouts remain simulated, and their totals still feed the browser-local savings ledger.
+
+Visual references: official [Uber Eats](https://apps.apple.com/us/app/uber-eats-food-groceries/id1058959277), [StockX](https://apps.apple.com/us/app/stockx-live-marketplace/id881599819) and [Zara](https://apps.apple.com/us/app/zara/id547951480) mobile screenshots. This is an independent shopping simulation, not an official merchant app. Food records remain the Supermac's Galway menu snapshot.
+
+`tests/immersion.cjs` covers the three branded mobile shells, sticky product actions, StockX Buy now and sorting, saved filters, editable demo checkout, Zara collection layouts and widths of 320, 390, 430 and 1024 pixels. Use the same browser runtime environment variables as the other browser tests.
+
 - `app/page.tsx` and `app/globals.css`: discovery, retailer storefronts, product selection, basket, checkout, receipts and savings history.
 - `lib/catalogue.ts`: product snapshots and provenance. All money uses integer euro cents.
 - `public/products/`: cached real source imagery.

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { ExternalLink, LoaderCircle, RotateCcw } from "lucide-react";
+import { ArrowLeft, ExternalLink, LoaderCircle, RotateCcw } from "lucide-react";
 import { goBack } from "@/lib/router";
 import { t } from "@/lib/i18n";
-import { FullScreen, ScreenHeader } from "@/ui/hero";
+import { FullScreen } from "@/ui/hero";
 import { Button, ConceptNotice, STROKE } from "@/ui/kit";
 
 // The catalogue importer runs on its own origin. No customer/bank data enters the frame.
@@ -22,12 +22,13 @@ export default function ShoppingLabFlow() {
 
   return (
     <FullScreen>
-      <ScreenHeader title={t("Shopping Lab")} onBack={() => goBack("/crave")} right={
-        <a href={LAB_ORIGIN} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 w-11 items-center justify-center rounded-pill text-green-700" aria-label={t("Open shopping demo in a new tab")}>
-          <ExternalLink size={20} strokeWidth={STROKE} aria-hidden />
+      <header className="flex shrink-0 items-center justify-between gap-2 px-3 pt-[env(safe-area-inset-top)]">
+        <button className="inline-flex min-h-9 items-center gap-1.5 text-xs font-semibold text-green-700" aria-label={t("Back")} onClick={() => goBack("/crave")}><ArrowLeft size={17} strokeWidth={STROKE} aria-hidden />{t("Crave mode")}</button>
+        <h1 className="text-[10px] font-medium uppercase tracking-wider text-ink-muted">{t("Shopping Lab")}</h1>
+        <a href={LAB_ORIGIN} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 w-9 items-center justify-center rounded-pill text-green-700" aria-label={t("Open shopping demo in a new tab")}>
+          <ExternalLink size={16} strokeWidth={STROKE} aria-hidden />
         </a>
-      } />
-      <p className="shrink-0 px-gutter pb-2 text-center text-xs text-ink-muted">{t("Real products · demo checkout · nothing ships")}</p>
+      </header>
       <div className="relative min-h-0 flex-1 bg-card">
         <iframe
           key={attempt}
@@ -49,7 +50,7 @@ export default function ShoppingLabFlow() {
           <a className="ml-3 text-sm font-semibold text-green-700 underline" href={LAB_ORIGIN} target="_blank" rel="noopener noreferrer">{t("Open in new tab")}</a>
         </div>}
       </div>
-      <ConceptNotice className="shrink-0 py-2" />
+      <ConceptNotice className="shrink-0 py-1 text-[9px]" />
     </FullScreen>
   );
 }
