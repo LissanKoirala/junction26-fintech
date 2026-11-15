@@ -5,7 +5,12 @@ import { runWithConnectorBinding } from "../lib/connector-context";
 import type { ConnectorBinding } from "../lib/connector-contract.mjs";
 
 const worker = {
-  fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
+  async fetch(request: Request, env: Cloudflare.Env, ctx: ExecutionContext<{ CONNECTORS?: ConnectorBinding }>) {
+    // Self-hosted under `wrangler dev` (LAB_BUFFER_REQUEST_BODY=1, body size capped by the reverse proxy): read the body
+    // first, because a response sent before the body is consumed (403/415/429 early returns) crashes the local runtime.
+    if ((env as { LAB_BUFFER_REQUEST_BODY?: string }).LAB_BUFFER_REQUEST_BODY === "1" && request.body) {
+      request = new Request(request, { body: await request.arrayBuffer() });
+    }
     let binding = ctx.props?.CONNECTORS;
     // Local preview emulates the same request-scoped capability. This branch and
     // the auxiliary service binding are absent from production builds.

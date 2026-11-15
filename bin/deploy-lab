@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# Build the teammate's Shopping Lab (shopping-lab/) and (re)start the vara-lab service that serves it at
+# https://vara-junction26.swedencentral.cloudapp.azure.com/lab/ (Caddy proxies /lab and /lab/* to 127.0.0.1:8790).
+# Run after pulling their latest push. A failed install or build leaves the running lab untouched.
+# The lab runs under `wrangler dev --local` (workerd); its D1 import cache lives in ~/release/lab-state across deploys.
+# The Gemini key is read at each service start from ~/proj/.env (GEMINI_* lines only) into /run/vara-lab (tmpfs, 0700).
+set -euo pipefail
+ROOT=/home/lissan/fin-junction
+"$ROOT/bin/sync"
+ssh -F "$ROOT/.vm/ssh_config" vara 'bash -s' <<'REMOTE'
+set -euo pipefail
+export PATH=$HOME/.local/bin:$PATH
+R=~/release
+mkdir -p $R/lab-state
+rsync -a --delete --exclude node_modules --exclude dist --exclude .wrangler --exclude .sites-runtime \
+  ~/proj/shopping-lab/ $R/lab.staging/
+cd $R/lab.staging
+npm ci --no-audit --no-fund > /tmp/vara-lab-npm.log 2>&1 || { tail -25 /tmp/vara-lab-npm.log; exit 1; }
+NEXT_PUBLIC_BASE_PATH=/lab npm run build > /tmp/vara-lab-build.log 2>&1 || { tail -25 /tmp/vara-lab-build.log; exit 1; }
+# The generated wrangler config has no ASSETS binding; vinext needs it to serve public/ files under the base path.
+python3 - <<'PY'
+import json
+p = "dist/server/wrangler.json"
+c = json.load(open(p))
+c["assets"]["binding"] = "ASSETS"
+json.dump(c, open(p, "w"))
+# Under a base path the build rewrites CSS url('/fonts/x') to /lab/_next/static/fonts/x but does not put the file
+# there; copy each such public/ file to where the stylesheet asks for it.
+import glob, os, re, shutil
+static = "dist/client/lab/_next/static"
+for css in glob.glob(static + "/css/*.css"):
+    for rel in set(re.findall(r"url\(['\"]?/lab/_next/static/([^)'\"?#]+)", open(css).read())):
+        dst, src = os.path.join(static, rel), os.path.join("public", rel)
+        if not os.path.exists(dst) and os.path.isfile(src):
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copyfile(src, dst)
+PY
+# Apply the catalogue-cache schema once (it is a plain CREATE TABLE, so "already exists" on later deploys is fine).
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local \
+  --config dist/server/wrangler.json --persist-to $R/lab-state --file drizzle/0000_purple_rawhide_kid.sql \
+  > /tmp/vara-lab-d1.log 2>&1 || grep -q "already exists" /tmp/vara-lab-d1.log || { tail -15 /tmp/vara-lab-d1.log; exit 1; }
+
+UNIT=/etc/systemd/system/vara-lab.service
+cat > /tmp/vara-lab.service <<'UNITFILE'
+[Unit]
+Description=Vara Shopping Lab (Junction 2026 demo, served at /lab/)
+After=network.target
+
+[Service]
+User=azureuser
+WorkingDirectory=/home/azureuser/release/lab
+RuntimeDirectory=vara-lab
+RuntimeDirectoryMode=0700
+UMask=0077
+# Only the lab's own variables are handed to the worker (not the app's other keys).
+ExecStartPre=/bin/sh -c '{ grep -E "^GEMINI_(API_KEY|MODEL|IMPORT_MODEL)=" /home/azureuser/proj/.env || true; echo LAB_DAILY_MODEL_CAP=2000; echo LAB_BUFFER_REQUEST_BODY=1; } > /run/vara-lab/lab.env'
+ExecStart=/usr/bin/node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local --persist-to /home/azureuser/release/lab-state --ip 127.0.0.1 --port 8790 --inspector-port 0 --upstream-protocol https --env-file /run/vara-lab/lab.env --show-interactive-dev-session=false --live-reload=false
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+UNITFILE
+if ! sudo cmp -s /tmp/vara-lab.service $UNIT; then
+  sudo install -m 644 /tmp/vara-lab.service $UNIT
+  sudo systemctl daemon-reload
+  sudo systemctl enable vara-lab >/dev/null 2>&1
+fi
+rm -f /tmp/vara-lab.service
+
+rm -rf $R/lab.old
+[ -d $R/lab ] && mv $R/lab $R/lab.old
+mv $R/lab.staging $R/lab
+sudo systemctl restart vara-lab
+for i in $(seq 1 30); do sleep 1; curl -fsS http://127.0.0.1:8790/lab/api/health 2>/dev/null && break; done
+echo
+REMOTE

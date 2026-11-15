@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { withBase } from "@/lib/base-path";
 
 export const metadata: Metadata = {
   title: "Vara — Shopping Lab",
   description: "A familiar shopping experience. A different kind of checkout. A mobile technology demo for S-mobiili.",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: withBase("/favicon.svg"),
+    shortcut: withBase("/favicon.svg"),
   },
 };
 

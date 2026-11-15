@@ -3,8 +3,9 @@ import { cacheKey, readImportCache, writeImportCache, type ImportCacheRecord, ty
 import { cleanText, euroMinor, htmlProductLinks, jsonLdProducts, merchantTitle, shopifyProducts, type ObservedProduct } from './import-parsers';
 import { makeSafeFetcher, merchantHost, normalizeImportUrl, publicUrl, sameMerchant, readBounded, type ImportFetch, type ResolveHost, type SafeFetcher } from './import-security';
 import type { ImportResult, Product } from './shop-contract';
+import { takeDailyModelCall } from './discovery';
 
-export interface ImportEnv { GEMINI_API_KEY?: string; GEMINI_MODEL?: string; GEMINI_IMPORT_MODEL?: string; DB?: ImportDatabase }
+export interface ImportEnv { GEMINI_API_KEY?: string; GEMINI_MODEL?: string; GEMINI_IMPORT_MODEL?: string; LAB_DAILY_MODEL_CAP?: string; DB?: ImportDatabase }
 const environment = new AsyncLocalStorage<ImportEnv>();
 export function runWithImportEnv<T>(env: ImportEnv, run: () => T): T { return environment.run(env, run); }
 export const IMPORT_TIMEOUT_MS = 90_000;
@@ -52,6 +53,7 @@ interface GroundedResponse { value: Data; text: string; sources: Source[]; candi
 async function groundedCall(prompt: string, env: ImportEnv, fetcher: ImportFetch, signal: AbortSignal, schema: Data, useUrlContext: boolean): Promise<GroundedResponse> {
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('search_not_configured');
+  if (!takeDailyModelCall(env.LAB_DAILY_MODEL_CAP)) throw new Error('search_rate_limited');
   const model = env.GEMINI_IMPORT_MODEL || GEMINI_IMPORT_MODEL;
   const call = (tools: Data[]) => fetcher(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
     method: 'POST', signal, headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },

@@ -4,7 +4,7 @@ import type { DiscoverResult, Product, ShopId } from './shop-contract';
 
 export const GEMINI_MODEL = 'gemini-3.5-flash-lite';
 export const MODEL_DEADLINE_MS = 2800;
-export interface DiscoveryEnv { GEMINI_API_KEY?: string; GEMINI_MODEL?: string }
+export interface DiscoveryEnv { GEMINI_API_KEY?: string; GEMINI_MODEL?: string; LAB_DAILY_MODEL_CAP?: string }
 const environment = new AsyncLocalStorage<DiscoveryEnv>();
 let lastProvider: { status: string; httpStatus?: number; checkedAt?: string } = { status: 'not_checked' };
 export function runWithDiscoveryEnv<T>(env: DiscoveryEnv, run: () => T): T {
@@ -93,6 +93,19 @@ export function allowDiscoveryRequest(client: string, now = Date.now()): boolean
   return previous.count <= 24;
 }
 
+// Optional global budget of model calls per UTC day (LAB_DAILY_MODEL_CAP), shared by discovery and import; unset =
+// no daily cap. Over the cap, discovery answers from the deterministic ranking (mode 'fallback', reason 'daily_cap').
+const dailyCalls = { day: '', count: 0 };
+export function takeDailyModelCall(cap: string | undefined, now = new Date()): boolean {
+  const limit = Number(cap);
+  if (!cap || !Number.isFinite(limit)) return true;
+  const day = now.toISOString().slice(0, 10);
+  if (dailyCalls.day !== day) { dailyCalls.day = day; dailyCalls.count = 0; }
+  if (dailyCalls.count >= limit) return false;
+  dailyCalls.count += 1;
+  return true;
+}
+
 interface DiscoveryOptions {
   env?: DiscoveryEnv;
   fetch?: typeof fetch;
@@ -118,6 +131,7 @@ export async function discover(query: string, options: DiscoveryOptions = {}): P
   if (cached) cache.delete(cacheKey);
   if (!env?.GEMINI_API_KEY) return done({ ...base, reason: 'not_configured' });
   if (!ranked.length) return done({ ...base, reason: 'empty_catalogue' });
+  if (!takeDailyModelCall(env.LAB_DAILY_MODEL_CAP)) return done({ ...base, reason: 'daily_cap' });
 
   const shortlist = ranked.slice(0, 24);
   const allowedIds = new Set(shortlist.map(product => product.id));

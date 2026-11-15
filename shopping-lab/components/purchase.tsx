@@ -3,6 +3,7 @@
 import { useId, useState } from 'react';
 import { ArrowUpRight, Check, ChevronDown, CreditCard, Heart, Minus, Plus, Smartphone } from 'lucide-react';
 import type { Product, ShopId } from '../lib/shop-contract';
+import { withBase } from '../lib/base-path';
 import './purchase.css';
 
 const euro = new Intl.NumberFormat('fi-FI', { style: 'currency', currency: 'EUR' });
@@ -37,7 +38,7 @@ export function ProductDetail({ product, variant, onVariant, quantity, onQuantit
   return <div className={`purchase-detail purchase-brand-${product.store}`}>
     <div className="purchase-detail-scroll">
       <div className="purchase-product-photo">
-        <img src={product.image} alt={product.name} />
+        <img src={withBase(product.image)} alt={product.name} />
         <button type="button" className={`purchase-save ${saved ? 'is-saved' : ''}`} onClick={onFavorite} aria-label={saved ? 'Unsave product' : 'Save product'} aria-pressed={saved}><Heart size={22} strokeWidth={1.5} fill={saved ? 'currentColor' : 'none'} /></button>
         {zara && <span className="purchase-photo-caption">{product.category}</span>}
       </div>
@@ -128,7 +129,7 @@ export function Checkout({ brand, lines, subtotal, shipping, total, onOrder }: C
       </section>
       <section className="purchase-checkout-section purchase-order-section">
         <details open className="purchase-order-details"><summary><h3>Your order <span>{count} {count === 1 ? 'item' : 'items'}</span></h3><ChevronDown size={17} /></summary>
-          <div className="purchase-checkout-lines">{lines.map(({ product, variant, quantity }) => <div className="purchase-checkout-line" key={`${product.id}-${variant}`}><img src={product.image} alt={product.name} /><div><span className="purchase-line-brand">{product.merchantName || product.brand}</span><h4>{product.name}</h4>{variant && <p>Size / option: {variant}</p>}<p>Quantity: {quantity}</p></div><strong>{money(product.price * quantity)}</strong></div>)}</div>
+          <div className="purchase-checkout-lines">{lines.map(({ product, variant, quantity }) => <div className="purchase-checkout-line" key={`${product.id}-${variant}`}><img src={withBase(product.image)} alt={product.name} /><div><span className="purchase-line-brand">{product.merchantName || product.brand}</span><h4>{product.name}</h4>{variant && <p>Size / option: {variant}</p>}<p>Quantity: {quantity}</p></div><strong>{money(product.price * quantity)}</strong></div>)}</div>
         </details>
         <div className="purchase-totals"><div><span>Subtotal</span><span>{money(subtotal)}</span></div><div><span>Delivery</span><span>{money(shipping)}</span></div><div className="purchase-grand-total"><strong>Total</strong><strong>{money(total)}</strong></div></div>
       </section>
