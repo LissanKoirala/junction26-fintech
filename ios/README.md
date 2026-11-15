@@ -33,7 +33,12 @@ xcodebuild -project Vara.xcodeproj -scheme Vara \
 - Small input fonts are raised to 16px to prevent iOS focus zoom. User pinch zoom remains enabled.
 - External/new-window web links open in a dismissible Safari sheet; Shopping Lab and Stripe frames retain their own origins. Only the app's exact HTTPS origin, in the main frame, can invoke native speech/haptics.
 - A native loading/error/retry screen covers transport failures without clearing saved choices or automatically replaying a checkout.
+- The iOS bridge localizes the hosted bank shell's hardcoded Finnish labels, including bottom tabs and accessibility labels, using the web app's selected language. Native status and confirmation controls follow that choice too. Existing product names such as Säästäjä and S-Etukortti Visa retain their names.
 - The app icon reproduces the existing sprout in `app/public/favicon.svg`.
+
+## Finding the AI shop
+
+From Home, tap the **Vara** card to open **Today**, then scroll to **Got a craving?**. Enter a craving (or tap an example), tap the arrow, and confirm **I'm in, open the shop** on first use. This opens the generated shop. On the Crave mode screen, **Open Shopping Lab** opens the separate real-product importer and storefront demo. The direct web routes are `#/crave` and `#/crave/lab` respectively.
 
 ## Backend and feature parity
 

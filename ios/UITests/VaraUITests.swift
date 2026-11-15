@@ -120,15 +120,54 @@ final class VaraUITests: XCTestCase {
 
     func testHomeAndNavigation() {
         launch()
-        XCTAssertTrue(app.buttons["Minä"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.buttons["Me"].waitForExistence(timeout: 30))
         capture("01-koti")
-        app.buttons["Pankki"].tap()
+        app.buttons["Bank"].tap()
         capture("02-pankki")
-        app.buttons["Minä"].tap()
+        app.buttons["Me"].tap()
         XCTAssertTrue(app.staticTexts["Choose a demo customer"].waitForExistence(timeout: 10))
         capture("03-mina")
         app.buttons["Open Vara chat"].tap()
         XCTAssertTrue(app.textViews["Message Vara"].waitForExistence(timeout: 20))
+    }
+
+    func testLanguageUpdatesEntireBankShellAndPersists() {
+        launch()
+        let englishTabs = ["Home", "S-Benefit Card", "Pay", "Bank", "Me"]
+        let finnishTabs = ["Koti", "S-Etukortti", "Maksu", "Pankki", "Minä"]
+        for label in englishTabs { XCTAssertTrue(app.buttons[label].waitForExistence(timeout: 30), label) }
+        XCTAssertTrue(app.staticTexts["Accounts and cards"].exists)
+        app.descendants(matching: .any).matching(NSPredicate(format: "label == 'Suomi'")).firstMatch.tap()
+        for label in finnishTabs { XCTAssertTrue(app.buttons[label].waitForExistence(timeout: 10), label) }
+        app.buttons["Pankki"].tap()
+        XCTAssertTrue(app.buttons["Maksut ja e-laskut"].waitForExistence(timeout: 10))
+        app.descendants(matching: .any).matching(NSPredicate(format: "label == 'English'")).firstMatch.tap()
+        for label in englishTabs { XCTAssertTrue(app.buttons[label].waitForExistence(timeout: 10), label) }
+        XCTAssertTrue(app.buttons["Payments and e-invoices"].waitForExistence(timeout: 10))
+        capture("25-bank-english")
+        app.buttons["Pay"].tap()
+        XCTAssertTrue(app.staticTexts["Pay and transfer"].waitForExistence(timeout: 10))
+        app.buttons["S-Benefit Card"].tap()
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS 'Bonus and purchases'")).firstMatch.waitForExistence(timeout: 10))
+        app.buttons["Me"].tap()
+        XCTAssertTrue(app.staticTexts["Choose a demo customer"].waitForExistence(timeout: 10))
+        app.terminate()
+        launch(reset: false)
+        for label in englishTabs { XCTAssertTrue(app.buttons[label].waitForExistence(timeout: 20), label) }
+        capture("26-home-english")
+    }
+
+    func testGenerativeShopEntryFromHome() {
+        launch()
+        tapVisible(app.buttons["Open Vara, your personal economic trainer"])
+        let craving = app.textFields["What are you craving?"]
+        tapVisible(craving)
+        craving.typeText("a cosy hoodie")
+        tapVisible(app.buttons["Open the shop"])
+        XCTAssertTrue(app.buttons["I'm in, open the shop"].waitForExistence(timeout: 30))
+        tapVisible(app.buttons["Open Shopping Lab"])
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label ==[c] 'Shopping Lab'")).firstMatch.waitForExistence(timeout: 20))
+        capture("27-shopping-lab-entry")
     }
 
     func testChatKeyboardAndLiveResponse() {

@@ -13,6 +13,7 @@ final class VaraViewController: UIViewController, WKNavigationDelegate, WKUIDele
     private let statusDetail = UILabel()
     private let retryButton = UIButton(type: .system)
     private var loadFailed = false
+    private var selectedLanguage = UserDefaults.standard.string(forKey: "vara.uiLanguage")
     private var hapticGeneration = 0
     private let mint = UIColor(red: 235 / 255, green: 247 / 255, blue: 236 / 255, alpha: 1)
     private let green = UIColor(red: 0, green: 120 / 255, blue: 65 / 255, alpha: 1)
@@ -122,7 +123,7 @@ final class VaraViewController: UIViewController, WKNavigationDelegate, WKUIDele
     }
 
     private func nativeText(_ english: String, _ finnish: String) -> String {
-        Locale.preferredLanguages.first?.hasPrefix("fi") == true ? finnish : english
+        (selectedLanguage ?? Locale.preferredLanguages.first ?? "en").hasPrefix("fi") ? finnish : english
     }
 
     @objc private func loadApp() {
@@ -162,6 +163,12 @@ final class VaraViewController: UIViewController, WKNavigationDelegate, WKUIDele
               let body = message.body as? [String: Any], let action = body["action"] as? String else { return }
         if action == "haptic", let pattern = body["pattern"] as? [Double] {
             playHaptic(pattern)
+            return
+        }
+        if action == "language", let lang = body["lang"] as? String, ["en", "fi"].contains(lang) {
+            selectedLanguage = lang
+            UserDefaults.standard.set(lang, forKey: "vara.uiLanguage")
+            if loadFailed { showLoadError() }
             return
         }
         guard let id = body["id"] as? String, id.count < 80 else { return }

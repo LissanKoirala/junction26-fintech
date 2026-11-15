@@ -1,5 +1,12 @@
 # iOS validation — 15 November 2026
 
+## Language picker fix (follow-up)
+
+- Added an iOS-only adapter for the deployed bank shell's hardcoded Finnish text and accessibility labels. Native loading/error/confirmation strings now follow the app choice. Brand/product names remain unchanged.
+- Final run `.build/LanguageVerified.xcresult`: **2/2 UI tests passed**, covering English → Finnish → English across all five bottom tabs, bank/payment/loyalty screens, persistence after relaunch, and Home → Vara → craving entry → Shopping Lab. Summary: `language-summary.json`.
+- Native bridge tests: **5/5 passed**. Signed device build succeeded and the updated app was installed on the connected iPhone 15 Pro Max. Runtime regression checks used the iOS 27.2 simulator; no physical-device test claim is made for this follow-up.
+- `Screenshots/26-home-english.png` shows the final English home screen and bottom navigation. The UI test bundle also contains bank and Shopping Lab screenshots.
+
 Implementation branch: `ios-app`, developed from `origin/main` at `50112a2059e70358c54237d676447aae80a81723` and fast-forwarded to the latest `main` before commit. All additions are under `ios/`; existing tracked files are unchanged. The user explicitly requested the commit and push to `main`.
 
 ## Environment
