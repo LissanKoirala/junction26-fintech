@@ -189,7 +189,7 @@ export default function WhatIf() {
       ) : r && !touched ? (
         <Card>
           <CardTitle icon={Sparkles}>What changes</CardTitle>
-          <Muted>Move a slider above and Vara shows what you would free up each month, and what that does to your safe-to-spend.</Muted>
+          <Muted>Move a slider above and Vara shows what you would free up each month, and what that changes for you.</Muted>
           <p className="tnum mt-3 text-ink">
             Safe to spend now: <strong>{money(r.safePerWeekBefore, { whole: true })} a week</strong>
           </p>
@@ -200,16 +200,34 @@ export default function WhatIf() {
             <p className="text-sm text-hero-meta">{saved >= 0 ? "Freed up every month" : "Extra spending every month"}</p>
             <HeroFigure value={moneyParts(Math.abs(saved)).num} ink="inverse" />
             {r.equivalents.length > 0 && <p className="mt-1 text-sm text-hero-meta">That's {r.equivalents.join(", and ")}.</p>}
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="rounded-md bg-white/10 p-3">
-                <p className="text-xs text-hero-meta">Safe to spend / week now</p>
-                <p className="tnum text-lg font-bold text-white">{money(r.safePerWeekBefore, { whole: true })}</p>
+            {r.safeChanges !== false || r.monthEndLeftBefore == null || r.monthEndLeftAfter == null ? (
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="rounded-md bg-white/10 p-3">
+                  <p className="text-xs text-hero-meta">Safe to spend / week now</p>
+                  <p className="tnum text-lg font-bold text-white">{money(r.safePerWeekBefore, { whole: true })}</p>
+                </div>
+                <div className="rounded-md bg-white/10 p-3">
+                  <p className="text-xs text-hero-meta">With this change</p>
+                  <p className="tnum text-lg font-bold text-hero-num">{money(r.safePerWeekAfter, { whole: true })}</p>
+                </div>
               </div>
-              <div className="rounded-md bg-white/10 p-3">
-                <p className="text-xs text-hero-meta">With this change</p>
-                <p className="tnum text-lg font-bold text-hero-num">{money(r.safePerWeekAfter, { whole: true })}</p>
-              </div>
-            </div>
+            ) : (
+              <>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-md bg-white/10 p-3">
+                    <p className="text-xs text-hero-meta">Left at month end now</p>
+                    <p className="tnum text-lg font-bold text-white">{money(r.monthEndLeftBefore, { whole: true })}</p>
+                  </div>
+                  <div className="rounded-md bg-white/10 p-3">
+                    <p className="text-xs text-hero-meta">With this change</p>
+                    <p className="tnum text-lg font-bold text-hero-num">{money(r.monthEndLeftAfter, { whole: true })}</p>
+                  </div>
+                </div>
+                <p className="tnum mt-2 text-sm text-hero-meta">
+                  {saved >= 0 ? `${money(r.yearlySaved ?? saved * 12, { whole: true })} a year` : `${money(-(r.yearlySaved ?? saved * 12), { whole: true })} more a year`}. Your safe-to-spend stays the same: this changes what you spend, not what your musts need.
+                </p>
+              </>
+            )}
             {r.perAdjustment.length > 0 && (
               <ul className="mt-3 flex flex-col divide-y divide-white/15 text-sm">
                 {r.perAdjustment.map((p) => (

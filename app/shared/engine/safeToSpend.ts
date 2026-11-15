@@ -7,7 +7,7 @@ import type { CustomerData } from "../types";
 import { kindsOf } from "./classify";
 import { dailyRate, housingDue, nextPayday, pendingInvestment, salaryInfo, utilitiesMonthly } from "./recurring";
 import { spendingByKind } from "./spending";
-import { addDays, completeMonths, currentBalance, dayLabel, isoWeekday, mean, monthEnd, monthStart, r2, weekStart, tEur } from "./util";
+import { addDays, completeMonths, currentBalance, dayLabel, daysBetween, isoWeekday, mean, median, monthEnd, monthStart, r2, weekStart, tEur } from "./util";
 
 /** Internal knobs used by the what-if simulator (reserve multipliers and deltas). */
 export interface SafeTweak {
@@ -25,6 +25,14 @@ export function monthlyIncome(c: CustomerData): number {
   const ms = completeMonths(c.asOf, 6);
   const kinds = kindsOf(c);
   return mean(ms.map((m) => spendingByKind(c, kinds, monthStart(m), monthEnd(m)).income));
+}
+
+/** Monthly income that stays on this account: for salary-sweep customers, income minus the usual sweep out. */
+export function keptIncome(c: CustomerData): number {
+  const income = monthlyIncome(c);
+  if (!c.hasSalarySweep) return income;
+  const sweeps = c.tx.filter((t) => t.type === "salary_sweep").slice(-6).map((t) => -t.amount);
+  return Math.max(0, income - (sweeps.length ? median(sweeps) : 0));
 }
 
 /** Typical weekly everyday-extras spending over the last 3 complete months. */
@@ -65,7 +73,7 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
       amount: r2(((u.perMonth * nDays) / 30.44) * (tw.utilitiesMult ?? 1)),
       from: tomorrow,
       to: dayBeforePay,
-      basis: `Your utilities average ${tEur(u.perMonth)} a month over the last ${u.months.length} months, pro-rated for ${dLabel}.`,
+      basis: `Your utilities average ${tEur(u.perMonth)} a month (the ${u.paidMonths} of the last ${u.months.length} months that had bills), pro-rated for ${dLabel}.`,
     });
   }
   // groceries and other fixed-must purchases, pro-rated from the last 3 full months
@@ -127,8 +135,8 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
       basis: `${tEur(tw.extraMonthlySaving)} a month moved to savings, pro-rated for ${dLabel}.`,
     });
   }
-  // buffer
-  const income = monthlyIncome(c);
+  // buffer: 10% of the income that stays on this account (at least 50 €)
+  const income = keptIncome(c);
   const buffer = opts.bufferTarget ?? Math.max(50, 0.1 * income);
   if (buffer > 0) {
     upcoming.push({
@@ -140,8 +148,45 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
       basis:
         opts.bufferTarget != null
           ? "The buffer you chose to keep untouched."
-          : `A cushion for surprise musts: 10% of your monthly income (at least 50 €).`,
+          : c.hasSalarySweep
+            ? `A cushion for surprise musts: 10% of the income that stays on this account (at least 50 €).`
+            : `A cushion for surprise musts: 10% of your monthly income (at least 50 €).`,
     });
+  }
+
+  // late pay: the main pattern is the 15th, but about 1 month in 5 pay comes at the end of the month instead.
+  // lateExtra = the extra fixed musts if pay arrives on `latest`; the cushion covers it, or the shortfall is reserved.
+  let late: { lateExtra: number; lateCovered: boolean; lateNote: string } | undefined;
+  if (!pay.estimated && pay.latest && pay.latest > pay.date) {
+    const gap = daysBetween(pay.date, pay.latest);
+    const extraHousing = housingDue(c, addDays(pay.latest, 1))
+      .slice(housingDue(c, pay.date).length)
+      .reduce((t, h) => t + Math.max(0, h.amount + (tw.housingDelta ?? 0)), 0);
+    const lateExtra = r2(
+      gro.perDay * gap * (tw.groceriesMult ?? 1) +
+        tr.perDay * gap * (tw.transportMult ?? 1) +
+        ((u.perMonth * gap) / 30.44) * (tw.utilitiesMult ?? 1) +
+        extraHousing,
+    );
+    const lateCovered = buffer >= lateExtra;
+    const n = pay.lateCount ?? 0;
+    const m = pay.monthsSeen ?? 12;
+    const history = n > 0 ? `Pay usually comes on the 15th. In ${n} of the last ${m} months it came at the end of the month` : `Pay has come on the 15th in each of the last ${m} months`;
+    let lateNote: string;
+    if (lateCovered) lateNote = n > 0 ? `${history}; your cushion covers that.` : `${history}. If it ever comes at the end of the month, your cushion covers that.`;
+    else {
+      const short = r2(lateExtra - buffer);
+      lateNote = n > 0 ? `${history}, so Vara keeps ${tEur(short)} aside in case it does.` : `${history}. Vara still keeps ${tEur(short)} aside in case it comes at the end of the month.`;
+      upcoming.push({
+        kind: "buffer",
+        label: "In case pay comes late",
+        amount: short,
+        from: pay.date,
+        to: pay.latest,
+        basis: `If pay comes on ${dayLabel(pay.latest)} instead of ${dayLabel(pay.date)}, the ${gap} extra days of fixed musts need about ${tEur(lateExtra)}. Your cushion covers ${tEur(buffer)}, so Vara keeps the rest aside.`,
+      });
+    }
+    late = { lateExtra, lateCovered, lateNote };
   }
 
   const reservedTotal = r2(upcoming.reduce((t, x) => t + x.amount, 0));
@@ -158,7 +203,11 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
   const remaining = r2(Math.min(Math.max(0, free), safePerDay * daysLeftInWeek));
 
   const typicalWeek = typicalEverydayWeek(c, opts);
-  const status: SafeToSpend["status"] = free < 0 ? "over" : safePerWeek < Math.max(25, 0.5 * typicalWeek) ? "tight" : "comfortable";
+  // comfortable only when the safe weekly amount covers a usual everyday week; half of it or more is "a bit tight"
+  const status: SafeToSpend["status"] =
+    free < 0 ? "over" : safePerWeek < Math.max(25, 0.5 * typicalWeek) ? "tight" : safePerWeek < typicalWeek ? "a_bit_tight" : "comfortable";
+  // far more room than a usual week: the UI shows "well covered" instead of a giant weekly figure
+  const wellCovered = free > 0 && typicalWeek > 0 && safePerWeek > 3 * typicalWeek && safePerWeek > 200;
 
   const steps: SafeToSpend["steps"] = [{ label: "Balance today", amount: r2(balance), sign: "+" }];
   for (const x of upcoming) steps.push({ label: x.label, amount: x.amount, sign: "-" });
@@ -177,7 +226,19 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
     asOf,
     note,
     balance: r2(balance),
-    nextPayday: { date: pay.date, amount: pay.amount, daysAway: pay.daysAway, estimated: pay.estimated, basis: pay.basis, latest: pay.latest },
+    nextPayday: {
+      date: pay.date,
+      amount: pay.amount,
+      daysAway: pay.daysAway,
+      estimated: pay.estimated,
+      basis: pay.basis,
+      latest: pay.latest,
+      irregular: pay.irregular,
+      lateCount: pay.lateCount,
+      lateExtra: late?.lateExtra,
+      lateCovered: late?.lateCovered,
+      lateNote: late?.lateNote,
+    },
     upcoming,
     reservedTotal,
     freeUntilPayday: free,
@@ -186,6 +247,7 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
     safePerDay,
     week: { from: wFrom, to: wTo, spentSoFar, remaining, daysLeft: daysLeftInWeek, typicalSpend: r2(typicalWeek) },
     status,
+    wellCovered: wellCovered || undefined,
     steps,
   };
 }

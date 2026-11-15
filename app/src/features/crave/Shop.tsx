@@ -135,19 +135,19 @@ function Heart2({ on, onClick, color }: { on: boolean; onClick: () => void; colo
   );
 }
 
-function PriceTag({ p, big }: { p: CraveProduct; big?: boolean }) {
+function PriceTag({ p, big, noPct }: { p: CraveProduct; big?: boolean; noPct?: boolean }) {
   const d = discountPct(p);
   return (
     <span className="flex flex-wrap items-baseline gap-x-1.5">
       <span className={cx("tnum font-bold text-ink", big ? "text-2xl" : "text-base")}>{money(p.price)}</span>
       {p.compareAtPrice && <span className="tnum text-xs text-ink-muted line-through">{money(p.compareAtPrice)}</span>}
-      {d > 0 && <span className="rounded-sm bg-amber-100 px-1 text-xs font-bold text-amber-800">−{d} % today</span>}
+      {d > 0 && !noPct && <span className="rounded-sm bg-amber-100 px-1 text-xs font-bold text-amber-800">−{d} % today</span>}
     </span>
   );
 }
 
-function BadgeTag({ p, color }: { p: CraveProduct; color: string }) {
-  const label = p.badge === "Deal" && discountPct(p) ? `−${discountPct(p)} % today` : p.badge;
+function BadgeTag({ p, color, kind }: { p: CraveProduct; color: string; kind: string }) {
+  const label = p.badge === "Deal" && discountPct(p) ? `−${discountPct(p)} % today` : p.badge === "Chef's pick" && kind !== "food" ? "Staff pick" : p.badge;
   if (!label) return null;
   return (
     <span className="absolute left-2 top-2 rounded-pill px-2 py-0.5 text-[11px] font-bold text-white shadow-low" style={{ background: color }}>
@@ -163,13 +163,13 @@ function GridCard({ p, header, wished, onWish, onOpen, onQuickAdd }: { p: CraveP
       <button type="button" onClick={onOpen} className="block w-full rounded-app-card bg-card p-2 text-left shadow-app-card transition-transform active:scale-[0.98]">
         <div className="relative">
           <ProductImage src={p.image} icon={iconOf(header.icon)} accent={header.accent} alt={p.name} />
-          <BadgeTag p={p} color={a.main} />
+          <BadgeTag p={p} color={a.main} kind={header.kind} />
         </div>
         <div className="px-1 pb-1 pt-2">
           <p className="truncate text-xs font-semibold uppercase tracking-wide text-ink-muted">{p.brand}</p>
           <p className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-ink">{p.name}</p>
           <div className="mt-1"><Stars value={p.rating} count={p.reviewCount} /></div>
-          <div className="mt-1"><PriceTag p={p} /></div>
+          <div className="mt-1 pr-9"><PriceTag p={p} noPct={p.badge === "Deal"} /></div>
           {p.stockLeft != null && <p className="mt-0.5 text-xs font-semibold text-amber-800">Only {p.stockLeft} left</p>}
         </div>
       </button>
@@ -655,7 +655,7 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
               ))}
               <div className="mt-2"><Summary subtotal={subtotal} fee={baseFee} express={expressFee} total={total} bare /></div>
             </Card>
-            <Guard total={total} free={freeUntilPayday} payday={safe?.ok ? safe.value.nextPayday : null} overSafe={overSafe} maxStash={maxStash} stash={stashAmount} setStash={setStash} />
+            <Guard total={total} free={freeUntilPayday} payday={safe?.ok ? safe.value.nextPayday?.date ?? null : null} overSafe={overSafe} maxStash={maxStash} stash={stashAmount} setStash={setStash} />
           </div>
         )}
       </div>

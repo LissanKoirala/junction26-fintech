@@ -29,6 +29,16 @@ const ChatRequestSchema = z.object({
   overrides: z.object({ byTx: z.record(z.string(), BasketEnum).optional(), byRule: z.record(z.string(), BasketEnum).optional() }).optional(),
   goal: z.object({ name: z.string().max(80), targetAmount: z.number(), targetDate: z.string().max(10), monthlyContribution: z.number().min(0), createdAt: z.string().max(30) }).nullable().optional(),
   screen: z.string().max(40).optional(),
+  crave: z
+    .object({
+      count: z.number(), savedTotal: z.number(), releasedCount: z.number(), releasedTotal: z.number(), windowShops: z.number(),
+      byCategory: z.array(z.object({ category: z.string().max(40), count: z.number(), amount: z.number() })).max(12),
+      byTimeOfDay: z.array(z.object({ slot: z.string().max(20), count: z.number() })).max(6),
+      topWeekday: z.string().max(12).nullable(),
+      recent: z.array(z.object({ craving: z.string().max(80), amount: z.number(), status: z.string().max(12) })).max(5),
+    })
+    .nullable()
+    .optional(),
 });
 
 /** Splits streamed text into prose and [[...]] markers without ever emitting half a marker. */
@@ -111,7 +121,7 @@ export function registerChatRoutes(app: Hono) {
         await send({ type: "status", label: "Thinking…" });
         const snap = snapshot(customer);
         let cardSeq = 0;
-        const ctx: ToolCtx = { c: customer, opts: { overrides: req.overrides as never, goal: req.goal ?? null }, newCardId: () => `c${++cardSeq}` };
+        const ctx: ToolCtx = { c: customer, opts: { overrides: req.overrides as never, goal: req.goal ?? null }, newCardId: () => `c${++cardSeq}`, crave: req.crave ?? null };
         const cards = new Map<string, CardSpec>();
         const shown = new Set<string>();
         const primary: string[] = []; // first card of each tool call, for the fallback

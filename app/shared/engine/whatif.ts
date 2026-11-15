@@ -4,6 +4,7 @@ import type { CustomerData, FlowKind } from "../types";
 import { isBasket, kindsOf } from "./classify";
 import { dailyRate, housingInfo, utilitiesMonthly } from "./recurring";
 import { computeSafeToSpend, type SafeTweak } from "./safeToSpend";
+import { spendingByKind } from "./spending";
 import { basketLabel, categoryLabel, completeMonths, mccLabel, monthEnd, monthStart, r1, r2, rangeLabel, txRange, tEur, tNum } from "./util";
 
 const MUST_TRANSPORT = new Set(["4111", "5541", "5542"]);
@@ -86,12 +87,21 @@ export const simulateWhatIf: SimulateWhatIf = (c, scenario, opts) => {
     equivalents.push(`${tEur(-savedMonthly)} more spending every month`);
   }
 
+  // what is left at the end of an average month (income minus spending and saving), before and after the change
+  const flows = spendingByKind(c, kinds, from, to);
+  const monthEndLeftBefore = r2((flows.income - flows.must_regular - flows.must_irregular - flows.everyday - flows.saving) / nMonths);
+  const monthEndLeftAfter = r2(monthEndLeftBefore + savedMonthly - extra); // extra saving moves money, it does not stay on the account
+
   const res: WhatIfResult = {
     basis: `Monthly average of ${rangeLabel(from, to)} (${nMonths} full month${nMonths === 1 ? "" : "s"})`,
     perAdjustment,
     savedMonthly,
     safePerWeekBefore: before.safePerWeek,
     safePerWeekAfter: after.safePerWeek,
+    safeChanges: Math.round(after.safePerWeek) !== Math.round(before.safePerWeek),
+    monthEndLeftBefore,
+    monthEndLeftAfter,
+    yearlySaved: r2(savedMonthly * 12),
     projections,
     equivalents: equivalents.slice(0, 2),
   };

@@ -67,7 +67,7 @@ export function Tracking() {
   const Vehicle = e.kind === "food" ? Bike : Truck;
   return (
     <FullScreen>
-      <ScreenHeader title="Track order" onBack={() => goBack("/crave/pot")} right={<span className="pr-2"><NothingShipsPill className="scale-90" /></span>} />
+      <ScreenHeader title="Track order" onBack={() => goBack("/crave/pot")} right={<span className="whitespace-nowrap pr-2 text-xs font-semibold text-green-700">Nothing ships</span>} />
       <ScrollArea>
         <Page>
           <Card>

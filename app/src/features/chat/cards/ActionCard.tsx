@@ -1,11 +1,14 @@
-import { ArrowRight, Link2, PiggyBank, Target, Trophy, type LucideIcon } from "lucide-react";
+import { useEffect } from "react";
+import { ArrowRight, Link2, PiggyBank, ShoppingBag, Target, Trophy, type LucideIcon } from "lucide-react";
+import { startShop } from "@/features/crave/session";
+import { getState } from "@/state/store";
 import { CardFrame } from "@/ui/chat";
 import { Button } from "@/ui/kit";
 import { navigate } from "@/lib/router";
 import type { CardOf } from "./util";
 
 const ICON: Record<CardOf<"action">["action"], LucideIcon> = {
-  open_saastaja: PiggyBank, set_goal: Target, start_challenge: Trophy, connect_bank: Link2, open_screen: ArrowRight,
+  open_saastaja: PiggyBank, set_goal: Target, start_challenge: Trophy, connect_bank: Link2, open_screen: ArrowRight, open_crave: ShoppingBag,
 };
 
 function routeFor(card: CardOf<"action">): string {
@@ -17,6 +20,8 @@ function routeFor(card: CardOf<"action">): string {
       return "/flow/connect";
     case "start_challenge":
       return "/flow/checkin";
+    case "open_crave":
+      return `/crave?q=${encodeURIComponent(String(card.payload?.craving ?? ""))}`;
     case "open_screen": {
       const s = String(card.payload?.screen ?? "today");
       const map: Record<string, string> = { today: "/vara/today", whatif: "/vara/whatif", you: "/vara/you", baskets: "/flow/baskets", checkin: "/flow/checkin", goal: "/flow/goal", connect: "/flow/connect" };
@@ -26,8 +31,13 @@ function routeFor(card: CardOf<"action">): string {
 }
 
 export function ActionCard({ card }: { card: CardOf<"action"> }) {
+  const craving = card.action === "open_crave" ? String(card.payload?.craving ?? "") : "";
+  // Crave mode: start building the shop while the customer reads the card, so it opens ready
+  useEffect(() => {
+    if (craving) startShop(craving, getState().customerId);
+  }, [craving]);
   return (
-    <CardFrame icon={ICON[card.action] ?? ArrowRight} eyebrow="Next step" title={card.title ?? card.label} explain={card.explain}>
+    <CardFrame icon={ICON[card.action] ?? ArrowRight} eyebrow={card.action === "open_crave" ? "Crave mode · nothing ships" : "Next step"} title={card.title ?? card.label} explain={card.explain}>
       {card.description && <p className="text-sm text-ink-strong">{card.description}</p>}
       <Button className="mt-3" full iconRight={ArrowRight} onClick={() => navigate(routeFor(card))}>
         {card.label}

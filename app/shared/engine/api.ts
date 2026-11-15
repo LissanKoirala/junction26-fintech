@@ -126,6 +126,11 @@ export interface SafeToSpend {
     estimated?: boolean; // true when there is no regular salary: the date is a 30-day planning horizon, amount 0
     basis?: string; // plain-language basis of the prediction
     latest?: string; // latest plausible date if this month breaks the usual pattern (end of month)
+    irregular?: boolean; // income is irregular: plan for 30 days, never state a payday or a usual salary
+    lateCount?: number; // salaries in the last 12 months that came at the end of the month instead of the 15th
+    lateExtra?: number; // extra fixed musts needed if pay arrives on `latest` instead of `date`
+    lateCovered?: boolean; // true when the buffer covers lateExtra; otherwise the shortfall is an upcoming item
+    lateNote?: string; // one plain sentence about late pay for the UI and the chat
   };
   upcoming: UpcomingItem[]; // everything reserved between today and the next payday
   reservedTotal: number;
@@ -136,7 +141,8 @@ export interface SafeToSpend {
   // Everyday-basket spending in the current ISO week. spentSoFar is already out of the balance, so
   // remaining = safePerDay x days left this week (capped at the free money); this week's budget = spentSoFar + remaining.
   week: { from: string; to: string; spentSoFar: number; remaining: number; daysLeft?: number; typicalSpend?: number };
-  status: "comfortable" | "tight" | "over";
+  status: "comfortable" | "a_bit_tight" | "tight" | "over"; // a_bit_tight: safe week is 50-100% of a usual week
+  wellCovered?: boolean; // safe per week is more than 3x a usual everyday week (and over 200 €): show "well covered"
   note?: string; // plain-language caveat, e.g. when most of the free money is savings already built up
   steps: { label: string; amount: number; sign: "+" | "-" | "=" | "/" }[]; // the arithmetic, for the explain drawer
 }
@@ -162,6 +168,12 @@ export interface WhatIfResult {
   savedMonthly: number; // total freed per month (adjustments + housing change + extra saving)
   safePerWeekBefore: number;
   safePerWeekAfter: number;
+  // Cutting everyday extras changes what you spend, not what is safe: then safeChanges is false and the UI shows
+  // what does change instead (money left at the end of an average month, and the yearly total).
+  safeChanges?: boolean;
+  monthEndLeftBefore?: number; // average monthly income minus spending and saving, baseline months
+  monthEndLeftAfter?: number; // the same with this change (extra saving is moved away, so it is not counted as left)
+  yearlySaved?: number; // savedMonthly x 12
   projections: { months: number; saved: number; invested: number }[]; // invested = with compound return
   equivalents: string[]; // 1-2 concrete equivalents, e.g. "about 2.3 weeks of groceries per year"
 }

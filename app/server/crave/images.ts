@@ -45,7 +45,7 @@ export function fullPrompt(kind: ShopKind, p: string): string {
   const subject = p.replace(/[^\p{L}\p{N}\s,.'-]/gu, " ").slice(0, 220);
   return kind === "food"
     ? `Appetising food photography of ${subject}, served on a simple ceramic plate on a light wooden table, soft natural daylight, shallow depth of field, close-up, fresh and delicious. No text, no logos, no packaging labels, no people, no hands.`
-    : `Clean studio product photo of ${subject}, centered on a seamless soft pastel background, soft shadow, premium e-commerce catalogue shot, high detail. No text, no logos, no brand marks, no people, no hands.`;
+    : `Clean studio product photo of ${subject}, a plain unbranded generic design with blank unmarked surfaces, centered on a seamless soft pastel background, soft shadow, premium e-commerce catalogue shot, high detail. No text, no lettering, no logos, no emblems, no brand stripes or side markings, no people, no hands.`;
 }
 
 const imgHash = (prompt: string) => createHash("sha1").update(IMAGE_MODEL + "|" + prompt).digest("hex").slice(0, 20);

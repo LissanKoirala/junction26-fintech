@@ -10,6 +10,7 @@ import { kindsOf } from "../../shared/engine/classify";
 import { categoryLabel, mccLabel, basketLabel, rangeLabel, monthStart, monthEnd, r2, DOMAIN, currentBalance, addDays as addDaysIso, addMonths as addMonthsKey } from "../../shared/engine/util";
 import type { BasketOverrides, Category, CustomerData, Goal, Period, Tx } from "../../shared/types";
 import type { CardSpec, Explain } from "../../shared/chat";
+import type { CraveSummary } from "../../shared/crave";
 import type { Benchmarks, MlAnomalies, MlHabits, MlHome, MlProfile, MlTwins, ModelCard, MoneyMap, PeerStats, Tribe } from "../../shared/ml/typesA";
 import type { MlForecast, MlRisk, MlTxGpt } from "../../shared/ml/typesB";
 import { loadGlobal, loadMl } from "../data";
@@ -21,6 +22,7 @@ export interface ToolCtx {
   c: CustomerData;
   opts: { overrides?: BasketOverrides; goal?: Goal | null };
   newCardId: () => string;
+  crave?: CraveSummary | null; // Crave mode diary summary sent by the app (client state, simulated money)
 }
 export interface ToolOutput {
   model: Record<string, unknown>;
@@ -626,6 +628,54 @@ const actionTool = tool({
   },
 });
 
+// ---------------------------------------------------------------- Crave mode
+const craveTool = tool({
+  name: "offer_crave_mode",
+  description:
+    "Offer Crave mode when the user wants, is tempted by or asks whether to buy something specific (\"I want new headphones\", \"I'm craving sushi\", \"should I buy those sneakers?\"). Crave mode opens a generated shop for the craving with a full checkout; nothing ships and the basket total goes (simulated) into the user's Crave pot in savings, releasable after a 48-hour cooling-off. Pass the craving as a short shopping phrase (e.g. \"sushi\", \"wireless headphones\").",
+  schema: z.object({ craving: z.string().min(1).max(60).describe("Short phrase for what they crave, in English, e.g. 'new sneakers'") }),
+  status: () => "Opening Crave mode…",
+  run: (ctx, i) => {
+    const craving = i.craving.replace(/[\[\]<>]/g, "").trim().slice(0, 60);
+    const card: CardSpec = {
+      id: ctx.newCardId(),
+      kind: "action",
+      action: "open_crave",
+      title: "Shop it in Crave mode",
+      label: "Shop it in Crave mode",
+      description: `Get the full hunt and checkout for “${craving}”. Nothing ships: the money goes to your Crave pot, and you can release it after 48 hours if you still want it.`,
+      payload: { craving },
+      explain: { tool: "offer_crave_mode", filters: ["Opt-in: the shop is generated for this craving only", "Simulation: no money is moved"], source: "Crave mode (Junction 2026 concept)" },
+    };
+    return { model: { offered: true, craving, cards: cardRef([card]) }, full: { craving }, cards: [card] };
+  },
+});
+
+const cravePotTool = tool({
+  name: "get_crave_pot",
+  description: "The user's Crave mode diary: how much their redirected cravings have saved (simulated Crave pot), how many, which kinds, when cravings strike, and how many they released after the cooling-off.",
+  schema: z.object({}),
+  status: () => "Opening your Crave pot…",
+  run: (ctx) => {
+    const s = ctx.crave;
+    if (!s || (!s.count && !s.releasedCount && !s.windowShops))
+      return { model: { empty: true, note: "No cravings shopped in Crave mode yet. Suggest trying it (offer_crave_mode) next time they want to buy something." }, full: {}, cards: [] };
+    const card: CardSpec = {
+      id: ctx.newCardId(),
+      kind: "stat",
+      title: "Your Crave pot",
+      label: "Saved by redirecting cravings (simulated)",
+      value: s.savedTotal,
+      unit: "eur",
+      caption: `${s.count} craving${s.count === 1 ? "" : "s"} redirected${s.releasedCount ? `, ${s.releasedCount} released` : ""}${s.topWeekday ? `. Most often on ${s.topWeekday}s` : ""}`,
+      series: s.byCategory.length > 1 ? s.byCategory.map((c) => ({ key: c.category, label: c.category, value: c.amount })) : undefined,
+      seriesLabel: s.byCategory.length > 1 ? "By kind of craving" : undefined,
+      explain: { tool: "Crave mode diary (this device)", filters: ["Simulation: no money was moved"], source: "Crave mode (Junction 2026 concept)" },
+    };
+    return { model: { ...s, cards: cardRef([card]) }, full: s, cards: [card] };
+  },
+});
+
 // ---------------------------------------------------------------- machine-learning outputs
 const forecastTool = tool({
   name: "get_balance_forecast",
@@ -773,6 +823,8 @@ export const TOOLS = [
   peersTool,
   conceptTool,
   actionTool,
+  craveTool,
+  cravePotTool,
   forecastTool,
   riskTool,
   twinsTool,

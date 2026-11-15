@@ -160,6 +160,12 @@ cf = cfr["rows"]
 cf0 = cf[0]
 cfd = {r["trim"]: r for r in cf}
 ev_med = cfr["everydayMonthly"]["p50"]
+cut = lambda r, k, base: 1 - r[k] / cf0[base]  # share removed, against what actually happened
+c5 = cfd[0.05]
+kept_c, kept_d = cut(c5, "customersNegative", "customersNegative"), cut(c5, "negativeDays", "negativeDays")
+cyc_c, cyc_d = cut(c5, "customersNegativeCycle", "customersNegative"), cut(c5, "negativeDaysCycle", "negativeDays")
+kept_end = cfr["keptAtEnd5"]["p50"]
+cush = {r["cushion"]: r for r in cfr["cushion"]}
 th = {t["threshold"]: t for t in sm["thresholds"]}
 small_rest = next(x["n"] for x in sm["byCategory"] if x["category"] == "Restaurants") / sum(x["n"] for x in sm["byCategory"])
 age = {a["band"]: a for a in ages}
@@ -276,16 +282,16 @@ S = []  # (id, nav label, html)
 find = [
     (pc(neg_all), "of customers dipped below zero at least once in two years",
      f"Almost always late in the pay cycle: {pc(low_after20)} of the dips bottom out 20 or more days after payday."),
-    (f"{pc(1 - cfd[0.05]['customersNegative'] / cf0['customersNegative'])} fewer", "overdrawn customers with a 5% trim of everyday extras",
-     f"About {eur(ev_med * 0.05)} a month for the median customer. Days below zero fall by {pc(1 - cfd[0.05]['negativeDays'] / cf0['negativeDays'])}."),
+    (f"{pc(kept_d)} fewer", "days below zero if a 5% trim of everyday extras is kept as a cushion",
+     f"About {eur(ev_med * 0.05)} a month for the median customer, about {eur(kept_end)} after two years. If the same money is spent again before the next payday, the drop is only {pc(cyc_d)}."),
     (pc(sos["mr"]["p50"]), "of salary is committed to fixed musts before any choice is made",
      f"Everyday extras are {pc(sos['ev']['p50'])} of salary: the part a coach can actually help with."),
     (pc(su["customersWithShock"]), "of customers were hit by a surprise-must month",
      f"Typical size {eur(su['shockSize']['p50'])}, about {pc(su['shockSizeVsSalary']['p50'])} of a month's pay. Roughly one month in ten."),
     (pc(th[10]["shareOfEuros"], 1), "of purchase euros go to purchases under 10 €",
      f"They are {pc(th[10]['shareOfPurchases'], 1)} of purchases. The latte factor is small in this data."),
-    (pc(iwn["customers"] / inv["investors"]), "of investors made a deposit in a month when they were overdrawn",
-     f"{n0(iwn['n'])} such months across {n0(iwn['customers'])} customers: a sequencing problem, not a motivation problem."),
+    (pc(iwn["customers"] / inv["investors"]), "of investors made an investing deposit in a month when their account also went below zero",
+     f"{n0(iwn['n'])} such months across {n0(iwn['customers'])} customers. Investors dip below zero as often as everyone else."),
 ]
 if E.get("cravings"):
     _c = E["cravings"]
@@ -308,8 +314,8 @@ body = f"""
 {table(['Category', 'Type', 'Transactions', 'Customers', 'Median amount', 'Total'], rows, 'num')}
 <p>Three groups of customers need separate handling, and the app handles each one differently:</p>
 <ul>
-<li><b>{n0(m['nMain'] - m['nSweep'])} regular customers</b> with a monthly salary and visible spending. Most statistics on this page use this group.</li>
-<li><b>{m['nSweep']} salary-sweep customers</b> ({pc(sw['shareOfCustomers'], 1)}): about {pc(sw['sweptShare'])} of their salary leaves for another bank right after payday, so only about {eur(sw['visibleSpend'])} of monthly spending is visible against a salary of {eur(sw['salary'])}. For them Vara says what it cannot see and offers to connect the other bank (the PSD2 flow in the prototype).</li>
+<li><b>{n0(m['nMain'] - m['nSweepMain'])} regular customers</b> with a monthly salary and visible spending. Most statistics on this page use this group.</li>
+<li><b>{m['nSweep']} salary-sweep customers</b> ({pc(sw['shareOfCustomers'], 1)}): about {pc(sw['sweptShare'])} of their salary leaves for another bank right after payday, so only about {eur(sw['visibleSpend'])} of monthly spending is visible against a salary of {eur(sw['salary'])}. For them Vara says what it cannot see and offers to connect the other bank (the PSD2 flow in the prototype). {m['nSweepMain']} of them are in the main cohort and {m['nSweep'] - m['nSweepMain']} in the irregular-income cohort.</li>
 <li><b>{m['nTail']} irregular-income customers</b> (ids above CUST05000), kept out of model training.</li>
 </ul>
 """
@@ -373,7 +379,7 @@ body = f"""
 <p class="lede">We call a month a shock month when surprise musts exceed 15% of a monthly salary. {pc(su['customersWithShock'])} of customers had at least one in two years, the median customer had {su['shocksPerCustomer']['p50']:.0f}, and about one month in ten ({pc(su['shockMonthShare'], 1)}) is a shock month.</p>
 <p>A typical shock is {eur(su['shockSize']['p50'])}, or {pc(su['shockSizeVsSalary']['p50'])} of a month's pay; one in ten exceeds {eur(su['shockSize']['p90'])}. Over a year the median customer spends {eur(su['yearlyTotal']['p50'])} on surprise musts. Spread evenly, that is {eur(su['yearlyTotal']['p50'] / 12)} a month: a concrete, personal size for a buffer.</p>
 {chart({'type': 'cols', 'x': [pc(e) for e in mh['edges'][:-1]], 'y': mh['counts'], 'fmt': 'num', 'xTitle': 'Surprise musts in a month, as a share of monthly salary', 'yTitle': 'Customer-months', 'every': 5, 'hi': [i for i, e in enumerate(mh['edges'][:-1]) if e >= 0.15], 'color': C['blue']}, 'All customer-months by the size of that month\'s surprise musts. Shock months (15% of salary or more) are highlighted.')}
-<p>Customers mostly absorb these months: the chance of dipping below zero is {pc(su['negativeInShockMonth']['shock'], 1)} in a shock month against {pc(su['negativeInShockMonth']['normal'], 1)} otherwise. The cost shows up later, as a balance that stops growing.</p>
+<p>Customers mostly absorb these months: the chance of dipping below zero is {pc(su['negativeInShockMonth']['shock'], 1)} in a shock month against {pc(su['negativeInShockMonth']['normal'], 1)} otherwise.</p>
 {vara('Surprise musts get their own basket and their own lesson: they are not monthly, but they always come. Vara sizes the suggested buffer from the customer\'s <b>own</b> history of surprise musts, and the "unusual for you" model proposes moving large one-off health or home purchases into this basket.')}
 {method(f"Customer-months of {n0(n_core)} regular customers; salary is each customer's median monthly salary. The largest single surprise must per customer has a median of {eur(su['largestSingle']['p50'])}.")}
 """
@@ -393,18 +399,22 @@ body = f"""
 S.append(("small", "Small purchases", section("small", "Finding 5", f"The latte factor is small here: {pc(th[10]['shareOfPurchases'], 1)} of purchases, {pc(th[10]['shareOfEuros'], 1)} of the money", body)))
 
 # ---- F6 counterfactual
-trims = [r for r in cf if r["trim"] <= 0.2]
+trims = [r for r in cf if 0 < r["trim"] <= 0.2]
+bm = cfr["byMonth"]
 body = f"""
-<p class="lede">We replayed two years of balances for every main-cohort customer with everyday extras trimmed by a fixed percentage and the difference left on the account. With a 5% trim, about {eur(ev_med * 0.05)} a month for the median customer, the number of customers who ever end a day below zero falls from {n0(cf0['customersNegative'])} to {n0(cfd[0.05]['customersNegative'])} ({pc(1 - cfd[0.05]['customersNegative'] / cf0['customersNegative'])} fewer), and the days spent below zero fall by {pc(1 - cfd[0.05]['negativeDays'] / cf0['negativeDays'])}.</p>
+<p class="lede">We replayed two years of balances for every main-cohort customer with everyday extras trimmed by 5%, about {eur(ev_med * 0.05)} a month for the median customer, in two ways. The result depends almost entirely on what happens to the money afterwards.</p>
+{kpis([(pc(cyc_d), 'fewer days below zero', 'if the trimmed money is spent again before the next payday'), (pc(kept_d), 'fewer days below zero', f'if it is kept and builds up (median {eur(kept_end)} after two years)'), (pc(cyc_c), 'fewer customers ever below zero', f"spent again: {n0(cf0['customersNegative'])} to {n0(c5['customersNegativeCycle'])}"), (pc(kept_c), 'fewer customers ever below zero', f"kept: {n0(cf0['customersNegative'])} to {n0(c5['customersNegative'])}")])}
 <div class="g2">
-{chart({'type': 'cols', 'x': ['As it happened'] + [f"{pc(r['trim'])} trim" for r in trims[1:]], 'y': [r['customersNegative'] for r in trims], 'fmt': 'num', 'yTitle': 'Customers', 'labels': True, 'hi': [0], 'hiColor': C['grey']}, 'Customers who end at least one day below zero in two years.')}
-{chart({'type': 'cols', 'x': ['As it happened'] + [f"{pc(r['trim'])} trim" for r in trims[1:]], 'y': [r['negativeDays'] for r in trims], 'fmt': 'num', 'yTitle': 'Customer-days', 'labels': True, 'hi': [0], 'hiColor': C['grey']}, 'Total days spent below zero across all customers.')}
+{chart({'type': 'hbars', 'rows': [{'label': f"{pc(r['trim'])} trim", 'vals': [cut(r, 'negativeDaysCycle', 'negativeDays'), cut(r, 'negativeDays', 'negativeDays')]} for r in trims], 'series': [{'name': 'Spent again before the next payday', 'color': C['amber']}, {'name': 'Kept and built up', 'color': C['g7']}], 'fmt': 'pct'}, 'Share of days below zero that disappear, by size of trim and by what happens to the money.')}
+{chart({'type': 'line', 'x': [r['month'] for r in bm], 'series': [{'name': 'As it happened', 'y': [r['actual'] for r in bm], 'color': C['grey']}, {'name': '5% trim, spent again', 'y': [r['cycle5'] for r in bm], 'color': C['amber']}, {'name': '5% trim, kept', 'y': [r['kept5'] for r in bm], 'color': C['g7']}], 'fmt': 'pct', 'every': 4, 'yTitle': 'Share of customer-days below zero'}, 'The kept version starts where the others do and pulls away as the cushion builds: the cushion does the work, not the trim.')}
 </div>
-<p>A 10% trim removes {pc(1 - cfd[0.1]['customersNegative'] / cf0['customersNegative'])} of the overdrawn customers and {pc(1 - cfd[0.1]['negativeDays'] / cf0['negativeDays'])} of the days. The reason is the previous findings taken together: dips are shallow and late in the cycle, so a small amount that is still on the account in the last ten days is enough.</p>
-{vara('This is the population-level version of the <b>what-if simulator</b>. In the app the customer moves a slider ("eating out −20%") and sees their own safe-to-spend, their balance forecast to payday and the one-, five- and ten-year effect change live, computed on their own transactions.')}
-{method('A mechanical replay, not a behavioural prediction: end-of-day balance plus the trim percentage times cumulative everyday-extras spending since October 2024. It assumes income and all other spending stay the same and the saved money stays on the account.')}
+<p>This follows from the earlier findings. Dips are shallow and late in the pay cycle, so what prevents one is money that is already there when the dip would have happened. A standing cushion of 100 € would have removed {pc(cut(cush[100], 'negativeDays', 'negativeDays'))} of the days below zero, and 250 € would have removed {pc(cut(cush[250], 'negativeDays', 'negativeDays'))}. A 5% trim builds 250 € in about {250 / (ev_med * 0.05):.0f} months for the median customer. (No account in the dataset goes lower than about −500 €, which looks like an overdraft limit in the synthetic data, so a 500 € cushion removes every dip by construction.)</p>
+<p>Even with the money kept, {n0(c5['customersNegative'])} customers still go below zero at some point. A small trim is a real help for most people who dip, not a cure for all of them.</p>
+{vara('Two things follow in the product. The <b>what-if simulator</b> shows a customer their own version of this on their own transactions. And saving has to mean <b>moving the money</b>, not just skipping a purchase: Crave mode and the Säästäjä hand-off both put the amount in a savings pot where it stays, because the data says the staying is what counts.')}
+{method('A mechanical replay, not a behavioural prediction. "Kept": end-of-day balance plus the trim percentage times cumulative everyday-extras spending since October 2024, so the saved money counts as available when a dip comes (for example a savings pot that tops the account up). "Spent again": the same, but the cumulative sum restarts at each salary. Both assume income and all other spending stay the same. Customers ever below zero is counted on end-of-day balances.')}
 """
-S.append(("trims", "Small trims", section("trims", "Finding 6", f"A 5% trim of everyday extras would have kept {pc(1 - cfd[0.05]['customersNegative'] / cf0['customersNegative'])} of overdrawn customers above zero", body)))
+
+S.append(("trims", "Small trims", section("trims", "Finding 6", f"A small trim only counts if the money is kept: {pc(kept_d)} fewer days below zero when kept, {pc(cyc_d)} when spent later", body)))
 
 # ---- cravings (the data behind Crave mode)
 try:
@@ -420,7 +430,7 @@ try:
     body = f"""
 <p class="lede">Everyday extras are not one decision a month. They are many small ones: the median customer makes {cr['perMonth']['p50']:.0f} everyday-extras purchases a month, typically {eur(cr['medianAmount']['p50'])} each. {pc(eve)} of them happen after 18:00, and the five days after payday carry {pc(cr['paydayWeekShare'])} of the spending in {pc(cr['paydayWeekDaysShare'])} of the days.</p>
 {kpis([(f"{cr['perMonth']['p50']:.0f}", 'everyday-extras purchases a month', 'median customer'), (eur(cr['medianAmount']['p50']), 'typical size of one', 'median of each customer\'s median'), (f"{cr['toCoverDeepestDip']['p50']:.1f}", 'purchases equal the deepest dip', 'median overdrawn customer, over two years'), (eur(cr['oneAWeekPerYear']['p50']), 'a year from one redirected a week', 'median customer')])}
-<p>Put the previous finding in these terms. A 5% trim of everyday extras is one purchase in twenty, about {in20:.1f} a month for the median customer. And for the median customer who went below zero, the deepest dip of the whole two years is the size of just {cr['toCoverDeepestDip']['p50']:.1f} typical purchases. Nobody needs a new lifestyle to stay above zero. They need to skip a craving now and then, and to have the skipped money still be there in the last ten days of the pay cycle.</p>
+<p>The amounts involved are small. The 5% trim of the previous finding is about {eur(ev_med * 0.05)} a month for the median customer, a little more than one typical purchase (the typical purchase is {eur(cr['medianAmount']['p50'])}; the average is {eur(cr['meanAmount']['p50'])} because a few are large). And for the median customer who went below zero, the deepest dip of the whole two years is the size of {cr['toCoverDeepestDip']['p50']:.1f} typical purchases. What the previous finding adds is that skipping a purchase is not enough on its own: the money has to still be there when the dip would have come. That is the design brief for Crave mode. Make skipping feel like buying, and move the money somewhere it stays.</p>
 <div class="g2">
 {chart({'type': 'cols', 'x': [f"{x['hour']:02d}" for x in ch], 'y': [x['n'] / chtot for x in ch], 'fmt': 'pct', 'xTitle': 'Hour of day', 'every': 3, 'color': C['amber'], 'hi': [i for i, x in enumerate(ch) if x['hour'] >= 18], 'hiColor': C['g9']}, 'When everyday-extras purchases happen. Evening hours (from 18:00) are highlighted.')}
 {chart({'type': 'cols', 'x': alab, 'y': [abn.get(i, {'n': 0})['n'] / antot for i in range(len(ae))], 'fmt': 'pct', 'xTitle': 'Size of one purchase', 'every': 2, 'color': C['amber']}, 'Everyday-extras purchases by size.')}
@@ -429,7 +439,7 @@ try:
 {vara('<b>Crave mode.</b> When a customer feels like buying something, Vara opens a generated shop for exactly that craving: browsing, basket, checkout, even the confirmation chime. Nothing ships. The amount goes to the customer\'s own savings pot instead. It is opt-in and stated up front, the money can be released within 48 hours to buy the thing for real, and the safe-to-spend guard never lets a craving eat into rent money. Saving money, a craving at a time.')}
 {method('Card purchases classified as everyday extras, main cohort. "Typical size" is the median of each customer\'s own median purchase. Deepest dip: the lowest balance in 24 months divided by the customer\'s median everyday-extras purchase, for customers who went below zero.')}
 """
-    S.append(("cravings", "Cravings", section("cravings", "Finding 7", f"A craving costs {eur(cr['medianAmount']['p50'])}. Redirect one in twenty and most overdrafts disappear", body)))
+    S.append(("cravings", "Cravings", section("cravings", "Finding 7", f"A craving costs {eur(cr['medianAmount']['p50'])}. The deepest dip in two years is the size of {cr['toCoverDeepestDip']['p50']:.0f} of them", body)))
 except Exception as e:
     print("cravings section failed", repr(e))
 
@@ -437,7 +447,7 @@ except Exception as e:
 hl = [x["bin"][3:] for x in hbin]
 body = f"""
 <p class="lede">The median customer spends {pc(ho['share']['p50'])} of salary on housing. {pc(ho['above40'])} spend more than 40% and {pc(ho['above50'])} more than half.</p>
-<p>Customers with heavy housing costs have already cut what they can: those paying 55% or more spend {pc(hbin[-1]['everydayShareOfSalary'])} of salary on everyday extras, against {pc(hbin[0]['everydayShareOfSalary'])} for those paying under 25%. They still fall behind. Their balance grew by {eur(hbin[-1]['balanceChange'])} over two years against {eur(hbin[0]['balanceChange'])}, and they had {hbin[-1]['negMonthsMean']:.1f} months with a dip against {hbin[0]['negMonthsMean']:.1f}.</p>
+<p>Customers with heavy housing costs also spend less on everyday extras: those paying 55% or more spend {pc(hbin[-1]['everydayShareOfSalary'])} of salary on everyday extras, against {pc(hbin[0]['everydayShareOfSalary'])} for those paying under 25%. Their balance still grew less: by {eur(hbin[-1]['balanceChange'])} over two years against {eur(hbin[0]['balanceChange'])}, and they had {hbin[-1]['negMonthsMean']:.1f} months with a dip against {hbin[0]['negMonthsMean']:.1f}.</p>
 <div class="g3">
 {chart({'type': 'cols', 'x': hl, 'y': [x['everydayShareOfSalary'] for x in hbin], 'fmt': 'pct', 'labels': True, 'color': C['amber'], 'h': 220}, 'Everyday extras as a share of salary.')}
 {chart({'type': 'cols', 'x': hl, 'y': [x['negMonthsMean'] for x in hbin], 'fmt': 'num', 'labels': True, 'h': 220}, 'Average months with a dip below zero (of 24).')}
@@ -447,7 +457,7 @@ body = f"""
 {vara('Advice has to fit the situation. For a customer like our demo persona, whose rent takes about 65% of pay, "spend less on extras" is the wrong message. Vara compares people with <b>peers in the same position</b>, focuses on timing and buffer, and says plainly when the fixed musts are the issue.')}
 {method(f"Housing share is the customer's median monthly housing payment over their median monthly salary, for {n0(ho['share']['n'])} regular customers with housing payments. {ho['noHousing']} customers have no housing payments at all, and housing payments are missing in {pc(ho['missingMonthShare'], 1)} of customer-months for the rest, which is why medians are used.")}
 """
-S.append(("housing", "Housing", section("housing", "Finding 8", "High housing costs squeeze the extras first, then the savings", body)))
+S.append(("housing", "Housing", section("housing", "Finding 8", "Where housing costs are high, everyday extras are lower and so is the growth in savings", body)))
 
 # ---- F8 saving
 srh = sa["savingsRateHist"]
@@ -492,7 +502,7 @@ if bench:
         body = f"""
 <p class="lede">A coach that says "you spend a lot on eating out" needs a reference point. We use two: peers of the same age inside the bank's data, and Finnish households from Statistics Finland's Household Budget Survey 2022, price-adjusted to today with the consumer price index.</p>
 <div class="g2">{''.join(figs)}</div>
-<p>The young customers in the dataset eat out far more than the national figures and spend less on transport, which is plausible for a card-heavy urban customer base, and also a reminder that the two sources measure different things: the survey covers whole households and all payment methods, the dataset one person's account in one bank. In the app the bank-peer comparison is the default and the national figure is shown as context with its source.</p>
+<p>The young customers in the dataset eat out far more than the national figures and spend less on transport. The two sources measure different things: the survey covers whole households and all payment methods, the dataset one person's account in one bank. In the app the bank-peer comparison is the default and the national figure is shown as context with its source.</p>
 {vara('The <b>benchmark card</b> in chat places the customer between peers of the same age (10th to 90th percentile) and shows the Statistics Finland figure next to it, with the source line. Vara phrases it as information, never as a grade.')}
 {method(f"{esc(bench.get('sourceLine') or bench.get('source'))}. Licence {esc(bench.get('licence', 'CC BY 4.0'))}. Housing uses COICOP 04 without imputed rent (04.2). All {len(bench.get('crossChecks') or [])} spot checks against published table cells match.")}
 """
@@ -577,6 +587,18 @@ def generic_evidence(card):
     return html_charts + tabs
 
 
+def twins_note(card):
+    """One honest sentence on how much the twins beat their baselines, computed from the card itself."""
+    gains = [(1 - mt["model"] / mt["baseline"], mt.get("baselineName", "baseline")) for mt in card.get("metrics", [])
+             if "MAE" in mt.get("label", "") and mt.get("better") == "lower" and mt.get("baseline")]
+    if not gains:
+        return "<p>Read this model as a mirror, not a forecast.</p>"
+    lo, hi = min(g for g, _ in gains), max(g for g, _ in gains)
+    rng = pc(lo, 1) if abs(hi - lo) < 0.002 else f"{pc(lo, 1)} to {pc(hi, 1)}"
+    return (f"<p>Read this model as a mirror, not a forecast. Its error is only {rng} lower than its baselines ({', '.join(n for _, n in gains)}), "
+            "so the app presents it as \"what happened to people like you\" and never as a prediction.</p>")
+
+
 MS = []  # model sub-sections
 ORDER = ["tribes", "twins", "anomalies", "habits", "forecast", "risk", "txgpt", "home"]
 TITLES = {"tribes": "Money Map", "twins": "Two Futures", "anomalies": "Unusual for you", "habits": "Habit detector", "forecast": "Crystal ball", "risk": "Early warning", "txgpt": "TransactionGPT", "home": "First-home readiness"}
@@ -630,7 +652,7 @@ if c:
                 "<p>Which behaviour most often separates the twins who built a buffer from those who slipped?</p>" + \
                 chart({'type': 'hbars', 'rows': [{'label': l, 'vals': [n / t['n']]} for l, n in t['top']], 'series': [{'name': 'Share of customers for whom this is the clearest difference', 'color': C['g7']}], 'fmt': 'pct'}, 'The single clearest difference between builders and slippers, per customer.')
         body = card_head(c) + extra + metric_table(c) + \
-            "<p>Read this model as a mirror, not a forecast. It beats both baselines, but only by about 7%, so the app presents it as \"what happened to people like you\" and never as a prediction.</p>" + caveats(c)
+            twins_note(c) + caveats(c)
         MS.append(("m-twins", "Two Futures", section("m-twins", "Model 2 · Where is this heading?", "Two Futures: what happened next to people like you", body)))
     except Exception as e:
         print("twins section failed", repr(e))
@@ -708,7 +730,7 @@ try:
     extra = f"""
 <p>The dataset includes {mo['n']} mortgage applications with {n0(mo['nEvents'])} negotiation events. {ap['n']} were approved and {rj['n']} rejected, most often for {esc(mo['rejectionReasons'][0]['reason'].replace('_', ' '))} ({mo['rejectionReasons'][0]['n']} of {rj['n']}). A typical application takes {mo['eventsPerApplication']['p50']:.0f} events and {mo['daysToDecision'].get('p50', 0):.0f} days from start to decision.</p>
 {table(['', 'Approved', 'Rejected'], rows, 'num')}
-<p>Approved and rejected applicants look almost the same on price, loan and income. What differs is what they bring: more equity, and an account balance covering {pc(ap['balanceVsEquity'])} of that equity against {pc(rj['balanceVsEquity'])}.</p>
+<p>Approved and rejected applicants look almost the same on price, loan and income. What differs most is the equity they bring and, in the recorded reasons, the collateral.</p>
 <div class="g2">
 {chart({'type': 'hbars', 'rows': [{'label': x['reason'].replace('_', ' ').capitalize(), 'vals': [x['n']]} for x in mo['rejectionReasons']], 'series': [{'name': 'Rejected applications', 'color': C['g7']}], 'fmt': 'num'}, 'Why applications were rejected.')}
 {chart({'type': 'cols', 'x': [l for l, _ in ML['home']['bins']], 'y': [n for _, n in ML['home']['bins']], 'fmt': 'num', 'yTitle': 'Customers', 'labels': True}, 'Years until each customer reaches the typical equity for their income, at their current saving pace.') if ML.get('home') else ''}
@@ -738,7 +760,7 @@ body = f"""
 <li><b>One account per customer.</b> Savings and spending elsewhere are invisible, most clearly for the {m['nSweep']} salary-sweep customers. The prototype's multi-bank (PSD2) flow is a mock that shows how this would be closed.</li>
 <li><b>Small samples.</b> The mortgage model learns from {mo['n']} applications. Its numbers are noisy and it is labelled illustrative.</li>
 <li><b>Correlation, not causation.</b> Two Futures and the trim replay show what goes together, not what causes what. The app says so next to each of them.</li>
-<li><b>Language models write words, never numbers.</b> In the prototype every figure in a chat answer comes from a deterministic calculation over the customer's transactions, and a number guard checks the text against those results.</li>
+<li><b>Every figure in a chat answer is checked against the engine.</b> The language model chooses which calculation to run and writes the sentence, quoting figures from the results. A number guard then checks each figure in the text against those results and flags any it cannot find. The model never does the arithmetic.</li>
 </ul>
 """
 S.append(("limits", "Limits", section("limits", "Honest limits", "What this analysis cannot tell you", body)))

@@ -5,6 +5,7 @@ import { streamChat } from "@/lib/api";
 import { getState } from "@/state/store";
 import { useCustomer } from "@/state/customer";
 import { getMessages, newId, patchMessage, setMessages, useMessages } from "./store";
+import { summarise } from "@/features/crave/diary";
 
 const controllers = new Map<string, AbortController>();
 
@@ -36,6 +37,7 @@ export function useChat(customerId: string) {
         overrides: prefs?.overrides,
         goal: prefs?.goal ?? null,
         screen: screen ?? "chat",
+        crave: prefs?.cravings?.length ? summarise(prefs.cravings) : null,
       };
       const ctl = new AbortController();
       controllers.set(customerId, ctl);

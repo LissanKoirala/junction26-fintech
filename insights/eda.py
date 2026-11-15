@@ -169,7 +169,7 @@ def _():
     m = q("""select count(*) nTx, count(distinct customer_id) nCustomers, min(date) dateFrom, max(date) dateTo,
              sum(case when amount>0 then amount end) totalIn, -sum(case when amount<0 then amount end) totalOut,
              count(distinct mcc) nMcc from t""")[0]
-    m.update(q("""select sum((cohort='main')::int) nMain, sum((cohort<>'main')::int) nTail, sum(sweep::int) nSweep,
+    m.update(q("""select sum((cohort='main')::int) nMain, sum((cohort<>'main')::int) nTail, sum(sweep::int) nSweep, sum((sweep and cohort='main')::int) nSweepMain,
                   sum((not has_housing)::int) nNoHousing, median(age) medianAge from cust""")[0])
     m["types"] = q("""select type, category, count(*) n, sum(amount) total, avg(amount) avg, median(amount) median,
                       count(distinct customer_id) customers from t group by 1,2 order by abs(sum(amount)) desc""")
@@ -237,18 +237,28 @@ def _():
 
 @section("counterfactual")
 def _():
-    """If everyday extras had been p% lower from day one (savings left on the account), who still goes below zero?"""
+    """If everyday extras had been p% lower, who still goes below zero? Two versions, because they answer different questions:
+    kept  = the trimmed money stays put and builds up from October 2024 (a growing cushion);
+    cycle = the trimmed money is only moved within the pay cycle and is gone again by the next payday."""
     con.execute("""create table cf as select d.customer_id, d.date, d.bal,
-        sum(d.ev) over (partition by d.customer_id order by d.date rows between unbounded preceding and current row) cumev
-      from daily d join cust c using (customer_id) where c.cohort='main'""")
+        sum(d.ev) over (partition by d.customer_id order by d.date rows between unbounded preceding and current row) cumev,
+        sum(d.ev) over (partition by d.customer_id, d.sal_date order by d.date rows between unbounded preceding and current row) cycev
+      from dd d join cust c using (customer_id) where c.cohort='main'""")
     rows = []
     for p in (0, 0.05, 0.10, 0.20, 0.30):
         x = q(f"""select count(distinct case when bal + {p}*cumev < 0 then customer_id end) customersNegative,
-                         sum((bal + {p}*cumev < 0)::int) negativeDays from cf""")[0]
+                         sum((bal + {p}*cumev < 0)::int) negativeDays,
+                         count(distinct case when bal + {p}*cycev < 0 then customer_id end) customersNegativeCycle,
+                         sum((bal + {p}*cycev < 0)::int) negativeDaysCycle from cf""")[0]
         x["trim"] = p
         rows.append(x)
     ev = pct(col(f"select ev from cs where {MAIN}"))
-    return {"rows": rows, "everydayMonthly": ev}
+    kept_end = pct(col("select 0.05*cumev from cf where date = date '2026-09-30'"))
+    by_month = q("""select strftime(date, '%Y-%m') as month, avg((bal<0)::int) actual, avg((bal + 0.05*cumev < 0)::int) kept5,
+                           avg((bal + 0.05*cycev < 0)::int) cycle5, median(0.05*cumev) keptMedian from cf group by 1 order by 1""")
+    cushion = [dict(q(f"""select count(distinct case when bal + {k} < 0 then customer_id end) customersNegative,
+                                 sum((bal + {k} < 0)::int) negativeDays from cf""")[0], cushion=k) for k in (0, 100, 250, 500, 1000, 2000)]
+    return {"rows": rows, "everydayMonthly": ev, "keptAtEnd5": kept_end, "byMonth": by_month, "cushion": cushion}
 
 
 @section("baskets")

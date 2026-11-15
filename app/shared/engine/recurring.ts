@@ -33,7 +33,10 @@ export interface SalaryInfo {
   lateDay: number; // median day of the non-15th payments (default 29)
   monthsSeen: number; // of the last 12 months
   last: string | null;
-  regular: boolean; // at least 3 salaries in the last 6 months
+  regular: boolean; // a steady monthly salary we can plan around (false when `irregular`)
+  irregular?: boolean; // tail cohort, salaries missing in 2+ of the last 6 complete months, or scattered pay days
+  irregularWhy?: "tail" | "missing" | "scattered";
+  lateCount12?: number; // of the salaries in the last 12 months, how many did not come on the 15th
 }
 const salaryMemo = memo<SalaryInfo>();
 export function salaryInfo(c: CustomerData): SalaryInfo {
@@ -58,7 +61,23 @@ export function salaryInfo(c: CustomerData): SalaryInfo {
     monthsSeen: new Set(last12.map((t) => monthKey(t.date))).size,
     last: all.length ? all[all.length - 1].date : null,
     regular: new Set(last6.map((t) => monthKey(t.date))).size >= 3,
+    lateCount12: late.length,
   };
+  // Irregular income (no confident payday): tail cohort; or a salary missing in 2+ of the last 6 complete months;
+  // or scattered pay days: 2+ of the last 6 salaries came neither within 2 days of the 15th nor on day 26 or later.
+  const done6 = completeMonths(c.asOf, 6);
+  const paidMonths = new Set(all.map((t) => monthKey(t.date)));
+  const missing = done6.filter((m) => !paidMonths.has(m)).length;
+  const off = all.slice(-6).filter((t) => {
+    const d = dayOfMonth(t.date);
+    return Math.abs(d - 15) > 2 && d < 26;
+  }).length;
+  const why = c.cohort === "tail" ? "tail" : missing >= 2 ? "missing" : off >= 2 ? "scattered" : null;
+  if (why && all.length) {
+    info.irregular = true;
+    info.irregularWhy = why;
+    info.regular = false;
+  }
   salaryMemo.set(c, info);
   return info;
 }
@@ -70,6 +89,9 @@ export interface PaydayPrediction {
   estimated: boolean; // true when there is no regular salary and the date is a 30-day planning horizon
   basis: string;
   latest?: string; // the latest plausible date if the usual pattern does not hold this month
+  irregular?: boolean; // income is irregular: no date or usual amount is predicted
+  lateCount?: number; // salaries in the last 12 months that did not come on the usual 15th
+  monthsSeen?: number; // salaries seen in the last 12 months (denominator of lateCount)
 }
 
 /** Predicted paydays strictly after asOf, as many as fall within `horizonDays` (at least one). */
@@ -84,7 +106,10 @@ export function predictPaydays(c: CustomerData, horizonDays = 45): PaydayPredict
         amount: 0,
         daysAway: 30,
         estimated: true,
-        basis: "No regular monthly salary in the last 6 months, so Vara plans for the next 30 days.",
+        irregular: s.irregular || undefined,
+        basis: s.irregular
+          ? "Your income is irregular, so Vara plans for the next 30 days."
+          : "No regular monthly salary in the last 6 months, so Vara plans for the next 30 days.",
       },
     ];
   }
@@ -111,7 +136,16 @@ export function predictPaydays(c: CustomerData, horizonDays = 45): PaydayPredict
     }
     const daysAway = daysBetween(asOf, date);
     if (out.length && daysAway > horizonDays) break;
-    out.push({ date, amount: r2(s.typical), daysAway, estimated: false, basis, latest: use15 ? monthEnd(m) : undefined });
+    out.push({
+      date,
+      amount: r2(s.typical),
+      daysAway,
+      estimated: false,
+      basis,
+      latest: use15 && monthEnd(m) > date ? monthEnd(m) : undefined,
+      lateCount: use15 ? (s.lateCount12 ?? 0) : undefined,
+      monthsSeen: use15 ? Math.min(12, s.monthsSeen) : undefined,
+    });
     m = addMonths(m, 1);
   }
   return out;
@@ -178,8 +212,9 @@ export function housingDue(c: CustomerData, until: string): { month: string; fro
 }
 
 // ---------------------------------------------------------------- utilities, investing, groceries
-/** Utilities total per complete month (last `n`, zeros included). */
-export function utilitiesMonthly(c: CustomerData, n = 6): { months: string[]; totals: number[]; perMonth: number } {
+/** Utilities total per complete month (last `n`). perMonth averages only the months that have a utilities payment
+ *  (a month with no payment is a gap in the data, not a month with no bills). */
+export function utilitiesMonthly(c: CustomerData, n = 6): { months: string[]; totals: number[]; perMonth: number; paidMonths: number } {
   const months = completeMonths(c.asOf, n).filter((m) => monthEnd(m) >= (c.tx[0]?.date ?? c.asOf));
   const totals = months.map((m) => {
     const [s, e] = txRange(c, monthStart(m), monthEnd(m));
@@ -187,7 +222,8 @@ export function utilitiesMonthly(c: CustomerData, n = 6): { months: string[]; to
     for (let k = s; k < e; k++) if (c.tx[k].type === "utilities_payment") t += -c.tx[k].amount;
     return t;
   });
-  return { months, totals, perMonth: mean(totals) };
+  const paid = totals.filter((t) => t > 0);
+  return { months, totals, perMonth: mean(paid), paidMonths: paid.length };
 }
 
 export interface InvestInfo {
@@ -271,8 +307,9 @@ export const getRecurring: GetRecurring = (c) => {
       lastDate: s.last,
       nextFrom: pay && !pay.estimated ? pay.date : null,
       nextTo: pay && !pay.estimated ? (pay.latest ?? pay.date) : null,
-      note: s.regular ? pay?.basis : "Income is irregular: no steady monthly salary in the last 6 months.",
+      note: s.regular ? pay?.basis : s.irregular ? "Income is irregular, so Vara plans for the next 30 days instead of predicting a payday." : "Income is irregular: no steady monthly salary in the last 6 months.",
     });
+    if (s.irregular) items[items.length - 1].label = "Income (irregular)";
   }
   const h = housingInfo(c);
   if (h.paidMonths.size) {
@@ -303,14 +340,14 @@ export const getRecurring: GetRecurring = (c) => {
       kind: "utilities",
       label: "Utilities (electricity, water, internet …)",
       typicalAmount: r2(u.perMonth),
-      amountLow: r2(Math.min(...u.totals)),
+      amountLow: r2(Math.min(...u.totals.filter((t) => t > 0))),
       amountHigh: r2(Math.max(...u.totals)),
       cadence: "several_per_month",
       monthsSeen: new Set(c.tx.filter((t) => t.type === "utilities_payment" && t.date >= monthStart(addMonths(monthKey(c.asOf), -11))).map((t) => monthKey(t.date))).size,
       lastDate: [...c.tx].reverse().find((t) => t.type === "utilities_payment")?.date ?? null,
       nextFrom: addDays(c.asOf, 1),
       nextTo: monthEnd(monthKey(addDays(c.asOf, 1))),
-      note: `About ${Math.round(nUtil / Math.max(1, u.months.length))} bills a month; budgeted as a monthly total.`,
+      note: `About ${Math.round(nUtil / Math.max(1, u.paidMonths))} bills a month; budgeted as a monthly total.`,
     });
   }
   const inv = investInfo(c);

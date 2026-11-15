@@ -77,7 +77,7 @@ export function NothingShipsPill({ className, onDark }: { className?: string; on
   return (
     <span
       className={cx(
-        "inline-flex items-center gap-1.5 rounded-pill px-2.5 py-1 text-xs font-semibold",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill px-2.5 py-1 text-xs font-semibold",
         onDark ? "bg-white/12 text-hero-num" : "bg-green-900 text-green-300",
         className,
       )}

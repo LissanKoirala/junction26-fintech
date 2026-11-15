@@ -14,6 +14,7 @@ import { useSafeToSpend } from "@/features/vara/useVaraData";
 import { SafeHero } from "./SafeHero";
 import { ChallengeCard } from "./ChallengeCard";
 import { GoalCard } from "./GoalCard";
+import { CraveEntryCard, CravePotCard } from "@/features/crave/TodayCards";
 
 export function ask(q: string, screen = "today") {
   actions.ask(q, screen);
@@ -137,6 +138,8 @@ export function Today() {
 
       {prefs.challenge && <ChallengeCard />}
       {prefs.goal && <GoalCard />}
+      <CraveEntryCard />
+      <CravePotCard />
 
       {safe && safe.upcoming.length > 0 && (
         <Card>

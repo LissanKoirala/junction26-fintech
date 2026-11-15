@@ -156,7 +156,7 @@ export function Reveal({ entry, header, lines, onNewCraving }: { entry: CraveEnt
                 <p className="text-sm text-hero-meta">Your Crave pot</p>
                 <p className="pnum text-hero font-bold text-hero-num">{money(landed ? counted : Math.max(0, pot.total - entry.amount))}</p>
                 <p className="text-hero-meta">
-                  {pot.count} {pot.count === 1 ? "craving" : "cravings"} redirected · {money(pot.total, { whole: true })} saved
+                  {pot.count} {pot.count === 1 ? "craving" : "cravings"} redirected{pot.count > 1 ? ` · ${money(pot.total)} in total` : ""}
                 </p>
                 <div className="mt-2 flex justify-center"><span className="rounded-pill bg-white/10 px-3 py-1 text-xs font-semibold text-hero-meta">Simulation: no money was moved</span></div>
               </div>
@@ -188,7 +188,7 @@ export function Reveal({ entry, header, lines, onNewCraving }: { entry: CraveEnt
                     <p className="mt-1 text-sm text-ink-strong">It's your money. If the craving is still there on {coolingLabel}, release it and buy it for real. Most cravings fade by then.</p>
                     {entry.amount > 0 && (
                       <Button size="sm" variant="outline" icon={RotateCcw} className="mt-3" onClick={() => { craveActions.release(entry.id); toast(`${money(entry.amount)} released back to your account (simulated)`); }}>
-                        Release {money(entry.amount, { whole: true })} now
+                        Release {money(entry.amount)} now
                       </Button>
                     )}
                   </>
