@@ -1,0 +1,8 @@
+.vm/
+.env
+node_modules/
+dist/
+challenge-repo/
+challenge-data/
+__pycache__/
+*.log

@@ -1,0 +1,119 @@
+/* S Group design system (SDS) tokens, theme [data-theme=sPankki].
+   Source: https://www.s-pankki.fi/Assets/css/design-system.min.css (fetched and independently verified 2026-11-15).
+   The real fonts (S Bonus UX / S Bonus Display) are licensed to S Group only, so we use Schibsted Grotesk as a stand-in. */
+@import "tailwindcss";
+
+@theme {
+  /* brand greens */
+  --color-green-900: #004628; /* strongest primary text */
+  --color-green-700: #007841; /* strong primary: titles, filled buttons, success text */
+  --color-green-500: #00aa46; /* medium primary: active nav icon, success border */
+  --color-green-400: #00eb5a; /* bright accent */
+  --color-green-300: #91fa9b; /* light filled button bg (text green-900) */
+  --color-green-300-hover: #49f37b;
+  --color-green-200: #99d59f; /* weak primary border */
+  --color-green-150: #d2fcd5; /* avatar / weaker secondary bg */
+  --color-green-100: #ebf7ec; /* APP SCREEN BACKGROUND, tonal button bg */
+  --color-green-100-hover: #e0f3e1;
+  --color-green-50: #f7fcf7;
+  /* neutrals */
+  --color-ink: #1f1f1f;        /* default text */
+  --color-ink-strong: #363636;
+  --color-ink-muted: #666666;  /* secondary text */
+  --color-icon-muted: #949494; /* inactive icons, input border */
+  --color-line: #e6e6e6;       /* dividers */
+  --color-sunken: #f5f5f5;
+  --color-surface: #ffffff;
+  /* semantic: text | bg | border */
+  --color-warning: #885600; --color-warning-bg: #fff1d8; --color-warning-border: #cf8300;
+  --color-error: #b70000;   --color-error-bg: #ffeded;   --color-error-border: #b70000;
+  --color-info: #006e87;    --color-info-bg: #e0f4ff;    --color-info-border: #00a1c5;
+  --color-success: #007841; --color-success-bg: #ebf7ec; --color-success-border: #00aa46;
+
+  --font-sans: "Schibsted Grotesk Variable", "Schibsted Grotesk", "Inter", system-ui, sans-serif;
+
+  /* SDS type scale (px / line-height) */
+  --text-xs: 0.6875rem;  --text-xs--line-height: 1rem;      /* 11/16 */
+  --text-sm: 0.875rem;   --text-sm--line-height: 1.25rem;   /* 14/20 */
+  --text-base: 1rem;     --text-base--line-height: 1.5rem;  /* 16/24 */
+  --text-lg: 1.125rem;   --text-lg--line-height: 1.5rem;    /* 18/24 */
+  --text-xl: 1.375rem;   --text-xl--line-height: 1.75rem;   /* 22/28 */
+  --text-2xl: 1.6875rem; --text-2xl--line-height: 2rem;     /* 27/32 */
+  --text-3xl: 2.125rem;  --text-3xl--line-height: 2.5rem;   /* 34/40 */
+  --text-4xl: 2.6875rem; --text-4xl--line-height: 3rem;     /* 43/48 */
+
+  --radius-sm: 8px; --radius-md: 12px; --radius-card: 16px; --radius-xl: 24px; --radius-pill: 1000rem;
+
+  --shadow-low: 0 2px 4px 0 #00000029;
+  --shadow-middle: 0 6px 12px 0 #00000029;
+  --shadow-card: 0 4px 32px 0 rgba(0, 0, 0, 0.05);
+
+  --ease-sds: cubic-bezier(0.33, 0, 0.34, 1);
+  --ease-entry: cubic-bezier(0, 0, 0.3, 1);
+}
+
+/* ---- App-level semantic tokens (a re-skin happens HERE and in src/ui, never in feature components) ---- */
+@theme {
+  --color-screen: #ebf7ec;        /* app screen background */
+  --color-backdrop: #dcefdf;      /* desktop backdrop around the phone column */
+  --color-card: #ffffff;
+  --color-title: #007841;         /* card and screen titles */
+  --color-accent: #007841;        /* primary buttons, progress fill */
+  --color-accent-ink: #ffffff;
+  --color-accent-soft: #91fa9b;   /* soft buttons */
+  --color-accent-soft-ink: #004628;
+  --color-track: #e0f3e1;         /* progress tracks, skeleton base */
+  --color-hero-deep: #004628;     /* "Coach forward" hero block (green-900) */
+  --color-hero-deep-ink: #ffffff;
+  --color-hero-meta: #cfe9d6;     /* labels and meta text on the hero */
+  --color-hero-num: #91fa9b;      /* the big number on the hero (green-300) */
+  --color-hero-track: rgba(255, 255, 255, 0.16);
+  --color-hero-fill: #00eb5a;     /* progress fill on the hero (green-400) */
+  --radius-tile: 12px;            /* icon tiles */
+  --radius-app-card: 16px;        /* moodboard: 16 vs 24 */
+  --radius-sheet: 24px;
+  --shadow-app-card: 0 4px 32px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sheet: 0 -8px 32px 0 rgba(0, 0, 0, 0.12);
+  --text-hero: 3rem;              /* 48px hero figure */
+  --text-hero--line-height: 3.25rem;
+  --spacing-gutter: 16px;
+  --spacing-tabbar: 72px;
+}
+
+:root { color-scheme: light; }
+html, body, #root { height: 100%; }
+html { background: var(--color-backdrop); }
+/* Schibsted Grotesk's tabular set also widens "," and ".", so money keeps proportional figures (right-aligned). */
+.tnum { font-variant-numeric: lining-nums; }
+.pnum { font-variant-numeric: proportional-nums; font-feature-settings: "tnum" 0; }
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+:focus-visible { outline: 2px solid var(--color-green-500); outline-offset: 2px; border-radius: 6px; }
+button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
+@keyframes vara-shimmer { 0% { background-position: -200px 0 } 100% { background-position: 200px 0 } }
+.skeleton {
+  background: linear-gradient(90deg, var(--color-track) 0px, #f2faf3 80px, var(--color-track) 160px);
+  background-size: 400px 100%;
+  animation: vara-shimmer 1.4s linear infinite;
+}
+@keyframes vara-blink { 0%, 100% { opacity: .25 } 50% { opacity: 1 } }
+.dot-pulse > span { animation: vara-blink 1.2s infinite; }
+.dot-pulse > span:nth-child(2) { animation-delay: .2s; }
+.dot-pulse > span:nth-child(3) { animation-delay: .4s; }
+input[type="range"].vara-range { -webkit-appearance: none; appearance: none; background: transparent; accent-color: var(--color-accent); }
+.vara-range::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: linear-gradient(to right, var(--color-green-700) var(--pos, 50%), var(--color-track) var(--pos, 50%)); }
+.vara-range::-moz-range-track { height: 6px; border-radius: 999px; background: var(--color-track); }
+.vara-range::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--color-green-700); }
+.vara-range::-webkit-slider-thumb { -webkit-appearance: none; margin-top: -9px; width: 24px; height: 24px; border-radius: 999px; background: #fff; border: 2px solid var(--color-green-700); box-shadow: 0 2px 4px #00000029; }
+.vara-range::-moz-range-thumb { width: 20px; height: 20px; border-radius: 999px; background: #fff; border: 2px solid var(--color-green-700); box-shadow: 0 2px 4px #00000029; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+body {
+  margin: 0;
+  background: var(--color-backdrop);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+/* inputs draw their own focus ring (inputClass) */
+input:focus-visible, textarea:focus-visible { outline: none; }

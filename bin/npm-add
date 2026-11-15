@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Add npm dependencies safely (serialised across agents): installs on the VM, then pulls package.json + lock back.
+# usage: bin/npm-add [-D] pkg1 pkg2 ...
+set -euo pipefail
+ROOT=/home/lissan/fin-junction
+exec 9>"$ROOT/.vm/npm.lock"; flock 9
+"$ROOT/bin/sync"
+ssh -F "$ROOT/.vm/ssh_config" vara "cd ~/proj/app && npm install --no-fund --no-audit $* 2>&1 | tail -5"
+rsync -az -e "ssh -F $ROOT/.vm/ssh_config" vara:proj/app/package.json vara:proj/app/package-lock.json "$ROOT/app/"

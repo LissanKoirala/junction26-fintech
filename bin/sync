@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Mirror the local source tree to the VM (~/proj). Local is the source of truth for code.
+set -euo pipefail
+ROOT=/home/lissan/fin-junction
+rsync -az --delete --exclude-from="$ROOT/.vm/rsync-exclude" -e "ssh -F $ROOT/.vm/ssh_config" "$ROOT/" vara:proj/

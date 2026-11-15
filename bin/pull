@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Copy a file or directory from the VM to a local path. usage: bin/pull <vm-path> <local-path>
+set -euo pipefail
+ROOT=/home/lissan/fin-junction
+rsync -az -e "ssh -F $ROOT/.vm/ssh_config" "vara:$1" "$2"

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Sync local source to the VM, then run a command there inside ~/proj.
+# usage: bin/vm 'cd app && npm test'
+set -euo pipefail
+ROOT=/home/lissan/fin-junction
+"$ROOT/bin/sync"
+ssh -F "$ROOT/.vm/ssh_config" vara "cd ~/proj && export PATH=\$HOME/.local/bin:\$PATH DATA_DIR=\$HOME/data && set -a && [ -f .env ] && . ./.env; set +a; $*"

@@ -1,0 +1,128 @@
+{
+  "_comment": "Single source of truth for domain rules. Loaded by TypeScript (import) and Python (json.load). Change rules HERE, not in code.",
+  "asOf": "2026-09-30",
+  "dataStart": "2024-10-01",
+  "baskets": {
+    "must_regular": {
+      "label": "Fixed musts",
+      "short": "Musts",
+      "tagline": "Mandatory and regular",
+      "description": "Bills and essentials that come back every month: rent, utilities, groceries, getting to work.",
+      "example": "rent",
+      "color": "#007841"
+    },
+    "must_irregular": {
+      "label": "Surprise musts",
+      "short": "Surprises",
+      "tagline": "Mandatory but irregular",
+      "description": "Things you cannot skip but cannot schedule: a dentist visit, medicine, a broken washing machine.",
+      "example": "a broken washing machine",
+      "color": "#00A1C5"
+    },
+    "everyday": {
+      "label": "Everyday extras",
+      "short": "Extras",
+      "tagline": "Everyday spending that slips through your fingers",
+      "description": "Small and optional spending that adds up quietly: eating out, coffees, taxis, entertainment, shopping.",
+      "example": "coffees",
+      "color": "#CF8300"
+    }
+  },
+  "flowKinds": {
+    "saving": { "label": "Saving & investing", "color": "#91FA9B" },
+    "transfer": { "label": "Moved to another account", "color": "#949494" },
+    "income": { "label": "Income", "color": "#00AA46" }
+  },
+  "basketRules": {
+    "_doc": "Default classification ('Vara's first guess'); the user can override per transaction or per rule. Evaluate top to bottom.",
+    "byType": {
+      "housing_payment": "must_regular",
+      "utilities_payment": "must_regular",
+      "investment_deposit": "saving",
+      "salary_sweep": "transfer",
+      "salary": "income",
+      "other_income": "income",
+      "investment_withdrawal": "income"
+    },
+    "purchases": {
+      "Groceries": { "default": "must_regular", "mcc": { "5499": "everyday" } },
+      "Restaurants": { "default": "everyday" },
+      "Entertainment": { "default": "everyday" },
+      "Lifestyle": { "default": "everyday" },
+      "Travel": { "default": "everyday" },
+      "Health": { "default": "must_irregular" },
+      "Transportation": { "default": "everyday", "mcc": { "4111": "must_regular", "5541": "must_regular", "5542": "must_regular" } },
+      "Home & Tech": { "default": "everyday", "bigPurchase": "must_irregular" }
+    },
+    "bigPurchase": {
+      "_doc": "A Home & Tech purchase counts as a 'surprise must' (appliance, repair, furniture) when |amount| >= max(minAmount, medianMultiple x the customer's own median Home & Tech purchase).",
+      "minAmount": 150,
+      "medianMultiple": 3
+    }
+  },
+  "smallPurchaseThreshold": 10,
+  "categories": {
+    "Groceries": { "label": "Groceries", "icon": "shopping-basket", "coicop": "01", "benchmarkLabel": "Food at home" },
+    "Restaurants": { "label": "Eating out", "icon": "utensils", "coicop": "11.1", "benchmarkLabel": "Restaurants and cafes" },
+    "Transportation": { "label": "Transport", "icon": "bus", "coicop": "07", "benchmarkLabel": "Transport" },
+    "Entertainment": { "label": "Entertainment", "icon": "ticket", "coicop": "09", "benchmarkLabel": "Recreation, sport and culture" },
+    "Health": { "label": "Health", "icon": "heart-pulse", "coicop": "06", "benchmarkLabel": "Health" },
+    "Home & Tech": { "label": "Home & tech", "icon": "sofa", "coicop": "05", "benchmarkLabel": "Furnishings and household equipment" },
+    "Lifestyle": { "label": "Shopping & lifestyle", "icon": "shirt", "coicop": "03", "benchmarkLabel": "Clothing and footwear" },
+    "Travel": { "label": "Travel", "icon": "plane", "coicop": "11.2", "benchmarkLabel": "Accommodation services" },
+    "Utilities": { "label": "Utilities", "icon": "zap", "coicop": "04x", "benchmarkLabel": "Housing and energy (cash costs)" },
+    "Housing": { "label": "Housing", "icon": "home", "coicop": "04x", "benchmarkLabel": "Housing and energy (cash costs)" },
+    "Salary": { "label": "Salary", "icon": "banknote" },
+    "Other Income": { "label": "Other income", "icon": "plus-circle" },
+    "Invest Deposit": { "label": "Investing", "icon": "trending-up" },
+    "Invest Withdraw": { "label": "Investment withdrawal", "icon": "trending-down" },
+    "Salary Sweep": { "label": "Transfer to another account", "icon": "arrow-right-left" }
+  },
+  "mcc": {
+    "_doc": "The data has no merchant names. Show these merchant-type labels instead. Note: amounts do NOT differ between MCCs inside a category in this synthetic data.",
+    "5411": { "label": "Supermarket", "category": "Groceries" },
+    "5499": { "label": "Convenience store", "category": "Groceries" },
+    "5422": { "label": "Butcher & deli", "category": "Groceries" },
+    "5451": { "label": "Dairy & bakery shop", "category": "Groceries" },
+    "5812": { "label": "Restaurant", "category": "Restaurants" },
+    "5814": { "label": "Fast food & cafe", "category": "Restaurants" },
+    "5813": { "label": "Bar & pub", "category": "Restaurants" },
+    "4111": { "label": "Public transport", "category": "Transportation" },
+    "4121": { "label": "Taxi", "category": "Transportation" },
+    "5541": { "label": "Service station", "category": "Transportation" },
+    "5542": { "label": "Fuel", "category": "Transportation" },
+    "7523": { "label": "Parking", "category": "Transportation" },
+    "7832": { "label": "Cinema", "category": "Entertainment" },
+    "7922": { "label": "Concerts & theatre", "category": "Entertainment" },
+    "7991": { "label": "Attractions", "category": "Entertainment" },
+    "7996": { "label": "Amusement park", "category": "Entertainment" },
+    "7999": { "label": "Recreation", "category": "Entertainment" },
+    "5912": { "label": "Pharmacy", "category": "Health" },
+    "8011": { "label": "Doctor", "category": "Health" },
+    "8021": { "label": "Dentist", "category": "Health" },
+    "8099": { "label": "Health services", "category": "Health" },
+    "5200": { "label": "Home supplies", "category": "Home & Tech" },
+    "5251": { "label": "Hardware store", "category": "Home & Tech" },
+    "5712": { "label": "Furniture", "category": "Home & Tech" },
+    "5732": { "label": "Electronics", "category": "Home & Tech" },
+    "5734": { "label": "Computers & software", "category": "Home & Tech" },
+    "5651": { "label": "Clothing", "category": "Lifestyle" },
+    "5691": { "label": "Clothing", "category": "Lifestyle" },
+    "5941": { "label": "Sports gear", "category": "Lifestyle" },
+    "5942": { "label": "Bookshop", "category": "Lifestyle" },
+    "5945": { "label": "Hobbies & games", "category": "Lifestyle" },
+    "5999": { "label": "Specialty shop", "category": "Lifestyle" },
+    "4511": { "label": "Flights", "category": "Travel" },
+    "4722": { "label": "Travel agency", "category": "Travel" },
+    "7011": { "label": "Hotel", "category": "Travel" },
+    "7512": { "label": "Car rental", "category": "Travel" }
+  },
+  "ageBands": [
+    { "key": "18-24", "min": 18, "max": 24, "statFi": "17-24" },
+    { "key": "25-34", "min": 25, "max": 34, "statFi": "25-34" },
+    { "key": "35-44", "min": 35, "max": 44, "statFi": "35-44" },
+    { "key": "45-54", "min": 45, "max": 54, "statFi": "45-54" },
+    { "key": "55-64", "min": 55, "max": 64, "statFi": "55-64" },
+    { "key": "65+", "min": 65, "max": 120, "statFi": "65-74" }
+  ]
+}

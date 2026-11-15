@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Run a command on the VM WITHOUT syncing first (for logs, status checks, long-running jobs).
+set -euo pipefail
+ROOT=/home/lissan/fin-junction
+ssh -F "$ROOT/.vm/ssh_config" vara "cd ~/proj && export PATH=\$HOME/.local/bin:\$PATH DATA_DIR=\$HOME/data && set -a && [ -f .env ] && . ./.env; set +a; $*"
