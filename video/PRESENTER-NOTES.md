@@ -19,14 +19,14 @@ sneakers. Her banking app shows what she has. It doesn't show what she can affor
 If asked: Aino is a fictional name for one synthetic customer in the challenge data (age 21, the app's date is
 fixed at 30 September 2026).
 
-**02 · She is not alone (23 s).** "In the challenge data, three point six million transactions from five
+**02 · She is not alone (23 s).** "She's not alone. In the challenge data, three point six million transactions from five
 thousand one hundred customers, seven in ten dipped below zero at least once in two years. Among eighteen to
 twenty-four-year-olds, it's eight in ten. Almost always in the last days before payday."
 If asked: 69% overall, 80% for ages 18 to 24, and 96% of dips reach their lowest point 20 or more days after
 payday. The data is synthetic; the challenge describes it as modelled on real S-Bank data. The 69% includes
 the first month, where the synthetic opening balances put more accounts below zero than later months.
 
-**03 · The dips are small (20 s).** "A typical everyday purchase is thirty-nine euros. The deepest dip in two
+**03 · The dips are small (20 s).** "And the dips are small. A typical everyday purchase is thirty-nine euros. The deepest dip in two
 years is the size of six of them. So this isn't a maths problem. It's about the moment, and whether the money
 is still there when the dip would have come."
 If asked: the 72% is what a 5% trim (about 44 € a month) removes when the saved money is kept and builds up

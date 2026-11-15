@@ -1,0 +1,166 @@
+{
+  "ok": true,
+  "problems": [],
+  "limits_seconds": {
+    "pitch": 300,
+    "demo": 120
+  },
+  "pitch": {
+    "file": "vara-pitch.mp4",
+    "seconds": 295.07,
+    "bytes": 39034761,
+    "video": "h264 1920x1080 30/1 yuv420p",
+    "audio": "aac 48000 Hz 2 ch",
+    "integrated_lufs": -17.0,
+    "true_peak_db": -4.1,
+    "decode_errors": ""
+  },
+  "demo": {
+    "file": "vara-demo.mp4",
+    "seconds": 113.07,
+    "bytes": 15067256,
+    "video": "h264 1920x1080 30/1 yuv420p",
+    "audio": "aac 48000 Hz 2 ch",
+    "integrated_lufs": -17.2,
+    "true_peak_db": -4.5,
+    "decode_errors": ""
+  },
+  "clips": [
+    {
+      "file": "01-s01-opening.mp4",
+      "seconds": 15.0,
+      "bytes": 907032,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "02-s02-data.mp4",
+      "seconds": 23.0,
+      "bytes": 1362077,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "03-s03-insight.mp4",
+      "seconds": 20.0,
+      "bytes": 1122210,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "04-s04-meet.mp4",
+      "seconds": 16.0,
+      "bytes": 2656379,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "05-s05-chat.mp4",
+      "seconds": 23.0,
+      "bytes": 2639749,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "06-s06-coach.mp4",
+      "seconds": 20.0,
+      "bytes": 2846390,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "07-s07-crave-idea.mp4",
+      "seconds": 19.0,
+      "bytes": 1276857,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "08-s08-crave-live.mp4",
+      "seconds": 46.02,
+      "bytes": 4923222,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "09-s09-crave-honest.mp4",
+      "seconds": 26.0,
+      "bytes": 1623945,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "10-s10-models.mp4",
+      "seconds": 25.0,
+      "bytes": 1497572,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "11-s11-insights.mp4",
+      "seconds": 16.0,
+      "bytes": 6461336,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "12-s12-fit.mp4",
+      "seconds": 19.0,
+      "bytes": 1682228,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "13-s13-criteria.mp4",
+      "seconds": 18.0,
+      "bytes": 1058833,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "14-s14-close.mp4",
+      "seconds": 9.0,
+      "bytes": 725718,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    }
+  ],
+  "demo_clips": [
+    {
+      "file": "d04-meet.mp4",
+      "seconds": 16.0,
+      "bytes": 2649449,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "05-s05-chat.mp4",
+      "seconds": 23.0,
+      "bytes": 2639749,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "07-s07-crave-idea.mp4",
+      "seconds": 19.0,
+      "bytes": 1276857,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "08-s08-crave-live.mp4",
+      "seconds": 46.02,
+      "bytes": 4923222,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    },
+    {
+      "file": "14-s14-close.mp4",
+      "seconds": 9.0,
+      "bytes": 725718,
+      "video": "h264 1920x1080 30/1 yuv420p",
+      "audio": "aac 48000 Hz 2 ch"
+    }
+  ],
+  "clips_total_seconds": 295.02
+}
