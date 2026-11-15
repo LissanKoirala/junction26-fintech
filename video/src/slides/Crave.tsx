@@ -1,6 +1,8 @@
 import React from "react";
-import { Accent, CravePill, Eyebrow, Headline, Icon, In, s, Slide, Sound, Title, useAmbient, useIn, useProgress } from "../kit";
+import { useCurrentFrame } from "remotion";
+import { Accent, Badge, clipFrame, CravePill, Eyebrow, Headline, Icon, IconDisc, In, LiveClip, Phone, Shot, s, Slide, Sound, Title, useAmbient, useIn, useProgress } from "../kit";
 import { C } from "../theme";
+import timeline from "../timeline.json";
 
 /* Crave slides: 07 the idea, 08 the live run, 09 honest by design.
  * Entrance times are seconds into the slide; the narration starts at 0.8 s.
@@ -107,5 +109,99 @@ const StruckBox: React.FC<{ at: number }> = ({ at }) => {
   </div>;
 };
 
-export const S08CraveLive: React.FC = () => <Slide n={8}><Title eyebrow="Placeholder">S08CraveLive</Title></Slide>;
-export const S09CraveHonest: React.FC = () => <Slide n={9}><Title eyebrow="Placeholder">S09CraveHonest</Title></Slide>;
+/* ============================================================ 08 · Crave mode, live (49 s)
+ * crave.mp4 plays start to finish at normal speed from 1 s. Every time comes from timeline.json.
+ * Narration a "Here it is, live.(1.4) New sneakers.(2.9)" leads into the craving; narration b starts 1 s after
+ * the coins land, well clear of the pay chime. */
+const crave = timeline.clips.find(c => c.file === "crave.mp4")!;
+const ev = (label: string) => { const e = crave.events.find(x => x.label === label); if (!e) throw new Error(`crave.mp4: no event ${label}`); return e.t; };
+const LIVE_AT = s(1);
+const at = (label: string) => clipFrame(LIVE_AT, ev(label));
+// Each step lights at its event and gets its check when the next step lights (Pay: exactly at the tick, with the chime).
+const liveSteps = [
+  { label: "The craving", sub: "“new sneakers”", on: "craving", done: "shop-visible" },
+  { label: "A generated shop", sub: "Hallo Stride, an invented shop", on: "shop-visible", done: "added" },
+  { label: "Basket", sub: "Court Low Leather · 119,95 €", on: "added", done: "checkout" },
+  { label: "Checkout", sub: "Checked against safe-to-spend", on: "checkout", done: "sheet-open" },
+  { label: "Pay", sub: "Simulated pay sheet, with the app’s chime", on: "sheet-open", done: "tick" },
+  { label: "Nothing ships: money to the Crave pot", sub: "The pot counts up to 119,95 €", on: "twist", done: "inbox" },
+  { label: "Order emails, in the app", sub: "No real emails are sent", on: "inbox", done: "pot" },
+];
+export const S08CraveLive: React.FC = () => <Slide n={8} bg={C.screen}>
+  <Sound src="n-crave-live-a.m4a" at={s(1.4)} />
+  <Sound src="pop.m4a" at={at("added")} volume={0.6} />
+  <Sound src="chime.m4a" at={at("tick")} />
+  <Sound src="coins.m4a" at={at("coins")} volume={0.7} />
+  <Sound src="n-crave-live-b.m4a" at={at("coins") + s(1)} />
+  <In delay={s(0.2)} from="up" dist={30} style={{ position: "absolute", left: 200, top: 84 }}>
+    <Phone width={430}><LiveClip src="crave.mp4" at={LIVE_AT} to={crave.seconds} /></Phone>
+  </In>
+  <div style={{ position: "absolute", left: 790, top: 92, width: 1034 }}>
+    <Eyebrow delay={s(0.3)}>Crave mode, live</Eyebrow>
+    <Headline size={64} delay={s(0.5)} style={{ marginTop: 16 }}>One craving, start to finish. <Accent>Nothing ships.</Accent></Headline>
+  </div>
+  <div style={{ position: "absolute", left: 790, top: 296, width: 1034 }}>
+    {liveSteps.map((st, k) => <LiveStep key={st.label} n={k + 1} {...st} />)}
+  </div>
+  <In delay={s(1.2)} style={{ position: "absolute", left: 790, top: 922 }}><Badge kind="live" /></In>
+</Slide>;
+
+const LiveStep: React.FC<{ n: number; label: string; sub: string; on: string; done: string }> = ({ n, label, sub, on, done }) => {
+  const frame = useCurrentFrame();
+  const lit = ease(useProgress(at(on), at(on) + 10));
+  const isDone = frame >= at(done);
+  const pop = useIn(at(done), 200, 14);
+  return <div style={{ position: "relative", height: 88, display: "flex", alignItems: "center", gap: 24 }}>
+    <div style={{ position: "relative", width: 52, height: 52, flexShrink: 0 }}>
+      <div style={{ position: "absolute", inset: 0, borderRadius: 52, border: `2px solid ${C.track}`, background: "#fff" }} />
+      <div style={{ position: "absolute", inset: 0, borderRadius: 52, background: C.green, opacity: lit, transform: `scale(${0.7 + 0.3 * lit})`, display: "grid", placeItems: "center",
+        color: "#fff", fontSize: 22, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
+        {isDone ? <div style={{ transform: `scale(${0.6 + 0.4 * pop})` }}><Icon name="check" size={30} color="#fff" stroke={2.8} /></div> : n}
+      </div>
+    </div>
+    <div style={{ opacity: 0.34 + 0.66 * lit }}>
+      <div style={{ fontSize: 32, fontWeight: 700, lineHeight: 1.15, color: lit > 0.5 ? C.ink : C.muted }}>{label}</div>
+      <div style={{ marginTop: 4, fontSize: 24, color: C.muted, opacity: lit }}>{sub}</div>
+    </div>
+  </div>;
+};
+
+/* ============================================================ 09 · Honest by design (24 s)
+ * Phrase times from the measured pauses, plus 0.8 s:
+ * "Crave mode is honest by design.(0.8) You opt in,(3.0) and every screen says nothing ships.(4.2)
+ *  It never sets aside more than is safe to spend,(6.2) and you can release the money and buy it for real at any time.(9.0)
+ *  In this prototype the money movement is simulated,(13.3) and checkout can use a real wallet sheet in Stripe's test mode.(15.1)
+ *  No card is charged.(18.8)" */
+const PHONE_W = 310;
+export const S09CraveHonest: React.FC = () => <Slide n={9}>
+  <Sound src="n-crave-honest.m4a" at={s(0.8)} />
+  <Title eyebrow="Honest by design" width={980}>It only works if you are <Accent>in on it</Accent>.</Title>
+  <In delay={s(0.6)} style={{ position: "absolute", right: 96, top: 76 }}><Badge kind="still" /></In>
+  <div style={{ position: "absolute", left: 96, top: 330, width: 900, display: "grid", gap: 30 }}>
+    <Honest icon="check" title="Opt-in" at={3.0}>Crave mode is off until you turn it on</Honest>
+    <Honest icon="box" title="Every screen says nothing ships" at={4.2}><CravePill scale={0.9} /></Honest>
+    <Honest icon="shield" title="Never more than is safe to spend" at={6.2}>The amount is capped by safe-to-spend</Honest>
+    <Honest icon="undo" title="Release the money any time" at={9.0}>“Release the money and buy it for real”</Honest>
+    <Honest icon="card" title="Prototype: money movement is simulated" at={13.3}>
+      <In delay={s(15.1)} from="up" dist={10}><span>Checkout can use Stripe in test mode.</span></In>
+      <In delay={s(18.8)} from="up" dist={10}><span style={{ color: C.ink, fontWeight: 700 }}>No card is charged.</span></In>
+    </Honest>
+  </div>
+  <PayPhone left={1824 - 2 * PHONE_W - 48} src="pay-sim.png" at={1.0} label={<>Simulated pay sheet,<br />synthesised chime</>} />
+  <PayPhone left={1824 - PHONE_W} src="pay-wallet.png" at={1.5} label={<>Real wallet sheet ·<br />Stripe test mode</>} />
+</Slide>;
+
+const Honest: React.FC<{ icon: string; title: string; at: number; children: React.ReactNode }> = ({ icon, title, at, children }) =>
+  <In delay={s(at)} from="up" dist={24} style={{ display: "flex", gap: 22, alignItems: "flex-start" }}>
+    <IconDisc name={icon} size={60} />
+    <div style={{ paddingTop: 2 }}>
+      <div style={{ fontSize: 30, fontWeight: 700, lineHeight: 1.2, color: C.ink }}>{title}</div>
+      <div style={{ marginTop: 6, fontSize: 24, lineHeight: 1.35, color: C.muted, display: "flex", gap: 8, flexWrap: "wrap" }}>{children}</div>
+    </div>
+  </In>;
+
+const PayPhone: React.FC<{ left: number; src: string; at: number; label: React.ReactNode }> = ({ left, src, at, label }) =>
+  <In delay={s(at)} from="up" dist={30} style={{ position: "absolute", left, top: 236, width: PHONE_W }}>
+    <div style={{ height: 68, fontSize: 24, fontWeight: 600, lineHeight: 1.3, color: C.inkStrong, textAlign: "center" }}>{label}</div>
+    <Phone width={PHONE_W} style={{ marginTop: 14 }}><Shot src={src} /></Phone>
+  </In>;
