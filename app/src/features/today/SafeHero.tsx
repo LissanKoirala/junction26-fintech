@@ -1,7 +1,7 @@
 // The hero of Today: what is safe for the rest of this week (headline), the weekly rate and total until payday
 // (supporting line), this week's room, late-pay and irregular-income notes, and the "Why this number?" sheet.
 import { useState } from "react";
-import { CalendarClock, Calculator } from "lucide-react";
+import { CalendarClock, Calculator, PiggyBank } from "lucide-react";
 import type { SafeToSpend } from "@shared/engine";
 import { dateShort, money, moneyParts } from "@/lib/format";
 import { HeroCard, heroInverse, heroMuted, heroTitle, VaraAvatar } from "@/ui/hero";
@@ -35,6 +35,7 @@ export function SafeHero({ s }: { s: SafeToSpend }) {
           <p className={cx("mt-2 text-3xl font-bold tracking-tight", inv ? "text-hero-num" : "text-ink")}>{t("Plenty of room")}</p>
         )}
         <p className={cx("tnum text-sm", muted)}>{v.support}</p>
+        {s.cravePot ? <p className={cx("tnum mt-0.5 flex items-center gap-1.5 text-sm", muted)}><PiggyBank size={14} strokeWidth={STROKE} className="shrink-0" aria-hidden />{t("After the {amount} held in your Crave pot.", { amount: money(s.cravePot) })}</p> : null}
 
         <div className="mt-4">
           <Progress value={v.bar.value} label={v.bar.label} tone={inv ? "inverse" : s.status === "tight" || s.status === "over" ? "warning" : "accent"} />

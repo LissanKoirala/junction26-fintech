@@ -252,6 +252,22 @@ const fi: Record<string, string> = {
   "Three possible next two weeks": "Kolme mahdollista seuraavaa kahta viikkoa",
   "{n} sampled futures": "{n} arvottua tulevaisuutta",
   "Working on it…": "Työn alla…",
+  // compare_with_peers metric labels (benchmark card titles) and suggest_action default labels
+  "Eating out per month": "Ulkona syöminen kuukaudessa",
+  "Groceries per month": "Ruokaostokset kuukaudessa",
+  "Transport per month": "Liikkuminen kuukaudessa",
+  "Entertainment per month": "Viihde kuukaudessa",
+  "Shopping & lifestyle per month": "Ostokset ja vapaa-aika kuukaudessa",
+  "Travel per month": "Matkailu kuukaudessa",
+  "Health per month": "Terveys kuukaudessa",
+  "Home & tech per month": "Koti ja tekniikka kuukaudessa",
+  "Utilities per month": "Laskut kuukaudessa",
+  "Housing per month": "Asuminen kuukaudessa",
+  "Everyday extras per month": "Arjen ekstrat kuukaudessa",
+  "Start saving with Säästäjä": "Aloita säästäminen Säästäjällä",
+  "Start this week's challenge": "Aloita tämän viikon haaste",
+  "Connect your other bank": "Yhdistä toinen pankkisi",
+  Open: "Avaa",
 };
 
 export default fi;

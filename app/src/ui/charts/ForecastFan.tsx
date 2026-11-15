@@ -25,7 +25,7 @@ export function ForecastFan({
   const [hover, setHover] = useState<number | null>(null);
   // event labels: up to two rows above the plot
   const rowH = 26;
-  const padL = 40, padR = 10, padB = 22;
+  const padL = 42, padR = 10, padB = 22;
   const padT = events.length ? 8 + rowH * 2 : 12;
   if (fan.length < 2) return null;
   const last = fan[fan.length - 1];

@@ -6,7 +6,7 @@ import {
   Beer, BookOpen, Cake, Camera, Coffee, Dumbbell, Fish, Flower2, Footprints, Gamepad2, Gift, Headphones, Laptop, Pizza, Plane, Salad,
   Shirt, ShoppingBag, Smartphone, Sofa, Soup, Sparkles, Star, UtensilsCrossed, Watch, PackageX, type LucideIcon,
 } from "lucide-react";
-import type { CraveAccent, CraveIcon } from "@shared/crave";
+import { deliveryWhen, type CraveAccent, type CraveIcon } from "@shared/crave";
 import { cx, STROKE } from "@/ui/kit";
 import { getLang, t } from "@/lib/i18n";
 
@@ -22,6 +22,10 @@ export const ACCENT: Record<CraveAccent, { main: string; soft: string; ink: stri
   graphite: { main: "#374151", soft: "#e5e7eb", ink: "#111827" },
   rose: { main: "#be185d", soft: "#fce7f3", ink: "#500724" },
 };
+/** When the order arrives, as a time only ("Tomorrow"). "Free" is never taken from the generated promise. */
+export const deliveryTime = (h: { kind: string; deliveryPromise: string } | null | undefined): string =>
+  deliveryWhen(h?.deliveryPromise) || (h?.kind === "food" ? t("25-35 min") : t("In 1-3 days"));
+
 export const accentOf = (a: string | undefined) => ACCENT[(a as CraveAccent) ?? "teal"] ?? ACCENT.teal;
 
 export const ICON: Record<CraveIcon, LucideIcon> = {

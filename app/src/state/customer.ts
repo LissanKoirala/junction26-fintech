@@ -48,8 +48,15 @@ export function useCustomer(): CustomerData | null {
   return s.status === "ready" ? s.data : null;
 }
 
-/** Engine options for the current customer (basket overrides + savings goal). */
+/** Euros held in the Crave pot (saved, not released). Simulated money that is no longer free to spend. */
+export function heldInCravePot(cravings: { status: string; amount: number }[] | undefined): number {
+  const sum = (cravings ?? []).reduce((s, e) => s + (e.status === "saved" && e.amount > 0 ? e.amount : 0), 0);
+  return Math.round(sum * 100) / 100;
+}
+
+/** Engine options for the current customer (basket overrides + savings goal + money held in the Crave pot). */
 export function useEngineOpts(): SafeToSpendOptions {
   const p = usePrefs();
-  return useMemo(() => ({ overrides: p.overrides, goal: p.goal }), [p.overrides, p.goal]);
+  const cravePot = heldInCravePot(p.cravings);
+  return useMemo(() => ({ overrides: p.overrides, goal: p.goal, cravePot }), [p.overrides, p.goal, cravePot]);
 }

@@ -117,6 +117,9 @@ const fi: Record<string, string> = {
   "Savings goal: {name}": "Säästötavoite: {name}",
   '{amount} a month toward "{name}", pro-rated for {days}.': "{amount} kuussa tavoitteeseen ”{name}”, suhteutettuna jaksoon ({days}).",
   "Extra saving (scenario)": "Lisäsäästö (skenaario)",
+  "Held in your Crave pot": "Mielitekopotissa",
+  "Money you moved to your Crave pot. It is not free to spend until you release it.":
+    "Rahat, jotka siirsit Mielitekopottiin. Ne eivät ole käytettävissä ennen kuin vapautat ne.",
   "{amount} a month moved to savings, pro-rated for {days}.": "{amount} kuussa säästöön, suhteutettuna jaksoon ({days}).",
   "Safety buffer": "Puskuri",
   "The buffer you chose to keep untouched.": "Puskuri, jonka valitsit pitää koskemattomana.",

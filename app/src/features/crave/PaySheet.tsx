@@ -5,6 +5,7 @@
 // synthesised chime and a haptic pulse on the same frame. Everything here is part of the simulation.
 // When the server has Stripe TEST keys and the device has a wallet, the official wallet button (Stripe Express
 // Checkout Element) replaces the prompt and the Pay button: a real wallet sheet, a test payment, no card charged.
+// A quiet "Or use the simulated pay" link under it always switches back to the simulated ritual.
 // See wallet.ts. Without keys, or on any problem, this sheet behaves exactly as the simulation above.
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -163,17 +164,17 @@ export function PaySheet({ open, header, total, stash, onClose, onPaid }: { open
                 <div className={real ? "flex w-full flex-col items-center gap-3" : "pointer-events-none invisible absolute inset-x-0 top-3"} aria-hidden={!real}>
                   <div ref={wallet.mountRef} className="w-full" />
                   {real && (
-                    <p className="min-h-[2.5rem] text-center text-xs text-ink-muted" role="status">
-                      {wallet.note === "cancelled" ? t("Payment cancelled. Try again, or use the simulated pay.") : wallet.note === "failed" ? t("The test payment didn't go through. Try again, or use the simulated pay.") : wallet.paying ? t("Confirming…") : ""}
-                      {wallet.note && (
-                        <>
-                          {" "}
-                          <button type="button" onClick={wallet.switchToSimulated} className="font-semibold text-ink underline underline-offset-2">
-                            {t("Use simulated pay")}
-                          </button>
-                        </>
+                    <>
+                      <p className="min-h-[1.25rem] text-center text-xs text-ink-muted" role="status">
+                        {wallet.note === "cancelled" ? t("Payment cancelled. Try again, or use the simulated pay.") : wallet.note === "failed" ? t("The test payment didn't go through. Try again, or use the simulated pay.") : wallet.paying ? t("Confirming…") : ""}
+                      </p>
+                      {/* always reachable: the wallet button can lead to a QR-code flow on desktop, awkward in a demo */}
+                      {!wallet.paying && (
+                        <button type="button" onClick={wallet.switchToSimulated} className="min-h-11 px-3 text-sm font-semibold text-ink-muted underline underline-offset-2 active:opacity-70">
+                          {t("Or use the simulated pay")}
+                        </button>
                       )}
-                    </p>
+                    </>
                   )}
                 </div>
               )}

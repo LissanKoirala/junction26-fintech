@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { CalendarClock, Check, Inbox, MessageCircle, PackageCheck, PiggyBank, RotateCcw, ShoppingBag, Target, Truck, Bike } from "lucide-react";
 import type { CraveEntry, CraveProduct, CraveShopHeader } from "@shared/crave";
-import { CRAVE_MOTTO } from "@shared/crave";
+import { CRAVE_MOTTO, deliveryWhen } from "@shared/crave";
 import type { Category } from "@shared/types";
 import { engine } from "@shared/engine";
 import { useCustomer, useEngineOpts } from "@/state/customer";
@@ -44,7 +44,7 @@ export function etaLabel(e: { kind: string; at: number }, header?: { etaMinutes:
     const m = header?.etaMinutes || 30;
     return t("Today {time}", { time: hhmm(new Date(e.at + m * 60_000)) });
   }
-  return header?.deliveryPromise ?? new Date(e.at + 2 * 86400_000).toLocaleDateString(locale(), { weekday: "long" });
+  return (header && deliveryWhen(header.deliveryPromise)) || new Date(e.at + 2 * 86400_000).toLocaleDateString(locale(), { weekday: "long" });
 }
 
 export function Reveal({ entry, header, lines, onNewCraving }: { entry: CraveEntry; header: CraveShopHeader; products: CraveProduct[]; lines: { key: string; qty: number; product?: CraveProduct }[]; onNewCraving: () => void }) {
@@ -63,7 +63,9 @@ export function Reveal({ entry, header, lines, onNewCraving }: { entry: CraveEnt
     c ? () => engine.querySpending(c, { period: engine.resolvePeriod(c.asOf, "last_12_months"), categories: [entry.category as Category] }) : null,
     [c, entry.category],
   );
-  const safe = useEngine(c ? () => engine.getSafeToSpend(c, opts) : null, [c, opts]);
+  // what was free when this order was placed: the pot minus this order (it is already in the pot now)
+  const before = useMemo(() => ({ ...opts, cravePot: Math.max(0, (opts.cravePot ?? 0) - (live.status === "saved" ? entry.amount : 0)) }), [opts, live.status, entry.amount]);
+  const safe = useEngine(c ? () => engine.getSafeToSpend(c, before) : null, [c, before]);
   const perMonth = typical?.ok ? typical.value.perMonth : null;
 
   useEffect(() => {

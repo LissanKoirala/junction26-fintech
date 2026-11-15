@@ -3,6 +3,7 @@ import { engine } from "../../shared/engine";
 import { DOMAIN, r2 } from "../../shared/engine/util";
 import { PERSONAS } from "../../shared/personas";
 import type { CustomerData } from "../../shared/types";
+import type { SafeToSpendOptions } from "../../shared/engine";
 import type { Lang } from "../../shared/i18n";
 
 const B = DOMAIN.baskets;
@@ -65,9 +66,10 @@ export function languageLine(lang: Lang): string {
     : "App language: English. Reply in English unless the user writes in another language; then reply in theirs.";
 }
 
-export function snapshot(c: CustomerData, lang: Lang = "en"): { text: string; data: Record<string, unknown> } {
+/** `opts`: the same savings goal, basket corrections and Crave pot the tools use, so quoted numbers agree with the cards. */
+export function snapshot(c: CustomerData, lang: Lang = "en", opts: Omit<SafeToSpendOptions, "lang"> = {}): { text: string; data: Record<string, unknown> } {
   const persona = PERSONAS.find((p) => p.id === c.id);
-  const s = engine.getSafeToSpend(c, { lang });
+  const s = engine.getSafeToSpend(c, { ...opts, lang });
   const st = engine.getSpenderStats(c, { lang });
   const rec = engine.getRecurring(c, { lang });
   const months = engine.getMonthly(c, 3, { lang });
@@ -82,7 +84,7 @@ export function snapshot(c: CustomerData, lang: Lang = "en"): { text: string; da
     next_payday: s.nextPayday.estimated
       ? { predicted: false, irregular_income: true, plan_until: s.nextPayday.date, say: s.nextPayday.basis, rule: "Do not state a payday date or a usual salary amount." }
       : { date: s.nextPayday.date, amount: s.nextPayday.amount, days_away: s.nextPayday.daysAway, basis: s.nextPayday.basis, late_pay_note: s.nextPayday.lateNote },
-    safe_to_spend: { reserved_before_payday: s.reservedTotal, free_until_payday: s.freeUntilPayday, per_week: s.safePerWeek, safe_for_rest_of_this_week: s.week.remaining, usual_everyday_week: s.week.typicalSpend, status: s.status, well_covered: s.wellCovered ?? false, rent_reserved: s.upcoming.find((u) => u.kind === "housing")?.amount ?? 0 },
+    safe_to_spend: { reserved_before_payday: s.reservedTotal, free_until_payday: s.freeUntilPayday, per_week: s.safePerWeek, safe_for_rest_of_this_week: s.week.remaining, usual_everyday_week: s.week.typicalSpend, status: s.status, well_covered: s.wellCovered ?? false, rent_reserved: s.upcoming.find((u) => u.kind === "housing")?.amount ?? 0, held_in_crave_pot: s.cravePot ?? 0 },
     typical: { salary: s.nextPayday.estimated ? null : (sal?.typicalAmount ?? null), rent: rent?.typicalAmount ?? null, investing_per_month: inv?.typicalAmount ?? null },
     last_12_months_avg_per_month: { income: st.monthlyIncome, spending: st.monthlySpending, savings_rate_pct: st.savingsRatePct, basket_shares_pct: { fixed_musts: r2(st.basketShares.must_regular * 100), surprise_musts: r2(st.basketShares.must_irregular * 100), everyday_extras: r2(st.basketShares.everyday * 100) }, days_below_zero: st.overdraftDaysLast12m },
     recent_months: months.map((m) => ({ month: m.month, income: m.income, fixed_musts: m.mustRegular, surprise_musts: m.mustIrregular, everyday_extras: m.everyday, saving: m.saving, end_balance: m.endBalance })),

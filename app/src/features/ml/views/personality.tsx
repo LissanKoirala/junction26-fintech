@@ -68,7 +68,7 @@ export function PersonalityHero({ profile, tribes }: { profile: MlProfile; tribe
         <TribeMix profile={profile} tribes={tribes} />
       </div>
       <p className="mt-3 text-xs leading-relaxed text-hero-meta">
-        {t("Nobody is just one type. These five tribes are a simplification of a smooth spread of habits, so this shows how much of each you are.")}
+        {t("Nobody is just one type. These tribes are a simplification of a smooth spread of habits, so this shows how much of each you are.")}
       </p>
     </div>
   );

@@ -24,6 +24,7 @@ export function SafeToSpendCard({ card }: { card: CardOf<"safe_to_spend"> }) {
   return (
     <CardFrame icon={Wallet} title={v.title} right={<span className="whitespace-nowrap"><Badge tone={w.tone}>{w.label}</Badge></span>} explain={card.explain}>
       <StatValue value={v.figure != null ? fmt(v.figure) : t("Plenty of room")} sub={v.support} />
+      {s.cravePot ? <p className="tnum mt-1 text-sm text-ink-muted">{t("After the {amount} held in your Crave pot.", { amount: money(s.cravePot) })}</p> : null}
 
       <ChartCaption>{t("Your balance of {amount}", { amount: fmt(s.balance) })}</ChartCaption>
       {s.balance > 0 ? (

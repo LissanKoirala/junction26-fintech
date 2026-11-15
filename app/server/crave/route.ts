@@ -10,7 +10,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
-import type { CraveEvent, CraveProduct, CraveShop, CraveShopHeader } from "../../shared/crave";
+import { CRAVE_PRICE_CAP, type CraveEvent, type CraveProduct, type CraveShop, type CraveShopHeader } from "../../shared/crave";
 import { isCustomerId } from "../data";
 import { clientIp, rateLimit, takeDailyBudget } from "../llm";
 import { CRAVE_MODEL, generateDetails, generateShop } from "./generate";
@@ -33,9 +33,21 @@ export function normaliseCraving(s: string): string {
 const cacheKey = (craving: string, lang: Lang) => (lang === "en" ? normaliseCraving(craving) : `${lang}|${normaliseCraving(craving)}`);
 const shopFile = (key: string) => path.join(CRAVE_DIR, `shop-${createHash("sha1").update(`${VERSION}|${key}`).digest("hex").slice(0, 16)}.json`);
 
+/** Shops cached before the price and text fixes: drop a sale price the old 5 000 € cap invented (always exactly 2x the
+ * capped price) and end a delivery promise that was cut mid-word with an ellipsis. */
+function repairCachedShop(shop: CraveShop): CraveShop {
+  const promise = shop.deliveryPromise ?? "";
+  const cut = promise.length === 40 && /[\p{L}\p{N}]$/u.test(promise) && promise.includes(" ");
+  return {
+    ...shop,
+    deliveryPromise: cut ? `${promise.slice(0, promise.lastIndexOf(" ")).replace(/[\s,;:·–—-]+$/, "")}…` : promise,
+    products: shop.products.map((p) => (p.price >= CRAVE_PRICE_CAP && p.compareAtPrice === p.price * 2 ? { ...p, compareAtPrice: null } : p)),
+  };
+}
+
 export async function loadCachedShop(craving: string, lang: Lang = "en"): Promise<CraveShop | null> {
   try {
-    return JSON.parse(await readFile(shopFile(cacheKey(craving, lang)), "utf8")) as CraveShop;
+    return repairCachedShop(JSON.parse(await readFile(shopFile(cacheKey(craving, lang)), "utf8")) as CraveShop);
   } catch {
     return null;
   }

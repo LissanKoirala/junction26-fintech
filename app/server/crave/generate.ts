@@ -4,7 +4,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { llm } from "../llm";
-import { CRAVE_ACCENTS, CRAVE_BADGES, CRAVE_CATEGORIES, CRAVE_ICONS, type CraveAddOn, type CraveProduct, type CraveReview, type CraveShopHeader, type CraveVariant } from "../../shared/crave";
+import { capCravePrice, shortenAtWord, CRAVE_ACCENTS, CRAVE_BADGES, CRAVE_CATEGORIES, CRAVE_ICONS, type CraveAddOn, type CraveProduct, type CraveReview, type CraveShopHeader, type CraveVariant } from "../../shared/crave";
 import { DetailsSchema, ShopSchema } from "./schema";
 import { tr, type Lang } from "../../shared/i18n";
 
@@ -31,7 +31,7 @@ const clamp = (v: unknown, lo: number, hi: number, d: number) => {
   return Math.min(hi, Math.max(lo, n));
 };
 const r2 = (n: number) => Math.round(n * 100) / 100;
-const str = (v: unknown, max: number, d = "") => (typeof v === "string" ? v.trim().slice(0, max) : d);
+const str = (v: unknown, max: number, d = "") => (typeof v === "string" ? shortenAtWord(v, max) : d); // never cuts a word in half
 const oneOf = <T extends readonly string[]>(list: T, v: unknown, d: T[number]): T[number] => (list.includes(v as string) ? (v as T[number]) : d);
 
 export function cleanHeader(h: Record<string, unknown>): CraveShopHeader & { refused: boolean; refusalMessage: string } {
@@ -45,7 +45,7 @@ export function cleanHeader(h: Record<string, unknown>): CraveShopHeader & { ref
     tagline: str(h.tagline, 80),
     accent: oneOf(CRAVE_ACCENTS, h.accent, "teal"),
     icon: oneOf(CRAVE_ICONS, h.icon, kind === "food" ? "utensils" : "bag"),
-    deliveryPromise: str(h.deliveryPromise, 40, kind === "food" ? "25-35 min" : "Delivery in 1-3 days"),
+    deliveryPromise: str(h.deliveryPromise, 48, kind === "food" ? "25-35 min" : "Delivery in 1-3 days"),
     etaMinutes: Math.round(clamp(h.etaMinutes, 0, 90, kind === "food" ? 30 : 0)),
     rating: Math.round(clamp(h.rating, 3, 5, 4.6) * 10) / 10,
     reviewCount: Math.round(clamp(h.reviewCount, 10, 99999, 1200)),
@@ -57,8 +57,14 @@ export function cleanHeader(h: Record<string, unknown>): CraveShopHeader & { ref
 }
 
 export function cleanProduct(p: Record<string, unknown>, idx: number): CraveProduct {
-  const price = r2(clamp(p.price, 0.5, 5000, 19.9));
-  const cmp = typeof p.compareAtPrice === "number" && p.compareAtPrice > price * 1.04 ? r2(Math.min(p.compareAtPrice, price * 2)) : null;
+  // very expensive cravings (cars): squeeze over-cap prices under the cap so they stay distinct, and scale a sale
+  // price by the same factor, so the cap never invents a discount
+  const raw = clamp(p.price, 0.5, 1e9, 19.9);
+  const capped = capCravePrice(raw);
+  const price = capped === raw ? r2(raw) : capped;
+  const rawCmp = typeof p.compareAtPrice === "number" && Number.isFinite(p.compareAtPrice) ? p.compareAtPrice : 0;
+  const cmpRaw = rawCmp > raw * 1.04 ? Math.min(rawCmp, raw * 2) * (price / raw) : 0;
+  const cmp = cmpRaw ? (capped === raw ? r2(cmpRaw) : Math.round(cmpRaw)) : null;
   return {
     id: `p${idx + 1}`,
     section: str(p.section, 30),

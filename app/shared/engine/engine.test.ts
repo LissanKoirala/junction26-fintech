@@ -142,6 +142,22 @@ describe("getRecurring / getSafeToSpend", () => {
     expect(g.upcoming.find((u) => u.kind === "goal")?.amount).toBe(Math.round(60 * (15 / 30.44) * 100) / 100);
     expect(g.safePerWeek).toBeLessThan(base.safePerWeek);
   });
+  it("money held in the Crave pot is no longer free, and comes back when released", () => {
+    const base = engine.getSafeToSpend(aino);
+    const held = engine.getSafeToSpend(aino, { cravePot: 89.9 });
+    expect(held.cravePot).toBe(89.9);
+    expect(held.freeUntilPayday).toBeCloseTo(base.freeUntilPayday - 89.9, 2);
+    expect(held.reservedTotal).toBeCloseTo(base.reservedTotal + 89.9, 2);
+    expect(held.safePerWeek).toBeLessThan(base.safePerWeek);
+    expect(held.week.remaining).toBeLessThanOrEqual(base.week.remaining);
+    expect(held.upcoming.find((u) => u.label === "Held in your Crave pot")?.amount).toBe(89.9);
+    // released (pot empty), zero, negative or garbage: exactly the old numbers
+    for (const cravePot of [0, -50, Number.NaN, undefined]) {
+      const r = engine.getSafeToSpend(aino, { cravePot });
+      expect(r.freeUntilPayday).toBe(base.freeUntilPayday);
+      expect(r.cravePot).toBeUndefined();
+    }
+  });
   it("pay day stays the 15th when every recent salary came mid-month or at month end (CUST00372)", () => {
     // salaries 2025-10..2026-09 all on the 15th or day 28-31, only 5 of 12 on the 15th
     const c = load("CUST00372");

@@ -153,7 +153,7 @@ export function useRealWallet({ open, amountCents, lang, onPaid }: { open: boole
     };
   }, [open, amountCents, lang]);
 
-  /** The person chose the simulated path after a cancel or failure. */
+  /** The person chose the simulated path ("Or use the simulated pay" under the wallet button, or after a cancel or failure). */
   const switchToSimulated = () => {
     forced.current = true;
     setNote(null);

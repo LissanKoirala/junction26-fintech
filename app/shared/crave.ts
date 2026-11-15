@@ -123,3 +123,42 @@ export interface CraveSummary {
   topWeekday: string | null;
   recent: { craving: string; amount: number; status: string }[];
 }
+
+/**
+ * The shop's generated delivery promise as a time only ("Free delivery tomorrow" -> "Tomorrow", "Delivery in 6-8 weeks"
+ * -> "In 6-8 weeks", "Ilmainen toimitus huomenna" -> "Huomenna"). Whether delivery is free depends on the basket, so
+ * the app says "free" itself, only when the fee really is 0. Returns "" when nothing but the promotion was left.
+ */
+export function deliveryWhen(promise: string | null | undefined): string {
+  let s = (promise ?? "").trim();
+  // "free over 49 €" / "ilmainen toimitus yli 49 €": a threshold, not a time
+  s = s.replace(/[,·;]?\s*(?:free(?:\s+(?:standard\s+)?(?:delivery|shipping))?|(?:ilmainen|maksuton)(?:\s+(?:toimitus|kotiinkuljetus))?)\s+(?:over|from|above|on orders over|yli|alkaen)\s+\d[\d\s.,]*\s*(?:€|eur)?/giu, "");
+  s = s.replace(/\b(?:free|ilmainen|maksuton)\s+(?:standard\s+)?(?:delivery|shipping|toimitus|kotiinkuljetus)\b/giu, "");
+  s = s.replace(/\b(?:free|ilmainen|maksuton)\b/giu, "");
+  s = s.replace(/^\s*(?:delivery|shipping|arrives|toimitus)\s+(?=\S)/iu, "");
+  s = s.replace(/\s{2,}/g, " ").replace(/^[\s·,:;–—-]+|[\s·,:;–—-]+$/g, "").trim();
+  return s ? s.charAt(0).toLocaleUpperCase() + s.slice(1) : "";
+}
+
+/** Shortens text to at most `max` characters at a word boundary, with an ellipsis; never cuts a word in half. */
+export function shortenAtWord(text: string, max: number): string {
+  const s = text.replace(/\s+/g, " ").trim();
+  if (s.length <= max) return s;
+  const cut = s.slice(0, Math.max(1, max - 1));
+  const sp = cut.lastIndexOf(" ");
+  const head = (sp >= max * 0.4 ? cut.slice(0, sp) : cut).replace(/[\s,;:·–—-]+$/, "");
+  return `${head}…`;
+}
+
+/** Highest price a generated product may have (one product must stay payable in the simulated checkout). */
+export const CRAVE_PRICE_CAP = 5000;
+const CRAVE_PRICE_KNEE = 4000;
+/**
+ * Prices above the knee are squeezed smoothly under the cap instead of being clipped to it, so prices that differed
+ * still differ and keep their order (e.g. 75 000 -> 4 947, 89 000 -> 4 955). Prices up to the knee are unchanged.
+ */
+export function capCravePrice(price: number): number {
+  if (!(price > CRAVE_PRICE_KNEE)) return price;
+  const squeezed = CRAVE_PRICE_KNEE + (CRAVE_PRICE_CAP - CRAVE_PRICE_KNEE - 1) * (1 - CRAVE_PRICE_KNEE / price);
+  return Math.min(CRAVE_PRICE_CAP - 1, Math.max(CRAVE_PRICE_KNEE, Math.round(squeezed)));
+}

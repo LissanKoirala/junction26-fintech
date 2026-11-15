@@ -308,6 +308,10 @@ const fi: Record<string, string> = {
   "Use simulated pay": "Käytä simuloitua maksua",
   "That's a lot of payments in a short time. Try again in a few minutes.": "Paljon maksuja lyhyessä ajassa. Yritä uudelleen muutaman minuutin päästä.",
   "The test wallet has reached today's limit. The simulated pay still works.": "Testilompakon päiväraja on täynnä. Simuloitu maksu toimii edelleen.",
+  "After the {amount} held in your Crave pot.": "Mielitekopotissa olevat {amount} on jo vähennetty.",
+  "25-35 min": "25–35 min",
+  "In 1-3 days": "1–3 päivässä",
+  "Or use the simulated pay": "Tai käytä simuloitua maksua",
 };
 
 export default fi;

@@ -127,6 +127,18 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
       basis: et("{amount} a month toward \"{name}\", pro-rated for {days}.", { amount: tEur(opts.goal.monthlyContribution), name: opts.goal.name, days: dLabel }),
     });
   }
+  // money held in the Crave pot (simulated): it has moved out of the free money until it is released
+  const cravePot = Number.isFinite(opts.cravePot) && (opts.cravePot ?? 0) > 0 ? r2(opts.cravePot!) : 0;
+  if (cravePot > 0) {
+    upcoming.push({
+      kind: "goal",
+      label: et("Held in your Crave pot"),
+      amount: cravePot,
+      from: null,
+      to: null,
+      basis: et("Money you moved to your Crave pot. It is not free to spend until you release it."),
+    });
+  }
   if (tw.extraMonthlySaving && tw.extraMonthlySaving > 0) {
     upcoming.push({
       kind: "goal",
@@ -276,6 +288,7 @@ export function computeSafeToSpend(c: CustomerData, opts: SafeToSpendOptions = {
     week: { from: wFrom, to: wTo, spentSoFar, remaining, daysLeft: daysLeftInWeek, typicalSpend: r2(typicalWeek) },
     status,
     wellCovered: wellCovered || undefined,
+    cravePot: cravePot || undefined,
     steps,
   };
 }

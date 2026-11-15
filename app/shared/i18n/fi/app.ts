@@ -352,6 +352,7 @@ const fi: Record<string, string> = {
   "The dataset has no other-bank data, so Vara keeps showing this account's figures only.":
     "Aineistossa ei ole muiden pankkien tietoja, joten Vara näyttää edelleen vain tämän tilin luvut.",
   Disconnect: "Katkaise yhteys",
+  "Safe to spend now: **{amount} a week**": "Käyttövaraa nyt: **{amount} viikossa**",
 };
 
 export default fi;

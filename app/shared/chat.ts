@@ -24,6 +24,7 @@ export interface ChatRequest {
   goal?: Goal | null;
   screen?: string; // where the chat was opened from, e.g. "today" | "whatif"
   crave?: CraveSummary | null; // Crave mode diary summary (optional), so Vara can answer from real numbers
+  cravePot?: number; // euros held in the Crave pot (saved, not released): safe-to-spend counts them as no longer free
 }
 
 /** "How I got this": shown in a drawer under every card. Filled by the server from the tool call, not by the model. */

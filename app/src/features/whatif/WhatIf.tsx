@@ -15,7 +15,7 @@ import { HeroCard } from "@/ui/hero";
 import { SlidersHorizontal, Sparkles, TrendingUp, ChartLine, PiggyBank, House } from "lucide-react";
 import { Button, Card, CardTitle, ConceptNotice, Divider, HeroFigure, Muted, Page, Slider, SkeletonCard, Unavailable } from "@/ui/kit";
 import { FanChart } from "@/ui/charts";
-import { t, tn } from "@/lib/i18n";
+import { rich, t, tn } from "@/lib/i18n";
 
 interface Sliders {
   pct: Partial<Record<Category, number>>;
@@ -194,7 +194,7 @@ export default function WhatIf() {
           <CardTitle icon={Sparkles}>{t("What changes")}</CardTitle>
           <Muted>{t("Move a slider above and Vara shows what you would free up each month, and what that changes for you.")}</Muted>
           <p className="tnum mt-3 text-ink">
-            Safe to spend now: <strong>{money(r.safePerWeekBefore, { whole: true })} a week</strong>
+            {rich(t("Safe to spend now: **{amount} a week**", { amount: money(r.safePerWeekBefore, { whole: true }) }))}
           </p>
         </Card>
       ) : r ? (

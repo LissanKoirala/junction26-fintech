@@ -19,7 +19,7 @@ import { VaraAvatar } from "@/ui/hero";
 import { PERSONAS } from "@shared/personas";
 import type { ShopSession } from "./session";
 import { startShop } from "./session";
-import { accentOf, iconOf, NothingShipsPill, ProductImage, Stars } from "./look";
+import { accentOf, deliveryTime, iconOf, NothingShipsPill, ProductImage, Stars } from "./look";
 import { sfx } from "./sfx";
 import { craveActions, newOrderId, scheduleEmails } from "./diary";
 import { PaySheet } from "./PaySheet";
@@ -266,7 +266,7 @@ function ProductPage({ p, header, all, wished, onWish, onClose, onAdd, onOpen }:
             {p.stockLeft != null && <p className="mt-1 text-sm font-semibold text-amber-800">{t("Hurry, only {n} left", { n: p.stockLeft })}</p>}
             <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-muted">
               {header.kind === "food" ? <Bike size={16} strokeWidth={STROKE} aria-hidden /> : <Truck size={16} strokeWidth={STROKE} aria-hidden />}
-              {header.deliveryPromise}
+              {deliveryTime(header)}
             </p>
           </div>
 
@@ -523,7 +523,7 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
                   <p className="truncate text-sm text-white/80">{header.tagline}</p>
                   <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-white/90">
                     <span className="inline-flex items-center gap-1"><Star size={12} strokeWidth={STROKE} className="fill-white" aria-hidden /> {header.rating.toFixed(1).replace(".", ",")} ({header.reviewCount.toLocaleString("fi-FI")})</span>
-                    <span className="inline-flex items-center gap-1">{isFood ? <Clock size={12} strokeWidth={STROKE} aria-hidden /> : <Truck size={12} strokeWidth={STROKE} aria-hidden />} {header.deliveryPromise}</span>
+                    <span className="inline-flex items-center gap-1">{isFood ? <Clock size={12} strokeWidth={STROKE} aria-hidden /> : <Truck size={12} strokeWidth={STROKE} aria-hidden />} {deliveryTime(header)}</span>
                     {freeFrom > 0 && <span>{t("Free delivery from {amount}", { amount: money(freeFrom, { whole: true }) })}</span>}
                   </p>
                 </div>
@@ -642,7 +642,7 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
             <Card>
               <p className="mb-2 text-sm font-semibold text-ink-strong">{t("Delivery")}</p>
               {[
-                { on: !express, title: t("Standard · {promise}", { promise: header.deliveryPromise }), sub: baseFee ? money(baseFee) : t("Free"), icon: isFood ? Bike : Truck, set: () => setExpress(false) },
+                { on: !express, title: t("Standard · {promise}", { promise: deliveryTime(header) }), sub: baseFee ? money(baseFee) : t("Free"), icon: isFood ? Bike : Truck, set: () => setExpress(false) },
                 { on: express, title: isFood ? t("Priority · about 10 min sooner") : t("Express · tomorrow before 12"), sub: `+${money(isFood ? 1.99 : 4.9)}`, icon: Zap, set: () => setExpress(true) },
               ].map((o) => (
                 <button key={o.title} type="button" aria-pressed={o.on} onClick={() => { sfx.click(); o.set(); }} className="flex min-h-14 w-full items-center gap-3 rounded-md border px-3 text-left transition-colors [&+&]:mt-2" style={{ borderColor: o.on ? a.main : "#e6e6e6", background: o.on ? a.soft : undefined }}>
@@ -659,7 +659,7 @@ export function ShopFlow({ session, onNewCraving }: { session: ShopSession; onNe
               ))}
               <div className="mt-2"><Summary subtotal={subtotal} fee={baseFee} express={expressFee} total={total} bare /></div>
             </Card>
-            <Guard total={total} free={freeUntilPayday} payday={safe?.ok ? safe.value.nextPayday?.date ?? null : null} overSafe={overSafe} maxStash={maxStash} stash={stashAmount} setStash={setStash} />
+            <Guard total={total} free={freeUntilPayday} pot={safe?.ok ? safe.value.cravePot ?? 0 : 0} payday={safe?.ok ? safe.value.nextPayday?.date ?? null : null} overSafe={overSafe} maxStash={maxStash} stash={stashAmount} setStash={setStash} />
           </div>
         )}
       </div>
@@ -764,7 +764,7 @@ function Summary({ subtotal, fee, express, total, bare }: { subtotal: number; fe
 const paydayLabel = (d: string | null) => (d ? ` (${d.slice(8, 10).replace(/^0/, "")}.${d.slice(5, 7).replace(/^0/, "")}.)` : "");
 
 /** The safe-to-spend guard: the pot only ever takes money that is free until payday. */
-function Guard({ total, free, payday, overSafe, maxStash, stash, setStash }: { total: number; free: number | null; payday: string | null; overSafe: boolean; maxStash: number; stash: number; setStash: (n: number) => void }) {
+function Guard({ total, free, pot, payday, overSafe, maxStash, stash, setStash }: { total: number; free: number | null; pot: number; payday: string | null; overSafe: boolean; maxStash: number; stash: number; setStash: (n: number) => void }) {
   return (
     <Card className="border-2 border-green-200 shadow-none">
       <div className="flex items-start gap-3">
@@ -808,6 +808,7 @@ function Guard({ total, free, payday, overSafe, maxStash, stash, setStash }: { t
       {free != null && !overSafe && (
         <p className="mt-2 flex items-start gap-1.5 text-xs text-ink-muted"><Info size={14} strokeWidth={STROKE} className="mt-0.5 shrink-0" aria-hidden /> {t("Checked against your safe-to-spend: {amount} is free until payday, so this fits.", { amount: money(free, { whole: true }) })}</p>
       )}
+      {free != null && pot > 0 && <p className="mt-1 text-xs text-ink-muted">{t("After the {amount} held in your Crave pot.", { amount: money(pot) })}</p>}
       <p className="mt-2 text-xs text-ink-muted">{t("Simulation: no money is moved in this demo.")}</p>
     </Card>
   );

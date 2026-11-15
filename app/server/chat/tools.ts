@@ -23,7 +23,7 @@ export const SOURCE = "Your transactions in this account (synthetic Junction 202
 
 export interface ToolCtx {
   c: CustomerData;
-  opts: { overrides?: BasketOverrides; goal?: Goal | null; lang?: Lang };
+  opts: { overrides?: BasketOverrides; goal?: Goal | null; cravePot?: number; lang?: Lang };
   newCardId: () => string;
   crave?: CraveSummary | null; // Crave mode diary summary sent by the app (client state, simulated money)
   lang?: Lang; // app language of the request (default "en")

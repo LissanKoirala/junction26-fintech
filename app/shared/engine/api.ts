@@ -111,6 +111,7 @@ export type GetRecurring = (customer: CustomerData, opts?: LangOptions) => Recur
 // ---------------------------------------------------------------- safe to spend
 export interface SafeToSpendOptions extends EngineOptions {
   goal?: Goal | null; // a savings goal reserves its monthly contribution
+  cravePot?: number; // euros held in the Crave pot and not yet released (simulated): no longer free to spend
   bufferTarget?: number; // euros to keep untouched; default = 10% of monthly income (min 50)
   includeInvesting?: boolean; // treat the usual investment deposit as committed (default true)
 }
@@ -150,6 +151,7 @@ export interface SafeToSpend {
   status: "comfortable" | "a_bit_tight" | "tight" | "over"; // a_bit_tight: safe week is 50-100% of a usual week
   wellCovered?: boolean; // safe per week is more than 3x a usual everyday week (and over 200 €): show "well covered"
   note?: string; // plain-language caveat, e.g. when most of the free money is savings already built up
+  cravePot?: number; // euros held in the Crave pot that this result already counts as no longer free (opts.cravePot)
   steps: { label: string; amount: number; sign: "+" | "-" | "=" | "/" }[]; // the arithmetic, for the explain drawer
 }
 export type GetSafeToSpend = (customer: CustomerData, opts?: SafeToSpendOptions) => SafeToSpend;

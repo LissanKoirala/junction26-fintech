@@ -34,7 +34,7 @@ export function TwoFuturesChart({
 }) {
   const [w, ref] = useWidth();
   const [hover, setHover] = useState<number | null>(null);
-  const padL = 38, padR = compact ? 82 : 100, padT = 14, padB = 22;
+  const padL = 42, padR = compact ? 82 : 100, padT = 14, padB = 22;
   const minM = Math.min(...past.map((p) => p.month), 0);
   const maxM = Math.max(...futures.flatMap((f) => f.path.map((p) => p.month)), 1);
   const now = past.length ? past[past.length - 1].balance : futures[0]?.path[0]?.p50 ?? 0;

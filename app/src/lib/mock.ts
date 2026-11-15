@@ -69,7 +69,7 @@ function explainOf(tool: string, extra: Partial<Explain> = {}): Explain {
 }
 
 function safeAnswer(c: CustomerData, req: ChatRequest, q: string): Answer {
-  const s = engine.getSafeToSpend(c, { overrides: req.overrides, goal: req.goal });
+  const s = engine.getSafeToSpend(c, { overrides: req.overrides, goal: req.goal, cravePot: req.cravePot });
   const amt = q.match(/(\d+[.,]?\d*)\s*(€|e\b|eur|euro)/i);
   const want = amt ? parseFloat(amt[1].replace(",", ".")) : null;
   let text: string;
@@ -294,7 +294,7 @@ function trendAnswer(c: CustomerData, req: ChatRequest): Answer {
 }
 
 function goalAnswer(c: CustomerData, req: ChatRequest): Answer {
-  const s = engine.getSafeToSpend(c, { overrides: req.overrides, goal: req.goal });
+  const s = engine.getSafeToSpend(c, { overrides: req.overrides, goal: req.goal, cravePot: req.cravePot });
   return {
     status: ["Checking what you could set aside…"],
     text: req.goal

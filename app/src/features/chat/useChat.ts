@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import type { ChatMessage, ChatRequest } from "@shared/chat";
 import { streamChat } from "@/lib/api";
 import { getState } from "@/state/store";
-import { useCustomer } from "@/state/customer";
+import { heldInCravePot, useCustomer } from "@/state/customer";
 import { getMessages, newId, patchMessage, setMessages, useMessages } from "./store";
 import { summarise } from "@/features/crave/diary";
 import { getLang, locale, t } from "@/lib/i18n";
@@ -41,6 +41,7 @@ export function useChat(customerId: string) {
         goal: prefs?.goal ?? null,
         screen: screen ?? "chat",
         crave: prefs?.cravings?.length ? summarise(prefs.cravings) : null,
+        cravePot: heldInCravePot(prefs?.cravings),
       };
       const ctl = new AbortController();
       controllers.set(customerId, ctl);

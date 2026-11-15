@@ -31,6 +31,7 @@ const ChatRequestSchema = z.object({
   overrides: z.object({ byTx: z.record(z.string(), BasketEnum).optional(), byRule: z.record(z.string(), BasketEnum).optional() }).optional(),
   goal: z.object({ name: z.string().max(80), targetAmount: z.number(), targetDate: z.string().max(10), monthlyContribution: z.number().min(0), createdAt: z.string().max(30) }).nullable().optional(),
   screen: z.string().max(40).optional(),
+  cravePot: z.number().finite().optional(), // euros held in the Crave pot (simulated); clamped below
   crave: z
     .object({
       count: z.number(), savedTotal: z.number(), releasedCount: z.number(), releasedTotal: z.number(), windowShops: z.number(),
@@ -123,11 +124,13 @@ export function registerChatRoutes(app: Hono) {
         if (last.role !== "user" || !last.content.trim()) throw new UserError(T.t("Please type a question."));
 
         await send({ type: "status", label: T.t("Thinking…") });
-        const snap = snapshot(customer, lang);
+        // money held in the Crave pot counts as no longer free (plain number from the app, clamped)
+        const cravePot = Math.round(Math.min(1_000_000, Math.max(0, req.cravePot ?? 0)) * 100) / 100;
+        const snap = snapshot(customer, lang, { overrides: req.overrides as never, goal: req.goal ?? null, cravePot });
         let cardSeq = 0;
         const ctx: ToolCtx = {
           c: customer,
-          opts: { overrides: req.overrides as never, goal: req.goal ?? null, lang },
+          opts: { overrides: req.overrides as never, goal: req.goal ?? null, cravePot, lang },
           newCardId: () => `c${++cardSeq}`,
           crave: req.crave ?? null,
           lang,

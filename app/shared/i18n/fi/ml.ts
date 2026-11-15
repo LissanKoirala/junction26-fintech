@@ -77,8 +77,8 @@ const fi: Record<string, string> = {
   "Mostly {a}": "Enimmäkseen {a}",
   "Part {a}, part {b}": "Osin {a}, osin {b}",
   "{a}, with a bit of {b}": "{a} – mukana myös {b}",
-  "Nobody is just one type. These five tribes are a simplification of a smooth spread of habits, so this shows how much of each you are.":
-    "Kukaan ei ole vain yhtä tyyppiä. Viisi heimoa yksinkertaistavat tasaista tapojen kirjoa, joten tässä näkyy, kuinka paljon sinussa on kutakin.",
+  "Nobody is just one type. These tribes are a simplification of a smooth spread of habits, so this shows how much of each you are.":
+    "Kukaan ei ole vain yhtä tyyppiä. Heimot yksinkertaistavat tasaista tapojen kirjoa, joten tässä näkyy, kuinka paljon sinussa on kutakin.",
   "This describes the tribe as a whole, so a figure here can differ from yours. Your own numbers are below.":
     "Tämä kuvaa heimoa kokonaisuutena, joten luvut voivat poiketa omistasi. Omat lukusi ovat alempana.",
   "Typical strengths": "Tyypilliset vahvuudet",
