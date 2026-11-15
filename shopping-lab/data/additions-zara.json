@@ -1,0 +1,732 @@
+[
+  {
+    "product": {
+      "id": "zara-extra-satin-jewel-shirt",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Satin Shirt With Jewel Buttons",
+      "brand": "Zara",
+      "category": "Shirts",
+      "price": 3595,
+      "image": "/products/zara-extra-satin-jewel-shirt.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/satin-shirt-with-jewel-buttons-p08971581.html",
+      "description": "Fluid satin shirt with a classic collar, long sleeves and decorative buttons. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        "Burgundy"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/satin-shirt-with-jewel-buttons-p08971581.html",
+      "priceText": "35.95 EUR",
+      "currency": "EUR",
+      "amount": 35.95,
+      "imageUrl": "https://static.zara.net/assets/public/c1f9/5f5a/6fb94457a798/e789d2666314/08971581681-p/08971581681-p.jpg?f=auto&ts=1794225688909&w=560",
+      "productReference": "8971/581/681",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/c1f9/5f5a/6fb94457a798/e789d2666314/08971581681-p/08971581681-p.jpg?f=auto&ts=1794225688909&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 25894,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-oxford-shirt",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Basic Oxford Shirt",
+      "brand": "Zara",
+      "category": "Shirts",
+      "price": 2595,
+      "image": "/products/zara-extra-oxford-shirt.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/basic-oxford-shirt-p08741239.html",
+      "description": "A long-sleeved Oxford shirt with a V-neck opening and buttoned front. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        "Sky blue"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/basic-oxford-shirt-p08741239.html",
+      "priceText": "25.95 EUR",
+      "currency": "EUR",
+      "amount": 25.95,
+      "imageUrl": "https://static.zara.net/assets/public/4eba/208d/a3234fc8b5d6/4853d81dee8b/08741239403-p/08741239403-p.jpg?f=auto&ts=1786371158399&w=560",
+      "productReference": "8741/239/403",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/4eba/208d/a3234fc8b5d6/4853d81dee8b/08741239403-p/08741239403-p.jpg?f=auto&ts=1786371158399&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 30596,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-striped-poplin-shirt",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Basic Poplin Shirt",
+      "brand": "Zara",
+      "category": "Shirts",
+      "price": 2595,
+      "image": "/products/zara-extra-striped-poplin-shirt.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/basic-poplin-shirt-p08050758.html",
+      "description": "Striped poplin shirt with a collar, V-shaped neckline and long sleeves. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        "Blue/White"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/basic-poplin-shirt-p08050758.html",
+      "priceText": "25.95 EUR",
+      "currency": "EUR",
+      "amount": 25.95,
+      "imageUrl": "https://static.zara.net/assets/public/9fd7/7851/98164848850e/c8e691361c57/08050583044-p/08050583044-p.jpg?f=auto&ts=1787316420633&w=560",
+      "productReference": "8050/758/044",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/9fd7/7851/98164848850e/c8e691361c57/08050583044-p/08050583044-p.jpg?f=auto&ts=1787316420633&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 112468,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-belted-knit-cardigan",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Belted Knit Cardigan",
+      "brand": "Zara",
+      "category": "Knitwear",
+      "price": 4595,
+      "image": "/products/zara-extra-belted-knit-cardigan.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/belted-cardingan-p02756108.html",
+      "description": "A high-neck cardigan with roomy sleeves, matching belt and zipped front. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        "Grey"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/belted-cardingan-p02756108.html",
+      "priceText": "45.95 EUR",
+      "currency": "EUR",
+      "amount": 45.95,
+      "imageUrl": "https://static.zara.net/assets/public/7816/d672/981544189176/921f44250662/02756108802-p/02756108802-p.jpg?f=auto&ts=1788970929921&w=560",
+      "productReference": "2756/108/802",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/7816/d672/981544189176/921f44250662/02756108802-p/02756108802-p.jpg?f=auto&ts=1788970929921&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 13694,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-wool-zip-jacket",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "100% Wool Zip-Up Jacket",
+      "brand": "Zara",
+      "category": "Knitwear",
+      "price": 4595,
+      "image": "/products/zara-extra-wool-zip-jacket.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/100-wool-zip-up-jacket-p02893103.html",
+      "description": "A wool knit layer with a high collar, full-length sleeves and ribbed edges. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        "Mink"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/100-wool-zip-up-jacket-p02893103.html",
+      "priceText": "45.95 EUR",
+      "currency": "EUR",
+      "amount": 45.95,
+      "imageUrl": "https://static.zara.net/assets/public/6a43/b4ad/d82c444b9055/935937e16ebc/02893103706-p/02893103706-p.jpg?f=auto&ts=1789381702605&w=560",
+      "productReference": "2893/103/706",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/6a43/b4ad/d82c444b9055/935937e16ebc/02893103706-p/02893103706-p.jpg?f=auto&ts=1789381702605&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 21424,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-wool-cardigan",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "100% Wool Plain Knit Cardigan",
+      "brand": "Zara",
+      "category": "Knitwear",
+      "price": 4595,
+      "image": "/products/zara-extra-wool-cardigan.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/100-wool-plain-knit-cardigan-p02893102.html",
+      "description": "Round-neck wool cardigan with long sleeves and buttons down the front. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        "Navy blue"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/100-wool-plain-knit-cardigan-p02893102.html",
+      "priceText": "45.95 EUR",
+      "currency": "EUR",
+      "amount": 45.95,
+      "imageUrl": "https://static.zara.net/assets/public/eba2/99a0/4bd64a41b9db/7f591af21101/02893102401-p/02893102401-p.jpg?f=auto&ts=1788343270651&w=560",
+      "productReference": "2893/102/401",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/eba2/99a0/4bd64a41b9db/7f591af21101/02893102401-p/02893102401-p.jpg?f=auto&ts=1788343270651&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 45160,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-wide-leg-jeans",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "TRF High-Waist Wide-Leg Jeans",
+      "brand": "Zara",
+      "category": "Jeans",
+      "price": 3595,
+      "image": "/products/zara-extra-wide-leg-jeans.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/wide-leg-fit-high-waist-trf-jeans-p05575229.html",
+      "description": "Full-length wide-leg denim with a high rise, five pockets and unfinished hems. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "EU 32",
+        "EU 34",
+        "EU 36",
+        "EU 38",
+        "EU 40",
+        "EU 42"
+      ],
+      "colors": [
+        "Black"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/wide-leg-fit-high-waist-trf-jeans-p05575229.html",
+      "priceText": "35.95 EUR",
+      "currency": "EUR",
+      "amount": 35.95,
+      "imageUrl": "https://static.zara.net/assets/public/14eb/e266/e2fe4f769351/735344073206/05575229800-p/05575229800-p.jpg?f=auto&ts=1787132130063&w=560",
+      "productReference": "5575/229/800",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/14eb/e266/e2fe4f769351/735344073206/05575229800-p/05575229800-p.jpg?f=auto&ts=1787132130063&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 13030,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-mom-fit-jeans",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Z1975 High-Waist Mom Fit Jeans",
+      "brand": "Zara",
+      "category": "Jeans",
+      "price": 2995,
+      "image": "/products/zara-extra-mom-fit-jeans.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/z1975-high-waist-mom-fit-jeans-p07223225.html",
+      "description": "High-rise mom-fit jeans with an ankle-length leg and five-pocket styling. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "EU 32",
+        "EU 34",
+        "EU 36",
+        "EU 38",
+        "EU 40",
+        "EU 42"
+      ],
+      "colors": [
+        "Indigo"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/z1975-high-waist-mom-fit-jeans-p07223225.html",
+      "priceText": "29.95 EUR",
+      "currency": "EUR",
+      "amount": 29.95,
+      "imageUrl": "https://static.zara.net/assets/public/f6df/9863/a4664858a568/a601babf28bd/07223225405-p/07223225405-p.jpg?f=auto&ts=1784903948404&w=560",
+      "productReference": "7223/225/405",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/f6df/9863/a4664858a568/a601babf28bd/07223225405-p/07223225405-p.jpg?f=auto&ts=1784903948404&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 31126,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-straight-leg-jeans",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "TRF Mid-Waist Straight-Leg Jeans",
+      "brand": "Zara",
+      "category": "Jeans",
+      "price": 2995,
+      "image": "/products/zara-extra-straight-leg-jeans.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/trf-mid-waist-straight-leg-jeans-p00541211.html",
+      "description": "Straight-leg denim with a mid rise, belt loops and a button-and-zip closure. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "EU 32",
+        "EU 34",
+        "EU 36",
+        "EU 38",
+        "EU 40",
+        "EU 42"
+      ],
+      "colors": [
+        "Blue"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/trf-mid-waist-straight-leg-jeans-p00541211.html",
+      "priceText": "29.95 EUR",
+      "currency": "EUR",
+      "amount": 29.95,
+      "imageUrl": "https://static.zara.net/assets/public/6957/0647/7bff4ef2a106/72ecd4565220/04730217400-p/04730217400-p.jpg?f=auto&ts=1790695163583&w=560",
+      "productReference": "0541/211/400",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/6957/0647/7bff4ef2a106/72ecd4565220/04730217400-p/04730217400-p.jpg?f=auto&ts=1790695163583&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 22850,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-velvet-loafers",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Soft Velvet Loafers",
+      "brand": "Zara",
+      "category": "Shoes",
+      "price": 3995,
+      "image": "/products/zara-extra-velvet-loafers.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/soft-velvet-loafers-p11575810.html",
+      "description": "Round-toe velvet loafers with a high vamp and a flat, 1 cm sole. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "EU 36",
+        "EU 37",
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41"
+      ],
+      "colors": [
+        "Black"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/soft-velvet-loafers-p11575810.html",
+      "priceText": "39.95 EUR",
+      "currency": "EUR",
+      "amount": 39.95,
+      "imageUrl": "https://static.zara.net/assets/public/bc28/e626/29324069bc3c/36bbc1462b46/11575810800-p/11575810800-p.jpg?f=auto&ts=1794302815685&w=560",
+      "productReference": "1575/810/800",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/bc28/e626/29324069bc3c/36bbc1462b46/11575810800-p/11575810800-p.jpg?f=auto&ts=1794302815685&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 63008,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-suede-kitten-heels",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Suede Kitten Heel Shoes",
+      "brand": "Zara",
+      "category": "Shoes",
+      "price": 4595,
+      "image": "/products/zara-extra-suede-kitten-heels.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/suede-kitten-heel-shoes-p11205910.html",
+      "description": "Pointed suede shoes with a cutaway vamp and a 4 cm kitten heel. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "EU 36",
+        "EU 37",
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41"
+      ],
+      "colors": [
+        "Black"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/suede-kitten-heel-shoes-p11205910.html",
+      "priceText": "45.95 EUR",
+      "currency": "EUR",
+      "amount": 45.95,
+      "imageUrl": "https://static.zara.net/assets/public/5d26/e7a1/c3014090a8a2/ef2410e06a56/11205910800-p/11205910800-p.jpg?f=auto&ts=1794473765726&w=560",
+      "productReference": "1205/910/800",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/5d26/e7a1/c3014090a8a2/ef2410e06a56/11205910800-p/11205910800-p.jpg?f=auto&ts=1794473765726&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 32972,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-patent-heels",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Patent Heeled Shoes",
+      "brand": "Zara",
+      "category": "Shoes",
+      "price": 3595,
+      "image": "/products/zara-extra-patent-heels.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/patent-heeled-shoes-p12200910.html",
+      "description": "Pointed patent shoes with a rounded vamp and an 8.5 cm stiletto heel. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "EU 36",
+        "EU 37",
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41"
+      ],
+      "colors": [
+        "Black"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/patent-heeled-shoes-p12200910.html",
+      "priceText": "35.95 EUR",
+      "currency": "EUR",
+      "amount": 35.95,
+      "imageUrl": "https://static.zara.net/assets/public/28f7/5966/791848c6b796/3785685f5d1b/04387250681-016-a1/04387250681-016-a1.jpg?f=auto&ts=1794335253386&w=560",
+      "productReference": "2200/910/800",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/28f7/5966/791848c6b796/3785685f5d1b/04387250681-016-a1/04387250681-016-a1.jpg?f=auto&ts=1794335253386&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 24842,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-soft-bomber",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Soft Bomber Jacket",
+      "brand": "Zara",
+      "category": "Jackets",
+      "price": 3595,
+      "image": "/products/zara-extra-soft-bomber.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/soft-bomber-jacket-p03046334.html",
+      "description": "Soft bomber with a high collar, zipped front, welt pockets and gathered edges. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        "Beige"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/soft-bomber-jacket-p03046334.html",
+      "priceText": "35.95 EUR",
+      "currency": "EUR",
+      "amount": 35.95,
+      "imageUrl": "https://static.zara.net/assets/public/021a/dc38/5a1546cb844e/8112cb816f24/03046334450-p/03046334450-p.jpg?f=auto&ts=1790584436341&w=560",
+      "productReference": "3046/334/450",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/021a/dc38/5a1546cb844e/8112cb816f24/03046334450-p/03046334450-p.jpg?f=auto&ts=1790584436341&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 55198,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-reversible-jacket",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Reversible Double-Faced Jacket",
+      "brand": "Zara",
+      "category": "Jackets",
+      "price": 7995,
+      "image": "/products/zara-extra-reversible-jacket.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/reversible-double-faced-jacket-p08073251.html",
+      "description": "Reversible button-front jacket combining a leather-look face and faux-fur texture. Size choices are simulated; live stock is not checked.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        "Brown"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price · size choices simulated",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/reversible-double-faced-jacket-p08073251.html",
+      "priceText": "79.95 EUR",
+      "currency": "EUR",
+      "amount": 79.95,
+      "imageUrl": "https://static.zara.net/assets/public/dd41/4066/a079420e8a79/7404932b46cc/08073251700-a1/08073251700-a1.jpg?f=auto&ts=1791877729518&w=560",
+      "productReference": "8073/251/700",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/dd41/4066/a079420e8a79/7404932b46cc/08073251700-a1/08073251700-a1.jpg?f=auto&ts=1791877729518&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 43596,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-embossed-bag",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Embossed Shoulder Bag",
+      "brand": "Zara",
+      "category": "Bags",
+      "price": 3595,
+      "image": "/products/zara-extra-embossed-bag.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/embossed-shoulder-bag-p16034910.html",
+      "description": "Elongated embossed shoulder bag with a detachable chain and zipped closure. Original merchant catalogue snapshot; live stock is not checked.",
+      "sizes": [],
+      "colors": [
+        "Black"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/embossed-shoulder-bag-p16034910.html",
+      "priceText": "35.95 EUR",
+      "currency": "EUR",
+      "amount": 35.95,
+      "imageUrl": "https://static.zara.net/assets/public/573d/8596/2d2a4effbce9/b5fec5d0dfd3/16034910800-p/16034910800-p.jpg?f=auto&ts=1794314662904&w=560",
+      "productReference": "6034/910/800",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/573d/8596/2d2a4effbce9/b5fec5d0dfd3/16034910800-p/16034910800-p.jpg?f=auto&ts=1794314662904&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 22490,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  },
+  {
+    "product": {
+      "id": "zara-extra-satin-handbag",
+      "store": "zara",
+      "currency": "EUR",
+      "name": "Satin Handbag",
+      "brand": "Zara",
+      "category": "Bags",
+      "price": 2995,
+      "image": "/products/zara-extra-satin-handbag.webp",
+      "sourceUrl": "https://www.zara.com/ie/en/satin-handbag-p16058810.html",
+      "description": "A small satin handbag with a top handle, inner pocket and gathered tassel closure. Original merchant catalogue snapshot; live stock is not checked.",
+      "sizes": [],
+      "colors": [
+        "Lime Green"
+      ],
+      "priceNote": "Cached Zara Ireland EUR price",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:16:49Z"
+    },
+    "evidence": {
+      "priceUrl": "https://www.zara.com/ie/en/satin-handbag-p16058810.html",
+      "priceText": "29.95 EUR",
+      "currency": "EUR",
+      "amount": 29.95,
+      "imageUrl": "https://static.zara.net/assets/public/07dd/7eb9/e8474c1ba775/8a94f101f6f0/16058810097-p/16058810097-p.jpg?f=auto&ts=1794302816351&w=560",
+      "productReference": "6058/810/097",
+      "sourceLocale": "Ireland",
+      "womenOnly": true,
+      "method": "Official product page retrieved through web open; original product Image 0 link. Sizes in product records are explicitly simulated.",
+      "retrievedAt": "2026-11-15T05:16:49Z",
+      "downloadedImageUrl": "https://static.zara.net/assets/public/07dd/7eb9/e8474c1ba775/8a94f101f6f0/16058810097-p/16058810097-p.jpg?f=auto&ts=1794302816351&w=1200",
+      "localImageWidth": 600,
+      "localImageHeight": 900,
+      "localImageBytes": 96304,
+      "localImageFormat": "webp",
+      "visuallyVerified": true,
+      "visualCheck": "Original merchant product photography inspected; not an error page or placeholder. Some photos show a styled full outfit including the listed product."
+    }
+  }
+]

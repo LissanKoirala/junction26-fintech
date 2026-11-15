@@ -34,6 +34,8 @@ The supplied Sites build helper handles publication packaging. `.openai/hosting.
 
 ## Architecture
 
+The bundled range contains **24 StockX products, 24 Zara products and eight food items**. StockX and Zara each have three times the original eight-item selection. Zara includes dresses, shirts, knitwear, jeans, shoes, jackets and bags. New product prices and original image URLs are recorded in `data/additions-stockx.json` and `data/additions-zara.json`; the regeneration script includes both files. Images are cached locally, so the larger range requires no retailer request while browsing.
+
 ### Immersive mobile storefronts
 
 `components/storefronts.tsx` renders separate mobile shopping experiences for Uber Eats, StockX and Zara, plus a merchant-named retail layout for imported catalogues. Each includes its own navigation, search, category filters, saved items and persistent basket controls. StockX adds price sorting and a direct Buy now journey; Zara adds an editorial photo story and a compact collection view. Product information stays sourced from the catalogue; stock, reviews, discounts and delivery estimates are not invented.

@@ -1,0 +1,786 @@
+[
+  {
+    "product": {
+      "id": "stockx-extra-jordan-4-bred-reimagined",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "Jordan 4 Retro Bred Reimagined",
+      "brand": "Jordan",
+      "category": "Basketball",
+      "price": 17800,
+      "image": "/products/stockx-extra-jordan-4-bred-reimagined.webp",
+      "sourceUrl": "https://stockx.com/de-de/air-jordan-4-retro-bred-reimagined",
+      "description": "Real StockX listing · FV5029-006. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/air-jordan-4-retro-bred-reimagined",
+      "currency": "EUR",
+      "amount": 178,
+      "amountMinor": 17800,
+      "priceText": "178 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/Air-Jordan-4-Retro-Bred-Reimagined/Images/Air-Jordan-4-Retro-Bred-Reimagined/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1784283209&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/air-jordan-4-retro-bred-reimagined",
+      "style": "FV5029-006",
+      "sourcePageCrawled": "today",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 11196,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-jordan-3-white-cement-reimagined",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "Jordan 3 Retro White Cement Reimagined",
+      "brand": "Jordan",
+      "category": "Basketball",
+      "price": 10400,
+      "image": "/products/stockx-extra-jordan-3-white-cement-reimagined.webp",
+      "sourceUrl": "https://stockx.com/de-de/air-jordan-3-retro-white-cement-reimagined",
+      "description": "Real StockX listing · DN3707-100. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/air-jordan-3-retro-white-cement-reimagined",
+      "currency": "EUR",
+      "amount": 104,
+      "amountMinor": 10400,
+      "priceText": "104 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/Air-Jordan-3-Retro-White-Cement-Reimagined/Images/Air-Jordan-3-Retro-White-Cement-Reimagined/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1677687850&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/air-jordan-3-retro-white-cement-reimagined",
+      "style": "DN3707-100",
+      "sourcePageCrawled": "last week",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 12630,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-nike-sb-dunk-chicago",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "Nike SB Dunk Low J-Pack Chicago",
+      "brand": "Nike",
+      "category": "Skateboarding",
+      "price": 11700,
+      "image": "/products/stockx-extra-nike-sb-dunk-chicago.webp",
+      "sourceUrl": "https://stockx.com/de-de/nike-sb-dunk-low-j-pack-chicago",
+      "description": "Real StockX listing · BQ6817-600. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/nike-sb-dunk-low-j-pack-chicago",
+      "currency": "EUR",
+      "amount": 117,
+      "amountMinor": 11700,
+      "priceText": "117 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/Nike-SB-Dunk-Low-J-Pack-Chicago/Images/Nike-SB-Dunk-Low-J-Pack-Chicago/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1635276940&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/nike-sb-dunk-low-j-pack-chicago",
+      "style": "BQ6817-600",
+      "sourcePageCrawled": "today",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 11046,
+      "localImageDimensions": {
+        "width": 576,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-adidas-handball-spezial-black",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "adidas Handball Spezial Black Gum",
+      "brand": "adidas",
+      "category": "Lifestyle",
+      "price": 5000,
+      "image": "/products/stockx-extra-adidas-handball-spezial-black.webp",
+      "sourceUrl": "https://stockx.com/de-de/adidas-handball-spezial-black-gum",
+      "description": "Real StockX listing · DB3021. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/adidas-handball-spezial-black-gum",
+      "currency": "EUR",
+      "amount": 50,
+      "amountMinor": 5000,
+      "priceText": "50 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/adidas-Handball-Spezial-Black-Gum/Images/adidas-Handball-Spezial-Black-Gum/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1788595617&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/adidas-handball-spezial-black-gum",
+      "style": "DB3021",
+      "sourcePageCrawled": "last week",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 9368,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-adidas-yeezy-350-bone",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "adidas Yeezy Boost 350 V2 Bone",
+      "brand": "adidas",
+      "category": "Lifestyle",
+      "price": 10400,
+      "image": "/products/stockx-extra-adidas-yeezy-350-bone.webp",
+      "sourceUrl": "https://stockx.com/de-de/adidas-yeezy-boost-350-v2-bone",
+      "description": "Real StockX listing · HQ6316. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/adidas-yeezy-boost-350-v2-bone",
+      "currency": "EUR",
+      "amount": 104,
+      "amountMinor": 10400,
+      "priceText": "104 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/adidas-Yeezy-Boost-350-V2-Pure-Oat/Images/adidas-Yeezy-Boost-350-V2-Pure-Oat/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1784589449&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/adidas-yeezy-boost-350-v2-bone",
+      "style": "HQ6316",
+      "sourcePageCrawled": "5 days ago",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 8108,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-nike-p-6000-metallic-silver",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "Nike P-6000 Metallic Silver",
+      "brand": "Nike",
+      "category": "Lifestyle",
+      "price": 7500,
+      "image": "/products/stockx-extra-nike-p-6000-metallic-silver.webp",
+      "sourceUrl": "https://stockx.com/de-de/nike-p-6000-metallic-silver",
+      "description": "Real StockX listing · CN0149-001. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:20:45Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/nike-p-6000-metallic-silver",
+      "currency": "EUR",
+      "amount": 75,
+      "amountMinor": 7500,
+      "priceText": "75 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/Nike-P-6000-Metallic-Silver/Images/Nike-P-6000-Metallic-Silver/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1784325892&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/nike-p-6000-metallic-silver",
+      "style": "CN0149-001",
+      "sourcePageCrawled": "today",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:20:45Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 17578,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-new-balance-9060-sea-salt",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "New Balance 9060 Sea Salt",
+      "brand": "New Balance",
+      "category": "Lifestyle",
+      "price": 7600,
+      "image": "/products/stockx-extra-new-balance-9060-sea-salt.webp",
+      "sourceUrl": "https://stockx.com/de-de/new-balance-9060-sea-salt",
+      "description": "Real StockX listing · U9060MAC. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/new-balance-9060-sea-salt",
+      "currency": "EUR",
+      "amount": 76,
+      "amountMinor": 7600,
+      "priceText": "76 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/New-Balance-9060-Sea-Salt/Images/New-Balance-9060-Sea-Salt/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1690305429&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/new-balance-9060-sea-salt",
+      "style": "U9060MAC",
+      "sourcePageCrawled": "yesterday",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 13120,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-new-balance-2002r-rain-cloud",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "New Balance 2002R Protection Pack Rain Cloud",
+      "brand": "New Balance",
+      "category": "Lifestyle",
+      "price": 7200,
+      "image": "/products/stockx-extra-new-balance-2002r-rain-cloud.webp",
+      "sourceUrl": "https://stockx.com/de-de/new-balance-m2002-protection-pack-rain-cloud",
+      "description": "Real StockX listing · M2002RDA. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/new-balance-m2002-protection-pack-rain-cloud",
+      "currency": "EUR",
+      "amount": 72,
+      "amountMinor": 7200,
+      "priceText": "72 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/New-Balance-M2002-Protection-Pack-Rain-Cloud/Images/New-Balance-M2002-Protection-Pack-Rain-Cloud/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1784225867&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/new-balance-m2002-protection-pack-rain-cloud",
+      "style": "M2002RDA",
+      "sourcePageCrawled": "last week",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 17524,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-nike-vomero-photon-dust",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "Nike Zoom Vomero 5 Photon Dust Metallic Silver (Women's)",
+      "brand": "Nike",
+      "category": "Running",
+      "price": 8400,
+      "image": "/products/stockx-extra-nike-vomero-photon-dust.webp",
+      "sourceUrl": "https://stockx.com/de-de/nike-zoom-vomero-5-photon-dust-metallic-silver-w",
+      "description": "Real StockX listing · FD0884-025. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/nike-zoom-vomero-5-photon-dust-metallic-silver-w",
+      "currency": "EUR",
+      "amount": 84,
+      "amountMinor": 8400,
+      "priceText": "84 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/Nike-Zoom-Vomero-5-Photon-Dust-Metallic-Silver-W/Images/Nike-Zoom-Vomero-5-Photon-Dust-Metallic-Silver-W/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1785937553&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/nike-zoom-vomero-5-photon-dust-metallic-silver-w",
+      "style": "FD0884-025",
+      "sourcePageCrawled": "last week",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 16804,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-asics-gel-nyc-oyster",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "ASICS Gel-NYC Oyster Grey",
+      "brand": "ASICS",
+      "category": "Running",
+      "price": 6700,
+      "image": "/products/stockx-extra-asics-gel-nyc-oyster.webp",
+      "sourceUrl": "https://stockx.com/de-de/asics-gel-nyc-oyster-grey",
+      "description": "Real StockX listing · 1201A789-103. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/asics-gel-nyc-oyster-grey",
+      "currency": "EUR",
+      "amount": 67,
+      "amountMinor": 6700,
+      "priceText": "67 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/ASICS-Gel-NYC-Oyster-Grey/Images/ASICS-Gel-NYC-Oyster-Grey/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1787080705&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/asics-gel-nyc-oyster-grey",
+      "style": "1201A789-103",
+      "sourcePageCrawled": "yesterday",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 12742,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-puma-speedcat-red",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "Puma Speedcat OG Red White",
+      "brand": "Puma",
+      "category": "Lifestyle",
+      "price": 5500,
+      "image": "/products/stockx-extra-puma-speedcat-red.webp",
+      "sourceUrl": "https://stockx.com/fr-fr/puma-speedcat-og-red-white",
+      "description": "Real StockX listing · 398846-02. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/fr-fr/puma-speedcat-og-red-white",
+      "currency": "EUR",
+      "amount": 55,
+      "amountMinor": 5500,
+      "priceText": "55 €",
+      "priceContext": "Acheter maintenant à",
+      "imageUrl": "https://images.stockx.com/360/Puma-Speedcat-OG-Red-White/Images/Puma-Speedcat-OG-Red-White/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1720189184&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/puma-speedcat-og-red-white",
+      "style": "398846-02",
+      "sourcePageCrawled": "2 days ago",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 10672,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-new-balance-530-white-silver",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "New Balance 530 White Silver Navy",
+      "brand": "New Balance",
+      "category": "Lifestyle",
+      "price": 5500,
+      "image": "/products/stockx-extra-new-balance-530-white-silver.webp",
+      "sourceUrl": "https://stockx.com/de-de/new-balance-530-white-silver-navy",
+      "description": "Real StockX listing · MR530SG. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/new-balance-530-white-silver-navy",
+      "currency": "EUR",
+      "amount": 55,
+      "amountMinor": 5500,
+      "priceText": "55 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/New-Balance-530-White-Silver-Navy/Images/New-Balance-530-White-Silver-Navy/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1784650069&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/new-balance-530-white-silver-navy",
+      "style": "MR530SG",
+      "sourcePageCrawled": "today",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 16082,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-jordan-4-sb-pine-green",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "Jordan 4 Retro SB Pine Green",
+      "brand": "Jordan",
+      "category": "Skateboarding",
+      "price": 21500,
+      "image": "/products/stockx-extra-jordan-4-sb-pine-green.webp",
+      "sourceUrl": "https://stockx.com/de-de/air-jordan-4-retro-sb-pine-green",
+      "description": "Real StockX listing · DR5415-103. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/air-jordan-4-retro-sb-pine-green",
+      "currency": "EUR",
+      "amount": 215,
+      "amountMinor": 21500,
+      "priceText": "215 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/Air-Jordan-4-Retro-SB-Pine-Green/Images/Air-Jordan-4-Retro-SB-Pine-Green/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1784318304&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/air-jordan-4-retro-sb-pine-green",
+      "style": "DR5415-103",
+      "sourcePageCrawled": "yesterday",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 11174,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-asics-kayano-14-midnight",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "ASICS Gel-Kayano 14 White Midnight (Women's)",
+      "brand": "ASICS",
+      "category": "Running",
+      "price": 12200,
+      "image": "/products/stockx-extra-asics-kayano-14-midnight.webp",
+      "sourceUrl": "https://stockx.com/fr-fr/asics-gel-kayano-14-white-midnight-w",
+      "description": "Real StockX listing · 1202A056-109. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/fr-fr/asics-gel-kayano-14-white-midnight-w",
+      "currency": "EUR",
+      "amount": 122,
+      "amountMinor": 12200,
+      "priceText": "122 €",
+      "priceContext": "Acheter maintenant à",
+      "imageUrl": "https://images.stockx.com/360/Asics-Gel-Kayano-14-White-Midnight-W/Images/Asics-Gel-Kayano-14-White-Midnight-W/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1786214585&w=576",
+      "imageSourceUrl": "https://stockx.com/fr-fr/asics-gel-kayano-14-white-midnight-w",
+      "style": "1202A056-109",
+      "sourcePageCrawled": "today",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 18138,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-nike-air-max-90-infrared",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "Nike Air Max 90 Infrared (2020)",
+      "brand": "Nike",
+      "category": "Lifestyle",
+      "price": 10800,
+      "image": "/products/stockx-extra-nike-air-max-90-infrared.webp",
+      "sourceUrl": "https://stockx.com/fr-fr/nike-air-max-90-infrared-2020",
+      "description": "Real StockX listing · CT1685-100. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/fr-fr/nike-air-max-90-infrared-2020",
+      "currency": "EUR",
+      "amount": 108,
+      "amountMinor": 10800,
+      "priceText": "108 €",
+      "priceContext": "Acheter maintenant à",
+      "imageUrl": "https://images.stockx.com/360/Nike-Air-Max-90-Infrared-2020/Images/Nike-Air-Max-90-Infrared-2020/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1771508320&w=576",
+      "imageSourceUrl": "https://stockx.com/fr-fr/nike-air-max-90-infrared-2020",
+      "style": "CT1685-100",
+      "sourcePageCrawled": "last week",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 16386,
+      "localImageDimensions": {
+        "width": 576,
+        "height": 384
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "stockx-extra-nike-air-max-1-patta-monarch",
+      "store": "stockx",
+      "merchantName": "StockX",
+      "currency": "EUR",
+      "name": "Nike Air Max 1 Patta Waves Monarch (without Bracelet)",
+      "brand": "Nike",
+      "category": "Lifestyle",
+      "price": 14200,
+      "image": "/products/stockx-extra-nike-air-max-1-patta-monarch.webp",
+      "sourceUrl": "https://stockx.com/de-de/nike-air-max-1-patta-monarch",
+      "description": "Real StockX listing · DH1348-001. EU 38–44 choices are simulated selections. The recorded EUR starting ask applies to all sizes selected on the source page; actual size prices and fees may differ. No live stock is claimed.",
+      "sizes": [
+        "EU 38",
+        "EU 39",
+        "EU 40",
+        "EU 41",
+        "EU 42",
+        "EU 43",
+        "EU 44"
+      ],
+      "priceNote": "Cached EUR starting ask · demo sizes · fees may apply",
+      "priceKind": "snapshot",
+      "fetchedAt": "2026-11-15T05:19:35Z"
+    },
+    "evidence": {
+      "priceUrl": "https://stockx.com/de-de/nike-air-max-1-patta-monarch",
+      "currency": "EUR",
+      "amount": 142,
+      "amountMinor": 14200,
+      "priceText": "142 €",
+      "priceContext": "Jetzt kaufen zum Preis von",
+      "imageUrl": "https://images.stockx.com/360/Nike-Air-Max-1-Patta-Monarch/Images/Nike-Air-Max-1-Patta-Monarch/Lv2/img01.jpg?dpr=1&h=384&q=60&updated_at=1784331688&w=576",
+      "imageSourceUrl": "https://stockx.com/de-de/nike-air-max-1-patta-monarch",
+      "style": "DH1348-001",
+      "sourcePageCrawled": "2 weeks ago",
+      "retrievalMethod": "Official StockX public page retrieved through web tool; source may be a cached crawl. Image link copied from that listing.",
+      "sizesEvidence": "Source page has all sizes selected. Displayed EU options are simulated, not verified inventory.",
+      "fetchedAt": "2026-11-15T05:19:35Z",
+      "imageHttpStatus": 200,
+      "imageContentType": "image/jpeg",
+      "localImageBytes": 12670,
+      "localImageDimensions": {
+        "width": 512,
+        "height": 384
+      }
+    }
+  }
+]
