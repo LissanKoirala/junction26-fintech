@@ -11,10 +11,11 @@ import { GeminiError, geminiParse, geminiStream, type StreamLike } from "./gemin
 /** LLM_PROVIDER=gemini (default) | anthropic (rollback to the Claude path). */
 export const PROVIDER: "gemini" | "anthropic" = process.env.LLM_PROVIDER?.trim().toLowerCase() === "anthropic" ? "anthropic" : "gemini";
 // Gemini model settings are chains (comma-separated, first choice first): quotas are per model, so on a 429 the call
-// moves to the next one (gemini.ts). One model id works too.
-export const MODEL = PROVIDER === "gemini" ? (process.env.GEMINI_MODEL ?? "gemini-3.5-flash-lite,gemini-3.6-flash,gemini-3.1-flash-lite") : (process.env.VARA_MODEL ?? "anthropic:claude@opus-5.5");
+// moves to the next one (gemini.ts). One model id works too. The last link is the same Gemini model through Runware
+// (paid capacity, not tied to the free tier). VARA_-prefixed names on purpose: the Shopping Lab reads GEMINI_MODEL.
+export const MODEL = PROVIDER === "gemini" ? (process.env.VARA_GEMINI_MODEL ?? "gemini-3.5-flash-lite,gemini-3.6-flash,gemini-3.1-flash-lite,runware:google:gemini@3.5-flash-lite") : (process.env.VARA_MODEL ?? "anthropic:claude@opus-5.5");
 /** Default model for the Crave shop generator (fast, time to first product matters most). */
-export const CRAVE_DEFAULT_MODEL = PROVIDER === "gemini" ? (process.env.GEMINI_CRAVE_MODEL ?? "gemini-3.5-flash-lite,gemini-3.6-flash,gemini-3.1-flash-lite") : (process.env.CRAVE_MODEL ?? "anthropic:claude@haiku-5.5");
+export const CRAVE_DEFAULT_MODEL = PROVIDER === "gemini" ? (process.env.VARA_GEMINI_CRAVE_MODEL ?? "gemini-3.5-flash-lite,gemini-3.6-flash,gemini-3.1-flash-lite,runware:google:gemini@3.5-flash-lite") : (process.env.CRAVE_MODEL ?? "anthropic:claude@haiku-5.5");
 export const EFFORT = (process.env.VARA_EFFORT ?? "low") as "low" | "medium" | "high";
 
 let client: Anthropic | null = null;

@@ -45,7 +45,8 @@ export function fullPrompt(kind: ShopKind, p: string): string {
   const subject = p.replace(/[^\p{L}\p{N}\s,.'-]/gu, " ").slice(0, 220);
   return kind === "food"
     ? `Appetising food photography of ${subject}, served on a simple ceramic plate on a light wooden table, soft natural daylight, shallow depth of field, close-up, fresh and delicious. No text, no logos, no packaging labels, no people, no hands.`
-    : `Clean studio product photo of ${subject}, a plain unbranded generic design with blank unmarked surfaces, centered on a seamless soft pastel background, soft shadow, premium e-commerce catalogue shot, high detail. No text, no lettering, no logos, no emblems, no brand stripes or side markings, no people, no hands.`;
+    : `Clean studio product photo of ${subject}, a plain unbranded product with a generic design and blank unmarked surfaces, centered on a seamless soft pastel background, soft shadow, premium e-commerce catalogue shot, high detail. Plain unbranded product: no logos, no stripes, no lettering, no trademarks, no emblems, no side markings or panels in a contrasting colour, no text, no people, no hands.`;
+// (this model does not accept a negative prompt: Runware answers "unsupportedParameter" for negativePrompt)
 }
 
 const imgHash = (prompt: string) => createHash("sha1").update(IMAGE_MODEL + "|" + prompt).digest("hex").slice(0, 20);

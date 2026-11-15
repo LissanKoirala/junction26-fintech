@@ -6,6 +6,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { CRAVE_DEFAULT_MODEL, streamMessage } from "../llm";
 import { capCravePrice, shortenAtWord, CRAVE_ACCENTS, CRAVE_BADGES, CRAVE_CATEGORIES, CRAVE_ICONS, type CraveAddOn, type CraveProduct, type CraveReview, type CraveShopHeader, type CraveVariant } from "../../shared/crave";
 import { DetailsSchema, ShopSchema } from "./schema";
+import { realBrand, scrubBrands } from "./brands";
 import { tr, type Lang } from "../../shared/i18n";
 
 export const CRAVE_MODEL = CRAVE_DEFAULT_MODEL;
@@ -13,11 +14,11 @@ export const CRAVE_MODEL = CRAVE_DEFAULT_MODEL;
 const SYSTEM = `You generate a believable, original online shop on the fly for "Crave mode" in a Finnish bank's app (a Junction 2026 hackathon concept). The customer has chosen to scratch a shopping craving by browsing and checking out in a simulated shop; nothing ships and the money goes to their own savings. Your job is to make the hunt fun and realistic.
 
 Rules:
-- Everything is invented: shop name, brand names, product names. NEVER use or imitate a real retailer, delivery app, restaurant chain, brand, product line or trademark (no Apple, Nike, Sony, Wolt, Foodora, Zalando, IKEA, etc.). Invent plausible, tasteful names (Nordic-sounding names are welcome).
+- Everything is invented: shop name, brand names, product names. NEVER use or imitate a real retailer, delivery app, restaurant chain, brand, product line, model name or trademark (no Apple, Nike, Sony, Wolt, Foodora, Zalando, IKEA, etc.), and never a real product-line or model name in a product name (no Cloudfoam, Ultraboost, Air Max, Jordan, Gel-Kayano, Fresh Foam, AirPods, QuietComfort, Galaxy, PlayStation, Big Mac and the like), nor a near copy of one. Name things in the style of an invented Nordic label: a short Finnish or Nordic-sounding word plus a plain descriptor, in the style of "Kivi Trail Runner" or "Hiljaa ANC Over-Ear" (style only: invent fresh names, do not reuse these).
 - Decide the shop type: "food" for meals, snacks, drinks, takeaway and restaurant cravings (a delivery-app style menu of one invented restaurant, with dishes, add-ons, spice levels or sizes); "store" for things (an online store with a product grid).
 - Prices in euros at realistic Finnish market level (e.g. sushi set 14-24 €, wireless headphones 39-349 €, sneakers 69-189 €). Use prices like 12.90, 79.00, 149.95. Make a spread from affordable to premium.
 - 10 products, varied, each with a one-line pitch and 1-2 tags drawn from the shop's 4-6 facets so filters are useful. 2-3 products on sale with compareAtPrice 15-30% higher, 1-2 with stockLeft, a few badges, most badges empty.
-- imagePrompt: a concrete visual description for a product photo (object, colour, material, styling). No brand names, no text, no logos, no people.
+- imagePrompt: a concrete visual description for a product photo (object, colour, material, styling) of a plain unbranded product. No brand names, no logos, no stripes or brand markings, no text, no people.
 - {LANGUAGE} Keep strings short.
 - Refuse (refused=true, products empty, a kind one-sentence refusalMessage) for cravings a bank app should not simulate: weapons, drugs or other controlled substances, adult or sexual content, gambling or betting, tobacco or vaping, anything illegal or harmful, or anything about hurting people. Alcohol: keep it to food pairings, do not build a liquor shop. For non-shoppable or unclear cravings (e.g. "love", "a holiday"), still make a sensible shop if you can (e.g. a travel gear store) without refusing.`;
 
@@ -96,15 +97,15 @@ export function cleanDetails(p: Record<string, unknown>): { variants: CraveVaria
   const arr = (v: unknown) => (Array.isArray(v) ? (v as Record<string, unknown>[]) : []);
   return {
     variants: arr(p.variants)
-      .map((v) => ({ name: str(v.name, 24), options: (Array.isArray(v.options) ? v.options : []).map((o) => str(o, 24)).filter(Boolean).slice(0, 6) }))
+      .map((v) => ({ name: str(v.name, 24), options: (Array.isArray(v.options) ? v.options : []).map((o) => scrubBrands(str(o, 24))).filter(Boolean).slice(0, 6) }))
       .filter((v) => v.name && v.options.length > 1)
       .slice(0, 2),
     addOns: arr(p.addOns)
-      .map((a) => ({ name: str(a.name, 40), price: r2(clamp(a.price, 0, 500, 1)) }))
+      .map((a) => ({ name: scrubBrands(str(a.name, 40)), price: r2(clamp(a.price, 0, 500, 1)) }))
       .filter((a) => a.name)
       .slice(0, 4),
     reviews: arr(p.reviews)
-      .map((r) => ({ name: str(r.name, 24, "Customer"), rating: Math.round(clamp(r.rating, 1, 5, 5)), text: str(r.text, 200) }))
+      .map((r) => ({ name: str(r.name, 24, "Customer"), rating: Math.round(clamp(r.rating, 1, 5, 5)), text: scrubBrands(str(r.text, 200)) }))
       .filter((r) => r.text)
       .slice(0, 3),
   };
@@ -166,59 +167,140 @@ const LANGUAGE: Record<Lang, string> = {
 };
 const systemFor = (lang: Lang) => SYSTEM.replace("{LANGUAGE}", LANGUAGE[lang]);
 
+/** A shop needs at least this many products; fewer (an empty or cut-off stream) is retried, never cached. */
+export const MIN_PRODUCTS = 6;
+const STALL_MS = Number(process.env.VARA_CRAVE_STALL_MS ?? 6000); // no new output this long after the header: retry
+const INVENTED_SHOPS = ["Lumo Market", "Kaamos & Co", "Revontuli Store", "Pakkas Supply", "Sisu Lane", "Kivi & Kuu", "Hanki Studio", "Tuisku Shop"];
+
+/** Removes real brands and product lines from a product (brand falls back to the shop's own invented name); null drops it. */
+export function scrubProduct(p: CraveProduct, shopName: string): CraveProduct | null {
+  const hit = realBrand(p.brand) ?? realBrand(p.name) ?? realBrand(p.pitch) ?? realBrand(p.imagePrompt) ?? p.tags.map(realBrand).find(Boolean) ?? null;
+  if (!hit) return p;
+  const name = scrubBrands(p.name);
+  console.warn(`[crave] real brand "${hit}" removed from a generated product`);
+  if (name.replace(/[^\p{L}]/gu, "").length < 3) return null;
+  return { ...p, brand: realBrand(p.brand) ? shopName : p.brand, name, pitch: scrubBrands(p.pitch), tags: p.tags.map(scrubBrands).filter(Boolean), imagePrompt: scrubBrands(p.imagePrompt) || name };
+}
+
+function scrubHeader<T extends CraveShopHeader>(h: T, craving: string): T {
+  if (!realBrand(h.shopName) && !realBrand(h.tagline)) return h;
+  console.warn(`[crave] real brand removed from a generated shop header`);
+  const pick = INVENTED_SHOPS[[...craving].reduce((a, c) => a + c.charCodeAt(0), 0) % INVENTED_SHOPS.length];
+  return { ...h, shopName: realBrand(h.shopName) ? pick : h.shopName, tagline: scrubBrands(h.tagline) };
+}
+
+/**
+ * Streams the shop: header first, then products one by one. If the stream ends (or stalls for STALL_MS after the
+ * header) with fewer than MIN_PRODUCTS products, it retries once on the same model chain, then once on the rest of
+ * the chain; a retry keeps the header already shown (the model is told to use it) and adds products after those
+ * already sent. Products are checked against the real-brand list before they are sent.
+ */
 export async function generateShop(craving: string, cb: GenCallbacks, signal: AbortSignal, model = CRAVE_MODEL, lang: Lang = "en"): Promise<GenResult> {
   const t0 = Date.now();
   let ttft = 0;
-  const isHaiku = /haiku|gemini/.test(model); // Gemini: thinking "disabled" maps to the lowest thinking level
-  const params: Anthropic.MessageCreateParamsNonStreaming = {
-    model,
-    max_tokens: 8000,
-    system: systemFor(lang),
-    messages: [{ role: "user", content: `The customer's craving: "${craving}"\nGenerate the shop.` }],
-    output_config: { effort: "low", format: zodOutputFormat(ShopSchema) },
+  const chain = model.split(",").map((m) => m.trim()).filter(Boolean);
+  const plans = chain.length > 1 ? [model, model, chain.slice(1).join(",")] : [model, model];
+  const usage = { in: 0, out: 0 };
+  let shown: (CraveShopHeader & { refused: boolean; refusalMessage: string }) | null = null;
+  let rawHeader: Record<string, unknown> | null = null;
+  let lastFull: Record<string, unknown> | null = null;
+  const products: CraveProduct[] = [];
+  const take = (raw: Record<string, unknown>) => {
+    if (products.length >= 10 || !shown || shown.refused) return;
+    let p: CraveProduct | null = cleanProduct(raw, products.length);
+    if (shown.kind === "food") p = { ...p, brand: shown.shopName };
+    p = scrubProduct(p, shown.shopName);
+    if (!p) return;
+    products.push(p);
+    cb.onProduct(p);
   };
-  // Fastest settings that keep quality: no thinking where the model allows it.
-  if (isHaiku) (params as unknown as Record<string, unknown>).thinking = { type: "disabled" };
-  else if (/sonnet-5\.5/.test(model)) (params as unknown as Record<string, unknown>).thinking = { type: "between_tools" };
-  const ms = streamMessage(params, { signal });
-  let text = "";
-  let headerSent = false;
-  let sent = 0;
-  for await (const ev of ms) {
-    if (ev.type === "content_block_delta" && ev.delta.type === "text_delta") {
-      if (!ttft) ttft = Date.now() - t0;
-      text += ev.delta.text;
-      const { header, products } = scanPartial(text);
-      if (header && !headerSent) {
-        headerSent = true;
-        cb.onHeader(cleanHeader(header));
+  for (let a = 0; a < plans.length && !signal.aborted; a++) {
+    const m = plans[a];
+    const isHaiku = /haiku|gemini/.test(m); // Gemini: thinking "disabled" maps to the lowest thinking level
+    const keep = shown ? { shopName: shown.shopName, kind: shown.kind, category: shown.category, tagline: shown.tagline, accent: shown.accent, icon: shown.icon } : null;
+    const params: Anthropic.MessageCreateParamsNonStreaming = {
+      model: m,
+      max_tokens: 8000,
+      system: systemFor(lang),
+      messages: [
+        {
+          role: "user",
+          content: keep
+            ? `The customer's craving: "${craving}"\nThe shop is already open with this header; use exactly these values: ${JSON.stringify(keep)}. refused is false. Generate the 10 products.`
+            : `The customer's craving: "${craving}"\nGenerate the shop.`,
+        },
+      ],
+      output_config: { effort: "low", format: zodOutputFormat(ShopSchema) },
+    };
+    // Fastest settings that keep quality: no thinking where the model allows it.
+    if (isHaiku) (params as unknown as Record<string, unknown>).thinking = { type: "disabled" };
+    else if (/sonnet-5\.5/.test(m)) (params as unknown as Record<string, unknown>).thinking = { type: "between_tools" };
+    const local = new AbortController();
+    let lastOut = Date.now();
+    let stalled = false;
+    const watchdog = setInterval(() => {
+      if (shown && Date.now() - lastOut > STALL_MS) {
+        stalled = true;
+        local.abort(new Error("stalled"));
       }
-      while (sent < products.length) {
-        cb.onProduct(cleanProduct(products[sent], sent));
-        sent++;
+    }, 250);
+    let text = "";
+    let seen = 0;
+    let refusedByStop = false;
+    try {
+      const ms = streamMessage(params, { signal: AbortSignal.any([signal, local.signal]) });
+      for await (const ev of ms) {
+        if (ev.type === "content_block_delta" && ev.delta.type === "text_delta") {
+          lastOut = Date.now();
+          if (!ttft) ttft = Date.now() - t0;
+          text += ev.delta.text;
+          const { header, products: ps } = scanPartial(text);
+          if (header && !shown) {
+            rawHeader = header;
+            shown = scrubHeader(cleanHeader(header), craving);
+            cb.onHeader(shown);
+          }
+          while (seen < ps.length) take(ps[seen++]);
+        }
       }
+      const msg = await ms.finalMessage();
+      usage.in += msg.usage.input_tokens;
+      usage.out += msg.usage.output_tokens;
+      refusedByStop = msg.stop_reason === "refusal";
+    } catch (err) {
+      if (signal.aborted) throw err;
+      if (!stalled && a === plans.length - 1 && !products.length) throw err;
+      console.warn(`[crave] shop attempt ${a + 1} (${m}) ${stalled ? "stalled" : "failed"}: ${(err as Error).message?.slice(0, 160)}`);
+    } finally {
+      clearInterval(watchdog);
     }
+    if (refusedByStop && !products.length)
+      return { refused: true, refusalMessage: tr(lang).t("This one is not something Crave mode can open a shop for."), header: null, products: [], alsoBought: [], usage, ttftMs: ttft };
+    let full: Record<string, unknown> | null = null;
+    try {
+      full = JSON.parse(text);
+    } catch {
+      full = null;
+    }
+    if (full) lastFull = full;
+    const scanned = scanPartial(text);
+    if (!shown && (full ?? scanned.header)) {
+      rawHeader = full ?? scanned.header;
+      shown = scrubHeader(cleanHeader(rawHeader!), craving);
+      cb.onHeader(shown);
+    }
+    if (shown?.refused) break;
+    const rest = full && Array.isArray(full.products) ? (full.products as Record<string, unknown>[]) : scanned.products;
+    while (seen < rest.length) take(rest[seen++]);
+    if (products.length >= MIN_PRODUCTS) break;
+    if (a < plans.length - 1) console.warn(`[crave] only ${products.length} products after attempt ${a + 1}${stalled ? " (stalled)" : ""}; retrying`);
   }
-  const msg = await ms.finalMessage();
-  const usage = { in: msg.usage.input_tokens, out: msg.usage.output_tokens };
-  if (msg.stop_reason === "refusal")
-    return { refused: true, refusalMessage: tr(lang).t("This one is not something Crave mode can open a shop for."), header: null, products: [], alsoBought: [], usage, ttftMs: ttft };
-  let full: Record<string, unknown> | null = null;
-  try {
-    full = JSON.parse(text);
-  } catch {
-    full = null;
-  }
-  const scanned = scanPartial(text);
-  const rawProducts = full && Array.isArray(full.products) ? (full.products as Record<string, unknown>[]) : scanned.products;
-  const products = rawProducts.slice(0, 14).map((p, i) => cleanProduct(p, i));
-  while (sent < products.length) cb.onProduct(products[sent++]);
-  const hdr = full ?? scanned.header;
-  const header = hdr ? { ...cleanHeader(hdr), ...deriveFacets(products) } : null;
-  if (header && !headerSent) cb.onHeader(header);
+  if (shown?.refused) return { refused: true, refusalMessage: shown.refusalMessage, header: shown, products: [], alsoBought: [], usage, ttftMs: ttft };
+  const hdrSrc = { ...(lastFull ?? rawHeader ?? {}), ...(rawHeader ? { shopName: shown?.shopName, kind: shown?.kind, category: shown?.category, tagline: shown?.tagline, accent: shown?.accent, icon: shown?.icon } : {}), refused: false };
+  const header = shown ? { ...scrubHeader(cleanHeader(hdrSrc), craving), ...deriveFacets(products) } : null;
   const ids = new Set(products.map((p) => p.id));
-  const alsoBought = (full && Array.isArray(full.alsoBought) ? (full.alsoBought as unknown[]) : []).map(String).filter((id) => ids.has(id)).slice(0, 4);
-  return { refused: !!header?.refused, refusalMessage: header?.refusalMessage ?? "", header, products, alsoBought, usage, ttftMs: ttft };
+  const alsoBought = (lastFull && Array.isArray(lastFull.alsoBought) ? (lastFull.alsoBought as unknown[]) : []).map(String).filter((id) => ids.has(id)).slice(0, 4);
+  return { refused: false, refusalMessage: "", header, products, alsoBought, usage, ttftMs: ttft };
 }
 
 const DETAILS_SYSTEM = `You write product details for an invented online shop in a Finnish bank's "Crave mode" (a Junction 2026 concept; nothing ships). For each product id you get, write variants, add-ons and 2-3 short believable reviews. Variants must fit the product (sizes for clothes and shoes, colours for gadgets, spice level or size for dishes). Add-on prices in euros at Finnish level. Reviewer names are invented first names with an initial. Never mention real brands, retailers or people. Short strings.`;

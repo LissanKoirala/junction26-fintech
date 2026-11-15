@@ -52,6 +52,8 @@ function apply(key: string, ev: CraveEvent) {
       case "done": {
         const shop: CraveShop = ev.shop;
         const { products, alsoBought, craving: _c, ...header } = shop;
+        // a "done" without products must not leave the hunting screen spinning
+        if (!products?.length) return { ...s, status: "error", message: t("The shop could not be opened right now. Please try again.") };
         // keep images that arrived on the stream if the final copy has none yet
         const merged = products.map((p) => {
           const prev = s.products.find((x) => x.id === p.id);

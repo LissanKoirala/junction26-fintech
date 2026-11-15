@@ -101,3 +101,24 @@ export function userNumbers(texts: string[]): number[] {
   }
   return out;
 }
+
+/** Affordability verdicts (from get_safe_to_spend's `affordability`, computed by the engine) against the prose: returns
+ *  the engine's own sentence when a sentence claims the opposite (e.g. "you can afford it" when it does not fit), so
+ *  the route can append the correction. Number checks cannot catch a wrong verdict in words; this does, cheaply. */
+export function verdictConflict(prose: string, sources: unknown[]): { verdict: string; say: string } | null {
+  const affs: { verdict: string; say: string }[] = [];
+  for (const s of sources) {
+    const a = s && typeof s === "object" && !Array.isArray(s) ? (s as { affordability?: { verdict?: unknown; say?: unknown } }).affordability : undefined;
+    if (a && typeof a.verdict === "string" && typeof a.say === "string") affs.push({ verdict: a.verdict, say: a.say });
+  }
+  if (!affs.length) return null;
+  const sentences = prose.split(/(?<=[.!?])\s+|\n+/).map((x) => x.trim()).filter(Boolean);
+  const POS = /\b(can|could|will be able to)\s+(?:\w+\s+)?afford\b|\b(?:it|that|this)\s+(?:\w+\s+)?fits\b|\bplenty of room\b|\bno problem\b|\bgo for it\b|\bon\s+(?:\w+\s+)?varaa\b|\bmahtuu\b|\bvoit\s+(?:\w+\s+)?(?:ostaa|hankkia)\b/i;
+  const NEG_WORD = /\b(?:not|cannot|no|never|short|more than|exceeds?|over|ei|et|eikä|enemmän|yli|mutta)\b|n't\b/i;
+  const NEG = /\b(?:can't|cannot|can not|couldn't|could not)\s+(?:\w+\s+)?afford\b|\bdoes(?:n't| not)\s+fit\b|\bei\s+(?:ole\s+)?varaa\b|\bei\s+mahdu\b|\bet\s+voi\b/i;
+  for (const a of affs) {
+    if (a.verdict === "does_not_fit" && sentences.some((x) => POS.test(x) && !NEG_WORD.test(x))) return a;
+    if (a.verdict === "fits_this_week" && sentences.some((x) => NEG.test(x))) return a;
+  }
+  return null;
+}

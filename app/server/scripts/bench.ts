@@ -1,6 +1,6 @@
-// Latency benchmark for /api/chat through the real route code (in-process). Model from GEMINI_MODEL (or, with
+// Latency benchmark for /api/chat through the real route code (in-process). Model from VARA_GEMINI_MODEL (or, with
 // LLM_PROVIDER=anthropic, VARA_MODEL).
-// Usage: GEMINI_MODEL=gemini-3.5-flash-lite npx tsx server/scripts/bench.ts 3
+// Usage: VARA_GEMINI_MODEL=gemini-3.5-flash-lite npx tsx server/scripts/bench.ts 3
 import { Hono } from "hono";
 import { registerChatRoutes } from "../chat/route";
 import { MODEL } from "../llm";

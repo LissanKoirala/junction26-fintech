@@ -316,10 +316,42 @@ function safeModel(s: SafeToSpend) {
     note: s.note,
   };
 }
+/** Engine verdict for "can I afford X?": the model reports it, never its own comparison (see the prompt and the guard). */
+export type Affordability = { amount: number; verdict: "fits_this_week" | "fits_until_payday_but_tight" | "does_not_fit"; fits: boolean; free_until_payday: number; safe_for_rest_of_week: number; short_by: number; left_until_payday_after: number; say: string; rule: string };
+export function affordability(s: SafeToSpend, amount: number, lang: Lang): Affordability {
+  const free = r2(Math.max(0, s.freeUntilPayday));
+  const week = r2(Math.max(0, s.week.remaining));
+  const a = r2(amount);
+  const verdict = a <= week ? "fits_this_week" : a <= free ? "fits_until_payday_but_tight" : "does_not_fit";
+  const short = verdict === "does_not_fit" ? r2(a - free) : 0;
+  const left = verdict === "does_not_fit" ? 0 : r2(free - a);
+  const whole = (x: number) => Number.isInteger(x);
+  const m = (x: number) => (lang === "fi" ? (whole(x) ? eur0(x) : eur(x)) : `€${x.toLocaleString("en-GB", { minimumFractionDigits: whole(x) ? 0 : 2, maximumFractionDigits: 2 })}`);
+  const until = s.nextPayday.estimated ? (lang === "fi" ? "seuraavalle 30 päivälle" : "for the next 30 days") : lang === "fi" ? "ennen palkkapäivää" : "until payday";
+  const say =
+    lang === "fi"
+      ? verdict === "does_not_fit"
+        ? `${m(a)} on ${m(short)} enemmän kuin ${until} vapaana oleva ${m(free)}, joten se ei mahdu ilman, että se syö pakollisiin menoihin varattua rahaa.`
+        : verdict === "fits_until_payday_but_tight"
+          ? `${m(a)} mahtuu ${until} vapaana olevaan ${m(free)}, mutta ylittää tämän viikon käyttövaran (${m(week)}); jäljelle jäisi ${m(left)}.`
+          : `${m(a)} mahtuu tämän viikon käyttövaraan (${m(week)}).`
+      : verdict === "does_not_fit"
+        ? `${m(a)} is ${m(short)} more than the ${m(free)} free ${until}, so it does not fit without eating into money set aside for musts.`
+        : verdict === "fits_until_payday_but_tight"
+          ? `${m(a)} fits within the ${m(free)} free ${until}, but it is more than this week's safe amount (${m(week)}); ${m(left)} would be left.`
+          : `${m(a)} fits within this week's safe amount (${m(week)}).`;
+  return {
+    amount: a, verdict, fits: verdict !== "does_not_fit", free_until_payday: free, safe_for_rest_of_week: week, short_by: short, left_until_payday_after: left, say,
+    rule: "State this verdict (you may use `say` as written). Never tell the user they can afford it unless verdict is fits_this_week; for does_not_fit say plainly that it does not fit and give short_by.",
+  };
+}
 const safeTool = tool({
   name: "get_safe_to_spend",
-  description: "How much is safe to spend per week until the next payday: balance minus the musts still coming (rent, bills, groceries, investing, goal, buffer). The heart of 'your balance is not your budget'.",
-  schema: z.object({ include_investing: z.boolean().optional().describe("Treat the usual investment deposit as committed (default true).") }),
+  description: "How much is safe to spend per week until the next payday: balance minus the musts still coming (rent, bills, groceries, investing, goal, buffer). The heart of 'your balance is not your budget'. For 'can I afford X?' / 'onko minulla varaa X?', pass amount: the result's affordability gives the verdict to report.",
+  schema: z.object({
+    include_investing: z.boolean().optional().describe("Treat the usual investment deposit as committed (default true)."),
+    amount: z.number().min(0).max(10_000_000).optional().describe("Price in euros when the user asks whether they can afford a specific purchase or amount."),
+  }),
   status: (_i, t) => t.t("Checking what is still coming before payday…"),
   run: (ctx, i) => {
     const t = T(ctx);
@@ -344,7 +376,8 @@ const safeTool = tool({
         source: src(ctx),
       },
     };
-    return { model: { ...safeModel(s), cards: cardRef([card]) }, full: s, cards: [card] };
+    const aff = i.amount != null ? affordability(s, i.amount, t.lang) : undefined;
+    return { model: { ...safeModel(s), ...(aff ? { affordability: aff } : {}), cards: cardRef([card]) }, full: aff ? { ...s, affordability: aff } : s, cards: [card] };
   },
 });
 
@@ -750,7 +783,7 @@ const actionTool = tool({
 const craveTool = tool({
   name: "offer_crave_mode",
   description:
-    "Offer Crave mode when the user wants, is tempted by or asks whether to buy something specific (\"I want new headphones\", \"I'm craving sushi\", \"should I buy those sneakers?\"). Crave mode opens a generated shop for the craving with a full checkout; nothing ships and the basket total goes (simulated) into the user's Crave pot in savings, releasable after a 48-hour cooling-off. Pass the craving as a short shopping phrase (e.g. \"sushi\", \"wireless headphones\").",
+    "Offer Crave mode when the user wants, is tempted by or asks whether to buy something specific, in any language (\"I want new headphones\", \"I'm craving sushi\", \"should I buy those sneakers?\", \"Haluan uudet lenkkarit\", \"Tekisi mieli sushia\", \"Pitäisikö ostaa uudet kuulokkeet?\"). Always call it for such wishes, also in Finnish. Crave mode opens a generated shop for the craving with a full checkout; nothing ships and the basket total goes (simulated) into the user's Crave pot in savings, releasable after a 48-hour cooling-off. Pass the craving as a short shopping phrase (e.g. \"sushi\", \"wireless headphones\").",
   schema: z.object({ craving: z.string().min(1).max(60).describe("Short phrase for what they crave, in English, e.g. 'new sneakers'") }),
   status: (_i, t) => t.t("Opening Crave mode…"),
   run: (ctx, i) => {

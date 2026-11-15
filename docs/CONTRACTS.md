@@ -49,8 +49,10 @@ Target user: young adults 18-30. UI language: English. The coach answers in what
 - **File ownership.** Other agents are editing this repo at the same time. Only create or edit files inside the paths
   your brief gives you. If you need a change elsewhere, say so in your final report instead of making it.
 - Do not run `git commit`. Do not touch `.vm/`, `.env`, `bin/`, the Caddy config or the Azure setup.
-- Language model: Gemini by default (`GEMINI_API_KEY`; models `GEMINI_MODEL` for the coach and check-in,
-  `GEMINI_CRAVE_MODEL` for Crave shops, each a comma-separated fallback chain). `LLM_PROVIDER=anthropic` switches back
+- Language model: Gemini by default (`GEMINI_API_KEY`; models `VARA_GEMINI_MODEL` for the coach and check-in,
+  `VARA_GEMINI_CRAVE_MODEL` for Crave shops, each a comma-separated fallback chain whose last link,
+  `runware:google:gemini@3.5-flash-lite`, is the same Gemini model through Runware's OpenAI-compatible endpoint;
+  never set `GEMINI_MODEL` for the app, the Shopping Lab owns that name). `LLM_PROVIDER=anthropic` switches back
   to Claude via Runware (`RUNWARE_API_KEY`, `VARA_MODEL`, `CRAVE_MODEL`). Crave product photos always use Runware
   (`CRAVE_IMAGE_MODEL`, default `bfl:flux@3-image-klein`).
 - Secrets: the keys are the env vars `GEMINI_API_KEY` and `RUNWARE_API_KEY` on the VM. Never print them, never write

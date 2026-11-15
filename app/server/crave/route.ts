@@ -13,7 +13,7 @@ import { z } from "zod";
 import { CRAVE_PRICE_CAP, type CraveEvent, type CraveProduct, type CraveShop, type CraveShopHeader } from "../../shared/crave";
 import { isCustomerId } from "../data";
 import { clientIp, rateLimit, takeDailyBudget } from "../llm";
-import { CRAVE_MODEL, generateDetails, generateShop } from "./generate";
+import { CRAVE_MODEL, MIN_PRODUCTS, generateDetails, generateShop } from "./generate";
 import { CRAVE_DIR, IMAGE_MODEL, productImage, readImage } from "./images";
 import { tr, type Lang } from "../../shared/i18n";
 import { registerWalletRoutes } from "./wallet";
@@ -162,6 +162,13 @@ export async function buildShop(craving: string, send: (ev: CraveEvent) => void 
     log.totalMs = Date.now() - t0;
     return { shop: null, log };
   }
+  if (res.products.length < MIN_PRODUCTS) {
+    // the model ended (or stalled) with too few products even after the retries: say so instead of a half-empty shop
+    console.warn(`[crave] incomplete shop (${res.products.length} products) for a craving; not shown, not cached`);
+    await send({ type: "error", message: t("The shop could not be opened right now. Please try again.") });
+    log.totalMs = Date.now() - t0;
+    return { shop: null, log };
+  }
   header ??= res.header;
   for (const p of res.products) startImage(p);
   startDetails(res.products.slice(streamed.length >= 5 ? 5 : 0));
@@ -177,7 +184,7 @@ export async function buildShop(craving: string, send: (ev: CraveEvent) => void 
   };
   log.totalMs = Date.now() - t0;
   log.detailsMs = detailsMs;
-  if (shop.products.length >= 4) {
+  if (shop.products.length >= MIN_PRODUCTS) {
     // cache only complete shops whose images all arrived (a later visit retries missing images)
     if (shop.products.every((p) => p.image && p.details)) {
       await mkdir(CRAVE_DIR, { recursive: true });

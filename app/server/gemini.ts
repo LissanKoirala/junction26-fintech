@@ -10,9 +10,15 @@
 // short retry) or no response within FIRST_BYTE_MS, the call falls through to the next Gemini model in the chain.
 // A chat turn stays on the model that started it while that model answers; if it has to move mid-turn, the earlier
 // model's signatures are replaced with the documented "skip_thought_signature_validator" value.
+// A chain link "runware:<AIR id>" (e.g. runware:google:gemini@3.5-flash-lite) is the same Gemini model served through
+// Runware's OpenAI-compatible /v1/chat/completions (RUNWARE_API_KEY, paid capacity): the Gemini request is translated
+// to OpenAI shape (tools, tool_calls with extra_content.google.thought_signature, response_format json_schema,
+// reasoning_effort, stream) and the answer back into Gemini parts, so everything above it is unchanged.
 import type Anthropic from "@anthropic-ai/sdk";
 
 const BASE = process.env.GEMINI_BASE_URL ?? "https://generativelanguage.googleapis.com/v1beta";
+const RUNWARE = "runware:";
+const RUNWARE_URL = process.env.VARA_RUNWARE_CHAT_URL ?? "https://api.runware.ai/v1/chat/completions";
 const REQUEST_TIMEOUT_MS = 60_000; // until response headers, on the last model of the chain
 const FIRST_BYTE_MS = 12_000; // until the first streamed chunk (or the response), when another model is left to try
 const RETRY_WAIT_MS = 600; // one short retry on the same model before moving on
@@ -120,7 +126,7 @@ const THINKING = new Set(["minimal", "low", "medium", "high"]);
 function toRequest(p: Anthropic.MessageCreateParams, model: string): Record<string, unknown> {
   const anyP = p as unknown as { output_config?: { effort?: string; format?: { type?: string; schema?: unknown } }; thinking?: { type?: string } };
   const gen: Record<string, unknown> = { maxOutputTokens: p.max_tokens };
-  const level = anyP.thinking?.type === "disabled" ? (process.env.GEMINI_FAST_THINKING ?? "minimal") : anyP.output_config?.effort;
+  const level = anyP.thinking?.type === "disabled" ? (process.env.VARA_GEMINI_FAST_THINKING ?? "minimal") : anyP.output_config?.effort;
   if (level && THINKING.has(level)) gen.thinkingConfig = { thinkingLevel: level };
   const fmt = anyP.output_config?.format;
   if (fmt?.type === "json_schema" && fmt.schema) {
@@ -136,7 +142,8 @@ function toRequest(p: Anthropic.MessageCreateParams, model: string): Record<stri
         functionDeclarations: (p.tools as Anthropic.Tool[]).map((t) => ({ name: t.name, description: t.description, parametersJsonSchema: t.input_schema })),
       },
     ];
-    body.toolConfig = { functionCallingConfig: { mode: p.tool_choice?.type === "none" ? "NONE" : "AUTO" } };
+    const tc = p.tool_choice;
+    body.toolConfig = { functionCallingConfig: tc?.type === "none" ? { mode: "NONE" } : tc?.type === "tool" ? { mode: "ANY", allowedFunctionNames: [tc.name] } : tc?.type === "any" ? { mode: "ANY" } : { mode: "AUTO" } };
   }
   return body;
 }
@@ -158,12 +165,107 @@ const nextReset = () => {
   return d.getTime();
 };
 
-type Posted = { res: Response; model: string; reader?: ReadableStreamDefaultReader<Uint8Array>; first?: ReadableStreamReadResult<Uint8Array> };
+type Posted = { res: Response; model: string; openai: boolean; reader?: ReadableStreamDefaultReader<Uint8Array>; first?: ReadableStreamReadResult<Uint8Array> };
+
+/** Gemini request body -> OpenAI Chat Completions body (Runware link). */
+function toOpenAI(g: Record<string, any>, id: string, stream: boolean): Record<string, unknown> {
+  const messages: Record<string, unknown>[] = [];
+  const sys = (g.systemInstruction?.parts ?? []).map((p: Part) => p.text ?? "").join("\n\n");
+  if (sys) messages.push({ role: "system", content: sys });
+  for (const c of g.contents as GContent[]) {
+    const text = c.parts.filter((p) => typeof p.text === "string").map((p) => p.text).join("");
+    if (c.role === "model") {
+      const calls = c.parts
+        .filter((p) => p.functionCall)
+        .map((p) => ({
+          id: p.functionCall!.id ?? p.functionCall!.name,
+          type: "function",
+          function: { name: p.functionCall!.name, arguments: JSON.stringify(p.functionCall!.args ?? {}) },
+          ...(p.thoughtSignature ? { extra_content: { google: { thought_signature: p.thoughtSignature } } } : {}),
+        }));
+      const textSig = c.parts.find((p) => typeof p.text === "string" && p.thoughtSignature)?.thoughtSignature;
+      messages.push({ role: "assistant", content: text || null, ...(calls.length ? { tool_calls: calls } : textSig ? { extra_content: { google: { thought_signature: textSig } } } : {}) });
+    } else {
+      for (const p of c.parts) {
+        const fr = p.functionResponse as { id?: string; name: string; response: unknown } | undefined;
+        if (fr) messages.push({ role: "tool", tool_call_id: fr.id ?? fr.name, content: JSON.stringify(fr.response) });
+      }
+      if (text) messages.push({ role: "user", content: text });
+    }
+  }
+  const gc = g.generationConfig ?? {};
+  const body: Record<string, unknown> = { model: id, messages, max_tokens: gc.maxOutputTokens, stream };
+  if (stream) body.stream_options = { include_usage: true };
+  if (gc.thinkingConfig?.thinkingLevel) body.reasoning_effort = gc.thinkingConfig.thinkingLevel;
+  if (gc.responseJsonSchema) body.response_format = { type: "json_schema", json_schema: { name: "output", schema: gc.responseJsonSchema } };
+  const decl = g.tools?.[0]?.functionDeclarations as { name: string; description?: string; parametersJsonSchema: unknown }[] | undefined;
+  if (decl?.length) {
+    body.tools = decl.map((f) => ({ type: "function", function: { name: f.name, description: f.description, parameters: f.parametersJsonSchema } }));
+    const fc = g.toolConfig?.functionCallingConfig as { mode?: string; allowedFunctionNames?: string[] } | undefined;
+    body.tool_choice = fc?.mode === "NONE" ? "none" : fc?.mode === "ANY" ? (fc.allowedFunctionNames?.length === 1 ? { type: "function", function: { name: fc.allowedFunctionNames[0] } } : "required") : "auto";
+  }
+  return body;
+}
+
+const FINISH: Record<string, string> = { stop: "STOP", tool_calls: "STOP", length: "MAX_TOKENS", content_filter: "SAFETY" };
+type OAToolCall = { index?: number; id?: string; function?: { name?: string; arguments?: string }; extra_content?: { google?: { thought_signature?: string } } };
+type OAChoice = { delta?: { content?: string | null; tool_calls?: OAToolCall[]; extra_content?: OAToolCall["extra_content"] }; message?: { content?: string | null; tool_calls?: OAToolCall[]; extra_content?: OAToolCall["extra_content"] }; finish_reason?: string | null };
+type OAChunk = { model?: string; choices?: OAChoice[]; usage?: { prompt_tokens?: number; completion_tokens?: number } };
+
+/** OpenAI chunks (or one OpenAI response) -> Gemini response chunks. Tool calls are emitted whole, at the end. */
+class OpenAIToGemini {
+  private calls = new Map<string, { id?: string; name: string; args: string; sig?: string }>();
+  private byIndex = new Map<number, string>(); // OpenAI index -> current entry (Gemini may reuse index 0 for parallel calls)
+  private done = false;
+  convert(c: OAChunk, final = false): GResponse[] {
+    const out: GResponse[] = [];
+    const ch = c.choices?.[0];
+    const d = ch?.delta ?? ch?.message;
+    const parts: Part[] = [];
+    if (d?.content) parts.push({ text: d.content, ...(d.extra_content?.google?.thought_signature ? { thoughtSignature: d.extra_content.google.thought_signature } : {}) });
+    for (const [k, tc] of (d?.tool_calls ?? []).entries()) {
+      const i = tc.index ?? k;
+      let key = this.byIndex.get(i);
+      const known = key ? this.calls.get(key) : undefined;
+      // a new id (or a full name on an entry that already has one) starts a new call, even at the same index
+      if (!known || (tc.id && known.id && tc.id !== known.id) || (!tc.id && tc.function?.name && known.name && known.args)) {
+        key = tc.id ?? `idx${i}-${this.calls.size}`;
+        this.byIndex.set(i, key);
+      }
+      const e = this.calls.get(key!) ?? { name: "", args: "" };
+      if (tc.id) e.id = tc.id;
+      if (tc.function?.name) e.name += tc.function.name;
+      if (tc.function?.arguments) e.args += tc.function.arguments;
+      if (tc.extra_content?.google?.thought_signature) e.sig = tc.extra_content.google.thought_signature;
+      this.calls.set(key!, e);
+    }
+    if (parts.length) out.push({ candidates: [{ content: { parts } }], modelVersion: c.model });
+    if ((ch?.finish_reason || final) && !this.done) out.push(...this.flush(ch?.finish_reason ?? "stop"));
+    if (c.usage) out.push({ usageMetadata: { promptTokenCount: c.usage.prompt_tokens, candidatesTokenCount: c.usage.completion_tokens } });
+    return out;
+  }
+  flush(reason = "stop"): GResponse[] {
+    if (this.done) return [];
+    this.done = true;
+    const parts: Part[] = [...this.calls.values()].map((e) => {
+      let args: Record<string, unknown> = {};
+      try {
+        args = e.args ? JSON.parse(e.args) : {};
+      } catch {
+        /* malformed arguments: the tool's schema check rejects them */
+      }
+      return { functionCall: { ...(e.id ? { id: e.id } : {}), name: e.name, args }, ...(e.sig ? { thoughtSignature: e.sig } : {}) };
+    });
+    return [{ candidates: [{ content: { parts }, finishReason: FINISH[reason] ?? "OTHER" }] }];
+  }
+}
+
+const runwareKey = () => process.env.RUNWARE_API_KEY ?? "";
 async function post(models: string[], method: string, body: (model: string) => unknown, signal?: AbortSignal | null): Promise<Posted> {
   const streaming = method.includes("alt=sse");
   let last: GeminiError | null = null;
   let saw429 = false;
-  const live = models.filter((m) => !((exhausted.get(m) ?? 0) > Date.now()));
+  const live = models.filter((m) => !((exhausted.get(m) ?? 0) > Date.now()) && (!m.startsWith(RUNWARE) || runwareKey()));
   if (!live.length) live.push(...models); // all marked: try anyway, the API decides
   for (let mi = 0; mi < live.length; mi++) {
     const model = live[mi];
@@ -178,12 +280,15 @@ async function post(models: string[], method: string, body: (model: string) => u
       let res: Response | null = null;
       let got: Posted | null = null;
       try {
-        res = await fetch(`${BASE}/models/${model}:${method}`, { method: "POST", headers: { "x-goog-api-key": key(), "Content-Type": "application/json" }, body: JSON.stringify(body(model)), signal: ac.signal });
+        const openai = model.startsWith(RUNWARE);
+        res = openai
+          ? await fetch(RUNWARE_URL, { method: "POST", headers: { Authorization: `Bearer ${runwareKey()}`, "Content-Type": "application/json" }, body: JSON.stringify(toOpenAI(body(model) as Record<string, unknown>, model.slice(RUNWARE.length), streaming)), signal: ac.signal })
+          : await fetch(`${BASE}/models/${model}:${method}`, { method: "POST", headers: { "x-goog-api-key": key(), "Content-Type": "application/json" }, body: JSON.stringify(body(model)), signal: ac.signal });
         if (res.ok && streaming) {
           // wait for the first chunk under the same timer, so a model that accepts but stalls counts as no answer
           const reader = res.body!.getReader();
-          got = { res, model, reader, first: await reader.read() };
-        } else if (res.ok) got = { res, model };
+          got = { res, model, openai, reader, first: await reader.read() };
+        } else if (res.ok) got = { res, model, openai };
       } catch (err) {
         if (!timedOut || signal?.aborted) throw err;
         res = null;
@@ -192,7 +297,7 @@ async function post(models: string[], method: string, body: (model: string) => u
       }
       if (got) {
         // the caller's abort keeps cancelling the body read through ac
-        if (mi > 0 || attempt > 0) console.warn(`[gemini] answered by ${model} (chain ${models.join(",")})`);
+        if (mi > 0 || attempt > 0 || got.openai) console.warn(`[gemini] answered by ${model} (chain ${models.join(",")})`);
         return got;
       }
       signal?.removeEventListener("abort", onAbort);
@@ -218,7 +323,20 @@ async function post(models: string[], method: string, body: (model: string) => u
   throw last ?? new GeminiError("Gemini: no model configured", 500);
 }
 
-async function* sse(reader: ReadableStreamDefaultReader<Uint8Array>, first?: ReadableStreamReadResult<Uint8Array>): AsyncGenerator<GResponse> {
+async function* sse(reader: ReadableStreamDefaultReader<Uint8Array>, first?: ReadableStreamReadResult<Uint8Array>, openai = false): AsyncGenerator<GResponse> {
+  if (openai) {
+    const conv = new OpenAIToGemini();
+    for await (const data of sseData(reader, first)) {
+      if (data === "[DONE]") break;
+      yield* conv.convert(JSON.parse(data) as OAChunk);
+    }
+    yield* conv.flush();
+    return;
+  }
+  for await (const data of sseData(reader, first)) yield JSON.parse(data) as GResponse;
+}
+
+async function* sseData(reader: ReadableStreamDefaultReader<Uint8Array>, first?: ReadableStreamReadResult<Uint8Array>): AsyncGenerator<string> {
   const dec = new TextDecoder();
   let buf = "";
   for (let pending = first; ; pending = undefined) {
@@ -234,11 +352,11 @@ async function* sse(reader: ReadableStreamDefaultReader<Uint8Array>, first?: Rea
         .filter((l) => l.startsWith("data:"))
         .map((l) => l.slice(5).trimStart())
         .join("\n");
-      if (data) yield JSON.parse(data) as GResponse;
+      if (data) yield data;
     }
   }
   const rest = buf.trim();
-  if (rest.startsWith("data:")) yield JSON.parse(rest.slice(5).trimStart()) as GResponse;
+  if (rest.startsWith("data:")) yield rest.slice(5).trimStart();
 }
 
 /** Collects streamed (or one-shot) Gemini chunks into one model turn and an Anthropic-shaped message. */
@@ -325,10 +443,10 @@ export function geminiStream(params: Anthropic.MessageCreateParams, opts?: { sig
       const chain = modelChain(params.model);
       const pinned = turnModel(params.messages);
       const models = pinned && chain.includes(pinned) ? [pinned, ...chain.filter((m) => m !== pinned)] : chain;
-      const { res, model, reader, first } = await post(models, "streamGenerateContent?alt=sse", (m) => toRequest(params, m), opts?.signal);
+      const { res, model, openai, reader, first } = await post(models, "streamGenerateContent?alt=sse", (m) => toRequest(params, m), opts?.signal);
       usedModel = model;
       const queue: Anthropic.MessageStreamEvent[] = [];
-      for await (const chunk of sse(reader ?? res.body!.getReader(), first)) {
+      for await (const chunk of sse(reader ?? res.body!.getReader(), first, openai)) {
         turn.add(
           chunk,
           (text) => queue.push({ type: "content_block_delta", index: 0, delta: { type: "text_delta", text } } as Anthropic.MessageStreamEvent),
@@ -356,9 +474,10 @@ export function geminiStream(params: Anthropic.MessageCreateParams, opts?: { sig
 
 /** One-shot generate (generateContent) with structured output parsed by the format's own zod parser. */
 export async function geminiParse<T = unknown>(params: Anthropic.MessageCreateParams, opts?: { signal?: AbortSignal | null }): Promise<Anthropic.Message & { parsed_output: T | null }> {
-  const { res, model } = await post(modelChain(params.model), "generateContent", (m) => toRequest(params, m), opts?.signal);
+  const { res, model, openai } = await post(modelChain(params.model), "generateContent", (m) => toRequest(params, m), opts?.signal);
   const turn = new Turn();
-  turn.add((await res.json()) as GResponse);
+  if (openai) for (const r of new OpenAIToGemini().convert((await res.json()) as OAChunk, true)) turn.add(r);
+  else turn.add((await res.json()) as GResponse);
   const msg = turn.message(model);
   const fmt = (params as unknown as { output_config?: { format?: { parse?: (s: string) => T } } }).output_config?.format;
   const text = msg.content.map((b) => (b.type === "text" ? b.text : "")).join("");

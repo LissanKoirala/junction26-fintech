@@ -12,7 +12,7 @@ import { EFFORT, MODEL, PROVIDER, clientIp, isRateLimitError, rateLimit, streamM
 import { STATIC_SYSTEM, languageLine, snapshot } from "./prompt";
 import { tr, type Lang } from "../../shared/i18n";
 import { TOOL_PARAMS, runTool, toolStatus, type ToolCtx } from "./tools";
-import { checkProse, userNumbers } from "./guard";
+import { checkProse, userNumbers, verdictConflict } from "./guard";
 
 const MAX_ROUNDS = 8;
 const MAX_TOKENS = 4096;
@@ -192,6 +192,7 @@ export function registerChatRoutes(app: Hono) {
         const toolsUsed: string[] = [];
         let rounds = 0;
         let nudged = false;
+        let forceCrave = false;
         for (; rounds < MAX_ROUNDS; rounds++) {
           if (!takeDailyBudget()) throw new UserError(T.t("Vara has answered a lot of questions today and is resting. Please try again tomorrow."));
           const lastRound = rounds === MAX_ROUNDS - 1;
@@ -202,12 +203,13 @@ export function registerChatRoutes(app: Hono) {
               max_tokens: MAX_TOKENS,
               system,
               tools: TOOL_PARAMS,
-              tool_choice: lastRound ? { type: "none" } : { type: "auto" },
+              tool_choice: lastRound ? { type: "none" } : forceCrave ? { type: "tool", name: "offer_crave_mode" } : { type: "auto" },
               messages,
               output_config: { effort: EFFORT },
             },
             { signal: ac.signal },
           );
+          forceCrave = false;
           // Hold back the first ~240 characters of each round: if a tool call follows, that text was only a
           // preamble ("let me check…") and is dropped; otherwise it streams as soon as it is long enough.
           let held = "";
@@ -242,6 +244,15 @@ export function registerChatRoutes(app: Hono) {
               messages.push({ role: "user", content: "(Now write your short answer to the user, with card markers and the [[suggest: ...]] line.)" });
               continue;
             }
+            // the answer talks about Crave mode but the tool was not called (no card to open it): ask once for the call
+            if (!nudged && rounds < MAX_ROUNDS - 2 && !toolsUsed.includes("offer_crave_mode") && !toolsUsed.includes("get_crave_pot") && /crave (mode|pot)|mielitekotil|mielitekopot|simulated shop/i.test(prose)) {
+              nudged = true;
+              forceCrave = true; // this round must call the tool; the next one writes the marker
+              log.craveNudge = true;
+              messages.push({ role: "assistant", content: msg.content });
+              messages.push({ role: "user", content: "(System: call offer_crave_mode for this craving now, then reply with only its [[card:...]] marker. Do not repeat your earlier text.)" });
+              continue;
+            }
             break;
           }
           if (msg.stop_reason === "tool_use" && msg.usage.output_tokens >= MAX_TOKENS) throw new Error("tool input truncated");
@@ -267,6 +278,15 @@ export function registerChatRoutes(app: Hono) {
           messages.push({ role: "user", content: results });
         }
         parser.end();
+
+        // verdict guard: if the prose contradicts the engine's affordability verdict, append the engine's sentence
+        const conflict = verdictConflict(prose, fullResults);
+        if (conflict) {
+          const fix = `\n\n${conflict.say}`;
+          prose += fix;
+          await send({ type: "text_delta", text: fix });
+          log.verdictFix = conflict.verdict;
+        }
 
         // fallback: if the model referenced no card, show the main card of each tool call (max 2)
         if (!shown.size && primary.length) {
